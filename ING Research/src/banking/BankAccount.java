@@ -26,6 +26,7 @@ public class BankAccount {
 		this.mainHolder = holder;
 		this.holders = new HashSet<CustomerAccount>();
 		this.holders.add(holder);
+		holder.getBankAccounts().add(this);
 	}
 	
 	/**
