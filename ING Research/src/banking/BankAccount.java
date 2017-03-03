@@ -56,10 +56,16 @@ public class BankAccount {
 	 * Close the <code>BankAccount</code>.
 	 */
 	public void close() throws IllegalCloseException {
-		if (balance < 0) {
+		if (balance != 0) {
 			throw new IllegalCloseException(IBAN, balance);
 		}
-		//TODO: Implement
+		
+		for (CustomerAccount account : holders) {
+			account.removeBankAccount(this);
+		}
+		
+		mainHolder = null;
+		holders = null;
 	}
 	
 	/**
