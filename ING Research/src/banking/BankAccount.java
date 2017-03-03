@@ -50,6 +50,8 @@ public class BankAccount {
 		} else if (balance < amount) {
 			throw new IllegalTransferException(balance, IBAN, amount);
 		}
+		
+		balance -= amount;
 	}
 	
 	/**
@@ -77,5 +79,27 @@ public class BankAccount {
 	 */
 	public void viewBalance() {
 		System.out.println("Current balance for account " + IBAN + ": " + balance);
+	}
+	
+	/**
+	 * Credits a <code>BankAccount</code> with a specific amount of money
+	 * @param amount The amount of money to credit the <code>BankAccount</code> with
+	 */
+	public void credit (float amount) throws IllegalAmountException {
+		if (amount <= 0) {
+			// You cannot credit an account with a negative amount of money
+			throw new IllegalAmountException(amount);
+		}
+		
+		balance += amount;
+	}
+	
+	public void debit (float amount) throws IllegalAmountException {
+		if (amount <= 0) {
+			// You cannot debit an account by a positive amount of money
+			throw new IllegalAmountException(amount);
+		}
+		
+		balance -= amount;
 	}
 }
