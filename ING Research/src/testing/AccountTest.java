@@ -26,12 +26,14 @@ public class AccountTest {
 		}
 	}
 
+	//Test whether new BankAccounts are correctly initialized and linked to the originating CustomerAccount
 	@Test
 	public void accountCreationTest() {
 		assertTrue(customerAccount.getBankAccounts().size() == 1);
 		assertTrue(bankAccount.getBalance() == 0);
 	}
 	
+	//Test whether deposits are correctly handled
 	@Test
 	public void accountDepositTest() {
 		try {
@@ -43,6 +45,7 @@ public class AccountTest {
 		assertTrue(bankAccount.getBalance() == 100);
 	}
 	
+	//Test whether illegal attempts to close a BankAccount are correctly handled
 	@Test
 	public void illegalClosingExceptionTest() {
 		try {
@@ -60,6 +63,7 @@ public class AccountTest {
 		assertTrue(customerAccount.getBankAccounts().size() == 1);
 	}
 	
+	//Test whether BankAccounts are correctly removed from the originating CustomerAccount on closing them 
 	@Test
 	public void accountClosingTest() {
 		try {
@@ -71,6 +75,7 @@ public class AccountTest {
 		assertTrue(customerAccount.getBankAccounts().size() == 0);
 	}
 	
+	//Test whether the correct BankAccount is removed from the originating CustomerAccount on closing
 	@Test
 	public void multipleAccountClosingTest() {
 		customerAccount.openBankAccount();
@@ -85,6 +90,7 @@ public class AccountTest {
 		assertFalse(customerAccount.getBankAccounts().contains(bankAccount));
 	}
 
+	//Test whether invalid amounts in deposits are handled correctly
 	@Test
 	public void illegalDepositTest() {
 		try {
@@ -96,6 +102,7 @@ public class AccountTest {
 		assertTrue(bankAccount.getBalance() == 0);
 	}
 
+	//Test whether transfers are executed correctly
 	@Test
 	public void transferTest() {
 		BankAccount bankAccount2 = new BankAccount(customerAccount);
@@ -118,6 +125,7 @@ public class AccountTest {
 	
 	
 
+	//Test whether illegal (negative) debit amounts are recognized and handled correctly
 	@Test
 	public void illegalDebitTest() {
 		try {
@@ -129,6 +137,7 @@ public class AccountTest {
 		assertTrue(bankAccount.getBalance() == 0);
 	}
 	
+	//Test whether illegal (negative) credit amounts are recognized and handled correctly
 	@Test
 	public void illegalCreditTest() {
 		try {
@@ -140,6 +149,7 @@ public class AccountTest {
 		assertTrue(bankAccount.getBalance() == 0);
 	}
 	
+	//Test whether debiting a BankAccount correctly decreases its balance
 	@Test
 	public void debitTest() {
 		try {
@@ -151,6 +161,7 @@ public class AccountTest {
 		assertTrue(bankAccount.getBalance() == -1000);
 	}
 	
+	//Test whether crediting a BankAccount correctly increases its balance
 	@Test
 	public void creditTest() {
 		try {
@@ -162,6 +173,7 @@ public class AccountTest {
 		assertTrue(bankAccount.getBalance() == 1000);
 	}
 	
+	//Test whether transfers with illegal (negative) amounts are recognized and handled correctly
 	public void illegalTransferAmountTest() {
 		BankAccount bankAccount2 = new BankAccount(customerAccount);
 		try {
@@ -182,6 +194,7 @@ public class AccountTest {
 		assertTrue(bankAccount.getBalance() == 0);
 	}
 	
+	//Test whether attempting to transfer without having enough money is handled correctly
 	public void illegalTransferTest() {
 		BankAccount bankAccount2 = new BankAccount(customerAccount);
 		try {
