@@ -1,8 +1,7 @@
 package exceptions;
 
 /**
- * Thrown when a customer attempts to close a BankAccount with a negative balance.
- * Outstanding debts must be paid before an account can be closed. 
+ * Thrown when a customer attempts to close a BankAccount with a nonzero balance.
  * @author Andrei Cojocaru
  */
 public class IllegalCloseException extends Exception {
@@ -15,6 +14,6 @@ public class IllegalCloseException extends Exception {
 	}
 	
 	public String toString() {
-		return "Attempted to close account " + IBAN + " which has a negative balance of " + balance;
+		return "Attempted to close account " + IBAN + " which has a balance of " + balance;
 	}
 }
