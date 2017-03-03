@@ -46,4 +46,12 @@ public class CustomerAccount {
 	public void openBankAccount() {
 		bankAccounts.add(new BankAccount(this));
 	}
+	
+	public void removeAccount(BankAccount account) {
+		if (bankAccounts.contains(account)) {
+			bankAccounts.remove(account);
+		} else {
+			//TODO: Handle misuse
+		}
+	}
 }
