@@ -47,7 +47,7 @@ public class CustomerAccount {
 		bankAccounts.add(new BankAccount(this));
 	}
 	
-	public void removeAccount(BankAccount account) {
+	public void removeBankAccount(BankAccount account) {
 		if (bankAccounts.contains(account)) {
 			bankAccounts.remove(account);
 		} else {
