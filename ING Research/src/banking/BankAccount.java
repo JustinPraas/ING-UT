@@ -51,7 +51,8 @@ public class BankAccount {
 			throw new IllegalTransferException(balance, IBAN, amount);
 		}
 		
-		balance -= amount;
+		this.debit(amount);
+		destination.credit(amount);
 	}
 	
 	/**
@@ -86,6 +87,7 @@ public class BankAccount {
 	 * @param amount The amount of money to credit the <code>BankAccount</code> with
 	 */
 	public void credit (float amount) throws IllegalAmountException {
+		//TODO: Log
 		if (amount <= 0) {
 			// You cannot credit an account with a negative amount of money
 			throw new IllegalAmountException(amount);
@@ -95,6 +97,7 @@ public class BankAccount {
 	}
 	
 	public void debit (float amount) throws IllegalAmountException {
+		//TODO: Log
 		if (amount <= 0) {
 			// You cannot debit an account by a positive amount of money
 			throw new IllegalAmountException(amount);
