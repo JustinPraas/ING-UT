@@ -41,4 +41,11 @@ public class BankAccount {
 	public void transfer(BankAccount source, BankAccount destination, float amount) {
 		//TODO: Implement
 	}
+	
+	/**
+	 * Close the <code>BankAccount</code>.
+	 */
+	public void close() {
+		//TODO: Implement
+	}
 }
