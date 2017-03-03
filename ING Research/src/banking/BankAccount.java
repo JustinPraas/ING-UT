@@ -2,6 +2,8 @@ package banking;
 
 import java.util.HashSet;
 
+import exceptions.InvalidAmountException;
+
 /**
  * A simple model of a bank account in an abstract currency.
  * @author Andrei Cojocaru
@@ -28,7 +30,10 @@ public class BankAccount {
 	 * Deposit a specific sum of money into the <code>BankAccount</code>.
 	 * @param amount The amount of money to be deposited
 	 */
-	public void deposit(float amount) {
+	public void deposit(float amount) throws InvalidAmountException {
+		if (amount <= 0) {
+			throw new InvalidAmountException(amount);
+		}
 		balance += amount;
 	}
 	
@@ -38,7 +43,10 @@ public class BankAccount {
 	 * @param destination The <code>BankAccount</code> to which the transferred money should go
 	 * @param amount The amount of money to be transferred from the source to the destination
 	 */
-	public void transfer(BankAccount source, BankAccount destination, float amount) {
+	public void transfer(BankAccount source, BankAccount destination, float amount) throws InvalidAmountException {
+		if (amount <= 0) {
+			throw new InvalidAmountException(amount);
+		}
 		//TODO: Implement
 	}
 	
