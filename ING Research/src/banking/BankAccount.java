@@ -68,6 +68,10 @@ public class BankAccount {
 		holders = null;
 	}
 	
+	public float getBalance() {
+		return balance;
+	}
+	
 	/**
 	 * Displays the <code>BankAccount</code>'s balance to the TUI.
 	 */
