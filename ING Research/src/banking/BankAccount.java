@@ -39,12 +39,11 @@ public class BankAccount {
 	}
 	
 	/**
-	 * Transfers a specific amount of money from one <code>BankAccount</code> to another.
-	 * @param source The <code>BankAccount</code> from which the transfer is made
+	 * Transfers a specific amount of money from this <code>BankAccount</code> to another.
 	 * @param destination The <code>BankAccount</code> to which the transferred money should go
-	 * @param amount The amount of money to be transferred from the source to the destination
+	 * @param amount The amount of money to be transferred from this <code>BankAccount</code> to the destination
 	 */
-	public void transfer(BankAccount source, BankAccount destination, float amount) throws IllegalAmountException {
+	public void transfer(BankAccount destination, float amount) throws IllegalAmountException {
 		if (amount <= 0) {
 			throw new IllegalAmountException(amount);
 		}
