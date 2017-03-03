@@ -48,4 +48,11 @@ public class BankAccount {
 	public void close() {
 		//TODO: Implement
 	}
+	
+	/**
+	 * Displays the <code>BankAccount</code>'s balance to the TUI.
+	 */
+	public void viewBalance() {
+		System.out.println("Current balance for account " + IBAN + ": " + balance);
+	}
 }
