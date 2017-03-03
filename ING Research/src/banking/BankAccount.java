@@ -2,8 +2,8 @@ package banking;
 
 import java.util.HashSet;
 
-import exceptions.InvalidAmountException;
-import exceptions.InvalidCloseException;
+import exceptions.IllegalAmountException;
+import exceptions.IllegalCloseException;
 
 /**
  * A simple model of a bank account in an abstract currency.
@@ -31,9 +31,9 @@ public class BankAccount {
 	 * Deposit a specific sum of money into the <code>BankAccount</code>.
 	 * @param amount The amount of money to be deposited
 	 */
-	public void deposit(float amount) throws InvalidAmountException {
+	public void deposit(float amount) throws IllegalAmountException {
 		if (amount <= 0) {
-			throw new InvalidAmountException(amount);
+			throw new IllegalAmountException(amount);
 		}
 		balance += amount;
 	}
@@ -44,9 +44,9 @@ public class BankAccount {
 	 * @param destination The <code>BankAccount</code> to which the transferred money should go
 	 * @param amount The amount of money to be transferred from the source to the destination
 	 */
-	public void transfer(BankAccount source, BankAccount destination, float amount) throws InvalidAmountException {
+	public void transfer(BankAccount source, BankAccount destination, float amount) throws IllegalAmountException {
 		if (amount <= 0) {
-			throw new InvalidAmountException(amount);
+			throw new IllegalAmountException(amount);
 		}
 		//TODO: Implement
 	}
@@ -54,9 +54,9 @@ public class BankAccount {
 	/**
 	 * Close the <code>BankAccount</code>.
 	 */
-	public void close() throws InvalidCloseException {
+	public void close() throws IllegalCloseException {
 		if (balance < 0) {
-			throw new InvalidCloseException(IBAN, balance);
+			throw new IllegalCloseException(IBAN, balance);
 		}
 		//TODO: Implement
 	}

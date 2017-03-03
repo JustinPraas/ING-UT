@@ -5,11 +5,11 @@ package exceptions;
  * Outstanding debts must be paid before an account can be closed. 
  * @author Andrei Cojocaru
  */
-public class InvalidCloseException extends Exception {
+public class IllegalCloseException extends Exception {
 	float balance;
 	String IBAN;
 	
-	public InvalidCloseException(String IBAN, float balance) {
+	public IllegalCloseException(String IBAN, float balance) {
 		this.balance = balance;
 		this.IBAN = IBAN;
 	}

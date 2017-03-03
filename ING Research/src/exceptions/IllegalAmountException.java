@@ -5,14 +5,14 @@ package exceptions;
  * an amount <= 0 is chosen.
  * @author Andrei Cojocaru
  */
-public class InvalidAmountException extends Exception {
+public class IllegalAmountException extends Exception {
 	private float amount;
 	
-	public InvalidAmountException (float amount) {
+	public IllegalAmountException (float amount) {
 		this.amount = amount;
 	}
 	
 	public String toString() {
-		return "Invalid amount specified: " + amount;
+		return "Illegal amount specified: " + amount;
 	}
 }
