@@ -174,6 +174,7 @@ public class AccountTest {
 	}
 	
 	//Test whether transfers with illegal (negative) amounts are recognized and handled correctly
+	@Test
 	public void illegalTransferAmountTest() {
 		BankAccount bankAccount2 = new BankAccount(customerAccount);
 		try {
@@ -195,6 +196,7 @@ public class AccountTest {
 	}
 	
 	//Test whether attempting to transfer without having enough money is handled correctly
+	@Test
 	public void illegalTransferTest() {
 		BankAccount bankAccount2 = new BankAccount(customerAccount);
 		try {
