@@ -54,4 +54,8 @@ public class CustomerAccount {
 			//TODO: Handle misuse
 		}
 	}
+	
+	public HashSet<BankAccount> getBankAccounts() {
+		return bankAccounts;
+	}
 }
