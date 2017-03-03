@@ -1,4 +1,4 @@
-package banking;
+package accounts;
 
 import java.util.HashSet;
 

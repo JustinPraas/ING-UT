@@ -7,8 +7,8 @@ import java.util.Date;
 import org.junit.Before;
 import org.junit.Test;
 
-import banking.BankAccount;
-import banking.CustomerAccount;
+import accounts.BankAccount;
+import accounts.CustomerAccount;
 import exceptions.IllegalAmountException;
 import exceptions.IllegalCloseException;
 import exceptions.IllegalTransferException;
