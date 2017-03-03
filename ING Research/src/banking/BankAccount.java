@@ -3,6 +3,7 @@ package banking;
 import java.util.HashSet;
 
 import exceptions.InvalidAmountException;
+import exceptions.InvalidCloseException;
 
 /**
  * A simple model of a bank account in an abstract currency.
@@ -53,7 +54,10 @@ public class BankAccount {
 	/**
 	 * Close the <code>BankAccount</code>.
 	 */
-	public void close() {
+	public void close() throws InvalidCloseException {
+		if (balance < 0) {
+			throw new InvalidCloseException(IBAN, balance);
+		}
 		//TODO: Implement
 	}
 	
