@@ -4,6 +4,7 @@ import java.util.HashSet;
 
 import exceptions.IllegalAmountException;
 import exceptions.IllegalCloseException;
+import exceptions.IllegalTransferException;
 
 /**
  * A simple model of a bank account in an abstract currency.
@@ -43,11 +44,12 @@ public class BankAccount {
 	 * @param destination The <code>BankAccount</code> to which the transferred money should go
 	 * @param amount The amount of money to be transferred from this <code>BankAccount</code> to the destination
 	 */
-	public void transfer(BankAccount destination, float amount) throws IllegalAmountException {
+	public void transfer(BankAccount destination, float amount) throws IllegalAmountException, IllegalTransferException {
 		if (amount <= 0) {
 			throw new IllegalAmountException(amount);
+		} else if (balance < amount) {
+			throw new IllegalTransferException(balance, IBAN, amount);
 		}
-		//TODO: Implement
 	}
 	
 	/**
