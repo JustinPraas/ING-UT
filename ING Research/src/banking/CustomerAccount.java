@@ -50,9 +50,8 @@ public class CustomerAccount {
 	public void removeBankAccount(BankAccount account) {
 		if (bankAccounts.contains(account)) {
 			bankAccounts.remove(account);
-		} else {
-			//TODO: Handle misuse
-		}
+		} 
+		//TODO: Maybe throw an exception in the other case?
 	}
 	
 	public HashSet<BankAccount> getBankAccounts() {
