@@ -151,9 +151,9 @@ public class AccountTest {
 	
 	//Test whether debiting a BankAccount correctly decreases its balance
 	@Test
-	public void debitTest() {
+	public void creditTest() {
 		try {
-			bankAccount.debit(1000);
+			bankAccount.credit(1000);
 		} catch (IllegalAmountException e) {
 			
 		}
@@ -163,9 +163,9 @@ public class AccountTest {
 	
 	//Test whether crediting a BankAccount correctly increases its balance
 	@Test
-	public void creditTest() {
+	public void debitTest() {
 		try {
-			bankAccount.credit(1000);
+			bankAccount.debit(1000);
 		} catch (IllegalAmountException e) {
 			
 		}
