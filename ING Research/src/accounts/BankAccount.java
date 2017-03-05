@@ -10,7 +10,6 @@ import exceptions.IllegalTransferException;
  * A simple model of a bank account in an abstract currency.
  * @author Andrei Cojocaru
  */
-
 public class BankAccount {
 	private float balance;
 	private String IBAN;
@@ -51,8 +50,8 @@ public class BankAccount {
 			throw new IllegalTransferException(balance, IBAN, amount);
 		}
 		
-		this.debit(amount);
-		destination.credit(amount);
+		this.credit(amount);
+		destination.debit(amount);
 	}
 	
 	/**
@@ -85,6 +84,7 @@ public class BankAccount {
 	/**
 	 * Credits a <code>BankAccount</code> with a specific amount of money
 	 * @param amount The amount of money to credit the <code>BankAccount</code> with
+	 * @throws IllegalAmountException Thrown when the specified amount is 0 or negative
 	 */
 	public void credit (float amount) throws IllegalAmountException {
 		//TODO: Log
@@ -92,17 +92,20 @@ public class BankAccount {
 			// You cannot credit an account with a negative amount of money
 			throw new IllegalAmountException(amount);
 		}
-		
-		balance += amount;
+		balance -= amount;
 	}
 	
+	/**
+	 * Debits a <code>BankAccount</code> with a specific amount of money
+	 * @param amount The amount of money to debit the <code>BankAccount</code> with
+	 * @throws Thrown when the specified amount is 0 or negative
+	 */
 	public void debit (float amount) throws IllegalAmountException {
 		//TODO: Log
 		if (amount <= 0) {
 			// You cannot debit an account by a positive amount of money
 			throw new IllegalAmountException(amount);
 		}
-		
-		balance -= amount;
+		balance += amount;
 	}
 }
