@@ -26,34 +26,43 @@ public class BankAccount {
 	 */
 	public BankAccount(CustomerAccount holder) {
 		this.balance = 0;
-		this.IBAN = generateIBAN(COUNTRY_CODE, BANK_CODE);
+		this.IBAN = generateIBAN(COUNTRY_CODE, BANK_CODE, randomPAN());
 		this.mainHolder = holder;
 		this.holders = new HashSet<CustomerAccount>();
 		this.holders.add(holder);
 	}
 	
 	/**
-	 * Generates an IBAN for this BankAccount
-	 * @param countryCode The code that represents a country (e.g. NL, BE, DE, etc.)
-	 * @param bankCode The code that represents the Bank (e.g. INGB, ABNA, etc.)
-	 * @return resultIBAN The IBAN 
+	 * Generates a random personal account number of 10 digits long.
+	 * @return personalAccountNumber.toString() The personal accountNumber for the IBAN
 	 */
-	public static String generateIBAN(String countryCode, String bankCode) {
+	private String randomPAN() {
 		//The personalAccountNumber (last 10 digits) should be hierarchically distributed.
 		//However, we do not keep track of used numbers yet, so for now assign 10 random digits
 		StringBuilder personalAccountNumber = new StringBuilder();
 		for (int i = 0; i < 10; i++) {
 			personalAccountNumber.append((int) (Math.random() * 10));
-		}		
+		}	
 		
+		return personalAccountNumber.toString();
+	}
+
+	/**
+	 * Generates an IBAN for this BankAccount
+	 * @param countryCode The code that represents a country (e.g. NL, BE, DE, etc.)
+	 * @param bankCode The code that represents the Bank (e.g. INGB, ABNA, etc.)
+	 * @param pan The personal account number of the BankAccount
+	 * @return resultIBAN The IBAN 
+	 */
+	public static String generateIBAN(String countryCode, String bankCode, String pan) {
 		//Compute the controlNumber for this IBAN
-		int controlNumber = generateControlNumber(countryCode, bankCode, personalAccountNumber.toString());
+		int controlNumber = generateControlNumber(countryCode, bankCode, pan.toString());
 		
 		//If the control number consists of 1 digit, prepend a 0
 		String controlNumberString = controlNumber < 10 ? "0" + controlNumber : "" + controlNumber;	
 		
 		//Concatenate all parts of the IBAN to a complete IBAN	
-		String resultIBAN = countryCode + controlNumberString + bankCode + personalAccountNumber;
+		String resultIBAN = countryCode + controlNumberString + bankCode + pan;
 		
 		return resultIBAN;
 	}
