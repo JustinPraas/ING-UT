@@ -57,4 +57,8 @@ public class CustomerAccount {
 	public HashSet<BankAccount> getBankAccounts() {
 		return bankAccounts;
 	}
+
+	public String getName() {
+		return name + " " + surname;
+	}
 }

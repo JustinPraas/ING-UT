@@ -12,7 +12,7 @@ import exceptions.IllegalTransferException;
  */
 public class BankAccount {
 	private float balance;
-	private String IBAN;
+	private String IBAN; //TODO: For later use: http://www.ibannl.org/uitleg-over-iban/ (Format for the Dutch IBAN code, might be useful for later) (unfortunately in Dutch)
 	private CustomerAccount mainHolder;
 	private HashSet<CustomerAccount> holders;
 	
@@ -107,5 +107,13 @@ public class BankAccount {
 			throw new IllegalAmountException(amount);
 		}
 		balance += amount;
+	}
+	
+	public CustomerAccount getMainHolder() {
+		return mainHolder;
+	}
+	
+	public String getIBAN() {
+		return IBAN;
 	}
 }
