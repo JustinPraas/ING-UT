@@ -1,7 +1,6 @@
 package accounts;
 
 import java.util.Calendar;
-import java.util.Date;
 import java.util.HashSet;
 
 import database.BankingLogger;
@@ -145,7 +144,6 @@ public class BankAccount {
 		this.credit(amount, "Transfer to " + destination.getIBAN());
 		destination.debit(amount, "Transfer from " + this.getIBAN());
 		Calendar c = Calendar.getInstance();
-		c.setTime(new Date());
 		BankingLogger.logTransfer(this, destination, amount, new Timestamp(c.getTimeInMillis()));
 		//TODO: Add transfer description
 	}
@@ -189,7 +187,6 @@ public class BankAccount {
 		}
 		balance -= amount;
 		Calendar c = Calendar.getInstance();
-		c.setTime(new Date());
 		BankingLogger.logPayment(this, amount, "credit", new Timestamp(c.getTimeInMillis()), description);
 	}
 	
@@ -204,7 +201,6 @@ public class BankAccount {
 		}
 		balance += amount;
 		Calendar c = Calendar.getInstance();
-		c.setTime(new Date());
 		BankingLogger.logPayment(this, amount, "debit", new Timestamp(c.getTimeInMillis()), description);
 	}
 	
