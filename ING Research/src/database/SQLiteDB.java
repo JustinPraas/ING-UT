@@ -12,6 +12,8 @@ import java.util.List;
 
 /**
  * A "static" class used to interface with the banking database.
+ * Note: Due to the nature of the project, hashing and security will not
+ * be implemented until specifically requested.
  * @author Andrei Cojocaru
  */
 public class SQLiteDB {
@@ -69,6 +71,7 @@ public class SQLiteDB {
 		}
 	}
 	
+	//TODO: Remove when no longer necessary
 	public static void main(String[] args) {
 		if (SQLiteDB.getConn() == null) {
 			SQLiteDB.initializeDB();

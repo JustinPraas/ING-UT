@@ -195,4 +195,8 @@ public class BankAccount {
 	public String getIBAN() {
 		return IBAN;
 	}
+	
+	public CustomerAccount getMainHolder() {
+		return mainHolder;
+	}
 }
