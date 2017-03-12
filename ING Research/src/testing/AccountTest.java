@@ -39,7 +39,7 @@ public class AccountTest {
 		try {
 			bankAccount.deposit(100);
 		} catch (IllegalAmountException e) {
-			e.printStackTrace();
+			
 		}
 		
 		assertTrue(bankAccount.getBalance() == 100);
@@ -51,7 +51,7 @@ public class AccountTest {
 		try {
 			bankAccount.deposit(100);
 		} catch (IllegalAmountException e) {
-			e.printStackTrace();
+			
 		}
 		
 		try {
@@ -69,7 +69,7 @@ public class AccountTest {
 		try {
 			bankAccount.close();
 		} catch (IllegalCloseException e) {
-			e.printStackTrace();
+			
 		}
 		
 		assertTrue(customerAccount.getBankAccounts().size() == 0);
@@ -83,7 +83,7 @@ public class AccountTest {
 		try {
 			bankAccount.close();
 		} catch (IllegalCloseException e) {
-			e.printStackTrace();
+			
 		}
 		
 		assertTrue(customerAccount.getBankAccounts().size() == 1);
@@ -96,7 +96,7 @@ public class AccountTest {
 		try {
 			bankAccount.deposit(-100);
 		} catch (IllegalAmountException e) {
-			e.printStackTrace();
+			
 		}
 		
 		assertTrue(bankAccount.getBalance() == 0);
@@ -109,15 +109,15 @@ public class AccountTest {
 		try {
 			bankAccount2.deposit(100);
 		} catch (IllegalAmountException e) {
-			e.printStackTrace();
+			
 		}
 		
 		try {
 			bankAccount2.transfer(bankAccount, 100);
 		} catch (IllegalAmountException e) {
-			e.printStackTrace();
+			
 		} catch (IllegalTransferException e) {
-			e.printStackTrace();
+			
 		}
 		assertTrue(bankAccount.getBalance() == 100);
 		assertTrue(bankAccount2.getBalance() == 0);
@@ -180,7 +180,7 @@ public class AccountTest {
 		try {
 			bankAccount2.deposit(100);
 		} catch (IllegalAmountException e) {
-			e.printStackTrace();
+			
 		}
 		
 		try {
@@ -202,7 +202,7 @@ public class AccountTest {
 		try {
 			bankAccount2.deposit(100);
 		} catch (IllegalAmountException e) {
-			e.printStackTrace();
+			
 		}
 		
 		try {
