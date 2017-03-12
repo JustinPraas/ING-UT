@@ -33,6 +33,13 @@ CREATE TABLE IF NOT EXISTS customerbankaccounts (
     PRIMARY KEY(customer_BSN, IBAN)
 );
 
+CREATE TABLE IF NOT EXISTS payments (
+    IBAN VARCHAR NOT NULL,
+    amount NUMERIC NOT NULL,
+    date_time DATETIME NOT NULL,
+    payment_type VARCHAR NOT NULL
+)
+
 CREATE TABLE IF NOT EXISTS transfers (
     source_IBAN VARCHAR NOT NULL,
     destination_IBAN VARCHAR NOT NULL,

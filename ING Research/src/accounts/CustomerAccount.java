@@ -3,6 +3,8 @@ package accounts;
 import java.util.Date;
 import java.util.HashSet;
 
+import database.BankingLogger;
+
 /**
  * A bank customer's main account, to which multiple <code>BankAccounts</code> may be tied.
  * @author Andrei Cojocaru
@@ -37,28 +39,45 @@ public class CustomerAccount {
 		this.setPhoneNumber(phoneNumber);
 		this.setEmail(email);
 		this.setBirthdate(birthdate);
+		BankingLogger.addCustomerAccountEntry(this);
 	}
 	
 	/**
 	 * Open a new <code>BankAccount</code> in this holder's name.
+	 * Adds this and the respective association to the database.
 	 */
 	public void openBankAccount() {
-		bankAccounts.add(new BankAccount(this));
+		BankAccount newAccount = new BankAccount(this);
+		bankAccounts.add(newAccount);
+		BankingLogger.addBankAccountEntry(newAccount);
 	}
 	
+	/**
+	 * Adds the <code>CustomerAccount</code> as an owner to a pre-existing
+	 * <code>BankAccount</code>. Also adds the appropriate association to the
+	 * database.
+	 * @param account The <code>BankAccount</code> to be owned by the customer.
+	 */
 	public void addBankAccount(BankAccount account) {
 		if (!bankAccounts.contains(account)) {
 			bankAccounts.add(account);
 		}
 		//TODO: Throw exception if not?
+		BankingLogger.addCustomerBankAccountPairing(this, account);
 	}
 	
+	/**
+	 * Removes the <code>CustomerAccount</code>'s ownership of a given
+	 * <code>BankAccount</code>.
+	 * @param account The <code>BankAccount</code> to remove ownership of
+	 */
 	public void removeBankAccount(BankAccount account) {
 		if (bankAccounts.contains(account)) {
 			bankAccounts.remove(account);
-		} 
+		}
 		//TODO: Maybe throw an exception in the other case?
 		//TODO: Make sure this is not the sole account holder
+		BankingLogger.removeCustomerBankAccountPairing(this, account);
 	}
 	
 	public HashSet<BankAccount> getBankAccounts() {

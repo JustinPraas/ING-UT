@@ -1,6 +1,11 @@
 package accounts;
 
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashSet;
+
+import database.BankingLogger;
+
 import java.math.BigInteger;
 
 import exceptions.IllegalAmountException;
@@ -22,6 +27,7 @@ public class BankAccount {
 	
 	/**
 	 * Create a new <code>BankAccount</code> with a specific account holder and an initial balance of 0.
+	 * Adds it to the banking database with a newly-generated IBAN as primary key.
 	 * @param holder The <code>CustomerAccount</code> considered to be the main holder of this <code>BankAccount</code>
 	 */
 	public BankAccount(CustomerAccount holder) {
@@ -30,6 +36,7 @@ public class BankAccount {
 		this.mainHolder = holder;
 		this.holders = new HashSet<CustomerAccount>();
 		this.holders.add(holder);
+		BankingLogger.addBankAccountEntry(this);
 	}
 	
 	/**
@@ -119,6 +126,7 @@ public class BankAccount {
 			throw new IllegalAmountException(amount);
 		}
 		balance += amount;
+		this.debit(amount, "Physical deposit.");
 	}
 	
 	/**
@@ -133,8 +141,10 @@ public class BankAccount {
 			throw new IllegalTransferException(balance, IBAN, amount);
 		}
 		
-		this.credit(amount);
-		destination.debit(amount);
+		this.credit(amount, "Transfer to " + destination.getIBAN());
+		destination.debit(amount, "Transfer from " + this.getIBAN());
+		BankingLogger.logTransfer(this, destination, amount);
+		//TODO: Add transfer description
 	}
 	
 	/**
@@ -151,6 +161,7 @@ public class BankAccount {
 		
 		mainHolder = null;
 		holders = null;
+		//TODO: Log
 	}
 	
 	public float getBalance() {
@@ -169,13 +180,15 @@ public class BankAccount {
 	 * @param amount The amount of money to credit the <code>BankAccount</code> with
 	 * @throws IllegalAmountException Thrown when the specified amount is 0 or negative
 	 */
-	public void credit (float amount) throws IllegalAmountException {
-		//TODO: Log
+	public void credit (float amount, String description) throws IllegalAmountException {
 		if (amount <= 0) {
-			// You cannot credit an account with a negative amount of money
 			throw new IllegalAmountException(amount);
 		}
 		balance -= amount;
+		Calendar c = Calendar.getInstance();
+		c.setTime(new Date());
+		c.add(Calendar.YEAR, 5);
+		BankingLogger.logPayment(this, amount, "credit", c.getTime(), description);
 	}
 	
 	/**
@@ -183,13 +196,15 @@ public class BankAccount {
 	 * @param amount The amount of money to debit the <code>BankAccount</code> with
 	 * @throws Thrown when the specified amount is 0 or negative
 	 */
-	public void debit (float amount) throws IllegalAmountException {
-		//TODO: Log
+	public void debit (float amount, String description) throws IllegalAmountException {
 		if (amount <= 0) {
-			// You cannot debit an account by a positive amount of money
 			throw new IllegalAmountException(amount);
 		}
 		balance += amount;
+		Calendar c = Calendar.getInstance();
+		c.setTime(new Date());
+		c.add(Calendar.YEAR, 5);
+		BankingLogger.logPayment(this, amount, "debit", c.getTime(), description);
 	}
 	
 	public String getIBAN() {
