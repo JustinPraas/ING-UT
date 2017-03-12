@@ -1,3 +1,16 @@
 CREATE TABLE IF NOT EXISTS bankaccounts (
 IBAN VARCHAR PRIMARY KEY NOT NULL,
-balance NUMERIC DEFAULT 0)
+balance NUMERIC DEFAULT 0,
+customerBSN VARCHAR NOT NULL,
+    FOREIGN KEY(customerBSN) REFERENCES customeraccounts(customerBSN)
+);
+
+CREATE TABLE IF NOT EXISTS customeraccounts (
+customerBSN VARCHAR PRIMARY KEY NOT NULL,
+name VARCHAR NOT NULL,
+surname VARCHAR NOT NULL,
+street_address VARCHAR,
+email VARCHAR,
+phone_number VARCHAR NOT NULL,
+birth_date DATE NOT NULL
+);

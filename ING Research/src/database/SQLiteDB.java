@@ -69,23 +69,10 @@ public class SQLiteDB {
 		}
 	}
 	
-//	public static void main(String[] args) {
-//		if (SQLiteDB.getConn() == null) {
-//			SQLiteDB.initializeDB();
-//			SQLiteDB.initializeTableStructure();
-//		}
-//		
-//		Statement statement = null;
-//		Statement update = null;
-//		try {
-//			statement = SQLiteDB.getConn().createStatement();
-//			statement.executeUpdate("DELETE FROM bankaccounts WHERE IBAN='TEST';");
-//			String query = "SELECT * FROM bankaccounts;";
-//			ResultSet rs = statement.executeQuery(query);
-//			System.out.println(rs.getString("IBAN"));
-//			System.out.println(rs.getFloat("balance"));
-//		} catch (SQLException e) {
-//			e.printStackTrace();
-//		}
-//	}
+	public static void main(String[] args) {
+		if (SQLiteDB.getConn() == null) {
+			SQLiteDB.initializeDB();
+			SQLiteDB.initializeTableStructure();
+		}
+	}
 }
