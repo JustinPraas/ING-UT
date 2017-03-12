@@ -37,8 +37,9 @@ CREATE TABLE IF NOT EXISTS payments (
     IBAN VARCHAR NOT NULL,
     amount NUMERIC NOT NULL,
     date_time DATETIME NOT NULL,
-    payment_type VARCHAR NOT NULL
-)
+    payment_type VARCHAR NOT NULL,
+    description VARCHAR NOT NULL
+);
 
 CREATE TABLE IF NOT EXISTS transfers (
     source_IBAN VARCHAR NOT NULL,

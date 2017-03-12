@@ -2,9 +2,10 @@ package testing;
 
 import static org.junit.Assert.*;
 
-import java.util.Date;
+import java.sql.Date;
 
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import accounts.BankAccount;
@@ -14,14 +15,15 @@ import exceptions.IllegalCloseException;
 import exceptions.IllegalTransferException;
 
 public class AccountTest {
-	BankAccount bankAccount;
-	CustomerAccount customerAccount;
+	public static BankAccount bankAccount;
+	public static CustomerAccount customerAccount;
 	
-	@Before
-	public void setUp() throws Exception {
-		this.customerAccount = new CustomerAccount("John", "Smith", "1453.25.62", "103 Testings Ave.", "000-TEST", "johntest@testing.test", new Date());
+	@BeforeClass
+	public static void setUp() throws Exception {
+		customerAccount = new CustomerAccount("John", "Smith", "1453.25.62", "103 Testings Ave.", "000-TEST", "johntest@testing.test", new Date(0));
 		customerAccount.openBankAccount();
 		for (BankAccount account : customerAccount.getBankAccounts()) {
+			System.out.println("Run");
 			bankAccount = account;
 		}
 	}

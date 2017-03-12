@@ -7,6 +7,7 @@ import java.util.HashSet;
 import database.BankingLogger;
 
 import java.math.BigInteger;
+import java.sql.Timestamp;
 
 import exceptions.IllegalAmountException;
 import exceptions.IllegalCloseException;
@@ -143,7 +144,9 @@ public class BankAccount {
 		
 		this.credit(amount, "Transfer to " + destination.getIBAN());
 		destination.debit(amount, "Transfer from " + this.getIBAN());
-		BankingLogger.logTransfer(this, destination, amount);
+		Calendar c = Calendar.getInstance();
+		c.setTime(new Date());
+		BankingLogger.logTransfer(this, destination, amount, new Timestamp(c.getTimeInMillis()));
 		//TODO: Add transfer description
 	}
 	
@@ -187,8 +190,7 @@ public class BankAccount {
 		balance -= amount;
 		Calendar c = Calendar.getInstance();
 		c.setTime(new Date());
-		c.add(Calendar.YEAR, 5);
-		BankingLogger.logPayment(this, amount, "credit", c.getTime(), description);
+		BankingLogger.logPayment(this, amount, "credit", new Timestamp(c.getTimeInMillis()), description);
 	}
 	
 	/**
@@ -203,8 +205,7 @@ public class BankAccount {
 		balance += amount;
 		Calendar c = Calendar.getInstance();
 		c.setTime(new Date());
-		c.add(Calendar.YEAR, 5);
-		BankingLogger.logPayment(this, amount, "debit", c.getTime(), description);
+		BankingLogger.logPayment(this, amount, "debit", new Timestamp(c.getTimeInMillis()), description);
 	}
 	
 	public String getIBAN() {

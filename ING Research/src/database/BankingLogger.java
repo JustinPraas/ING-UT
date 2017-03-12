@@ -2,7 +2,7 @@ package database;
 
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Date;
+import java.sql.Timestamp;
 
 import accounts.BankAccount;
 import accounts.CustomerAccount;
@@ -21,14 +21,12 @@ public class BankingLogger {
 	 */
 	public static void addBankAccountEntry(BankAccount account) {
 		//TODO: Ensure there is no duplicate IBAN
-		if (initialized == false) {
-			SQLiteDB.initializeDB();
-			initialized = true;
-		}
+		initIfRequired();
 		
 		try {
 			Statement statement = SQLiteDB.getConn().createStatement();
-			String update = "INSERT INTO bankaccounts (IBAN, balance) VALUES ('" + account.getIBAN() + "', " + "0);";
+			String update = "INSERT INTO bankaccounts (IBAN, customer_BSN, balance) VALUES ('" + account.getIBAN() + "', '" 
+					+ account.getMainHolder().getBSN() + "', " + "0);";
 			statement.executeUpdate(update);
 			update = "INSERT INTO customerbankaccounts (customer_BSN, IBAN) VALUES ('" 
 					+ account.getMainHolder().getBSN() + "', '" + account.getIBAN() + "');";
@@ -38,6 +36,13 @@ public class BankingLogger {
 			e.printStackTrace();
 		}
 	}
+
+	private static void initIfRequired() {
+		if (initialized == false) {
+			SQLiteDB.initializeDB();
+			initialized = true;
+		}
+	}
 	
 	/**
 	 * Associates a <code>BankAccount</code> with a <code>CustomerAccount</code> in the database.
@@ -45,11 +50,7 @@ public class BankingLogger {
 	 * @param bankAccount The <code>BankAccount</code> to associate the <code>CustomerAccount</code> with
 	 */
 	public static void addCustomerBankAccountPairing(CustomerAccount customerAccount, BankAccount bankAccount) {
-		//TODO: Ensure there are no duplicates
-		if (initialized == false) {
-			SQLiteDB.initializeDB();
-			initialized = true;
-		}
+		initIfRequired();
 		
 		try {
 			Statement statement = SQLiteDB.getConn().createStatement();
@@ -68,10 +69,7 @@ public class BankingLogger {
 	 * @param bankAccount The <code>BankAccount</code> associated with the <code>CustomerAccount</code>
 	 */
 	public static void removeCustomerBankAccountPairing(CustomerAccount customerAccount, BankAccount bankAccount) {
-		if (initialized == false) {
-			SQLiteDB.initializeDB();
-			initialized = true;
-		}
+		initIfRequired();
 		
 		try {
 			Statement statement = SQLiteDB.getConn().createStatement();
@@ -89,17 +87,13 @@ public class BankingLogger {
 	 * @param account The <code>CustomerAccount</code> to be added
 	 */
 	public static void addCustomerAccountEntry(CustomerAccount account) {
-		//TODO: Ensure there is no duplicate BSN
-		if (initialized == false) {
-			SQLiteDB.initializeDB();
-			initialized = true;
-		}
+		initIfRequired();
 		
 		try {
 			Statement statement = SQLiteDB.getConn().createStatement();
 			String update = "INSERT INTO customeraccounts (customer_BSN, name, surname, street_address, email, phone_number, birth_date) " 
 					+ "VALUES ('" + account.getBSN() + "', '" + account.getName() + "', '" + account.getSurname() + "', '" + account.getStreetAddress() 
-					+ "', '" + account.getEmail() + "', '" + account.getPhoneNumber() + "', '" + account.getBirthdate() + ");";
+					+ "', '" + account.getEmail() + "', '" + account.getPhoneNumber() + "', '" + account.getBirthdate().toString() + "');";
 			statement.executeUpdate(update);
 		} catch (SQLException e) {
 			//TODO: Handle
@@ -114,17 +108,13 @@ public class BankingLogger {
 	 * @param destination The destination <code>BankAccount</code>
 	 * @param amount The amount of funds transferred
 	 */
-	public static void logTransfer(BankAccount source, BankAccount destination, float amount) {
-		//TODO: Incorporate transaction description, with default
-		if (initialized == false) {
-			SQLiteDB.initializeDB();
-			initialized = true;
-		}
+	public static void logTransfer(BankAccount source, BankAccount destination, float amount, Timestamp dateTime) {
+		initIfRequired();
 		
 		try {
 			Statement statement = SQLiteDB.getConn().createStatement();
-			String update = "INSERT INTO transfers (source_IBAN, destination_IBAN, amount) VALUES ('" + source.getIBAN() + "', '" 
-					+ destination.getIBAN() + "', " + amount + ");";
+			String update = "INSERT INTO transfers (source_IBAN, destination_IBAN, amount, date_time) VALUES ('" + source.getIBAN() + "', '" 
+					+ destination.getIBAN() + "', " + amount + ", '" + dateTime.toString() + "');";
 			statement.executeUpdate(update);
 		} catch (SQLException e) {
 			//TODO: Handle
@@ -132,16 +122,13 @@ public class BankingLogger {
 		}
 	}
 	
-	public static void logPayment(BankAccount account, float amount, String type, Date date, String description) {
-		if (initialized == false) {
-			SQLiteDB.initializeDB();
-			initialized = true;
-		}
+	public static void logPayment(BankAccount account, float amount, String type, Timestamp dateTime, String description) {
+		initIfRequired();
 		
 		try {
 			Statement statement = SQLiteDB.getConn().createStatement();
-			String update = "INSERT INTO payments (IBAN, amount, date_time, type, description) VALUES ('" + account.getIBAN() + "', " 
-					+ amount + ", '" + date.toString() + "', '" + type + "', '" + description + "');";
+			String update = "INSERT INTO payments (IBAN, amount, date_time, payment_type, description) VALUES ('" + account.getIBAN() + "', " 
+					+ amount + ", '" + dateTime.toString() + "', '" + type + "', '" + description + "');";
 			statement.executeUpdate(update);
 		} catch (SQLException e) {
 			//TODO: Handle
