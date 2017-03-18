@@ -31,7 +31,6 @@ public class SQLiteDB {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		System.out.println("Success!");
 	}
 	
 	public static Connection getConn() {
@@ -67,14 +66,6 @@ public class SQLiteDB {
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
-	}
-	
-	//TODO: Remove when no longer necessary
-	public static void main(String[] args) {
-		if (SQLiteDB.getConn() == null) {
-			SQLiteDB.initializeDB();
-			SQLiteDB.initializeTableStructure();
 		}
 	}
 }
