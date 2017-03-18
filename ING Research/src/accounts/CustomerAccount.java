@@ -17,7 +17,6 @@ public class CustomerAccount {
 	private String phoneNumber;
 	private String email;
 	private Date birthdate;
-	private HashSet<BankAccount> bankAccounts;
 	
 	/**
 	 * Create a new <code>CustomerAccount</code> with the given customer information.
@@ -31,7 +30,6 @@ public class CustomerAccount {
 	 */
 	public CustomerAccount(String name, String surname, String BSN, String streetAddress, String phoneNumber, 
 			String email, Date birthdate) {
-		bankAccounts = new HashSet<BankAccount>();
 		this.setName(name);
 		this.setSurname(surname);
 		this.setBSN(BSN);
@@ -47,9 +45,8 @@ public class CustomerAccount {
 	 * Adds this and the respective association to the database.
 	 */
 	public void openBankAccount() {
-		BankAccount newAccount = new BankAccount(this);
-		bankAccounts.add(newAccount);
-		BankingLogger.addBankAccountEntry(newAccount);
+		@SuppressWarnings("unused")
+		BankAccount newAccount = new BankAccount(getBSN());
 	}
 	
 	/**
@@ -59,10 +56,6 @@ public class CustomerAccount {
 	 * @param account The <code>BankAccount</code> to be owned by the customer.
 	 */
 	public void addBankAccount(BankAccount account) {
-		if (!bankAccounts.contains(account)) {
-			bankAccounts.add(account);
-		}
-		//TODO: Throw exception if not?
 		BankingLogger.addCustomerBankAccountPairing(this, account);
 	}
 	
@@ -72,16 +65,18 @@ public class CustomerAccount {
 	 * @param account The <code>BankAccount</code> to remove ownership of
 	 */
 	public void removeBankAccount(BankAccount account) {
-		if (bankAccounts.contains(account)) {
-			bankAccounts.remove(account);
-		}
-		//TODO: Maybe throw an exception in the other case?
 		//TODO: Make sure this is not the sole account holder
-		BankingLogger.removeCustomerBankAccountPairing(this, account);
+		BankingLogger.removeCustomerBankAccountPairing(getBSN(), account.getIBAN());
 	}
 	
+	/**
+	 * Retrieves all <code>BankAccounts</code> paired to this <code>
+	 * CustomerAccount</code>.
+	 * @return A HashSet<BankAccount> of all <code>BankAccounts</code> 
+	 * this <code>CustomerAccount</code> can access.
+	 */
 	public HashSet<BankAccount> getBankAccounts() {
-		return bankAccounts;
+		return BankingLogger.getBankAccountsByBSN(getBSN());
 	}
 
 	public String getName() {
