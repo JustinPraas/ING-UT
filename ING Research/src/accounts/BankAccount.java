@@ -1,11 +1,11 @@
 package accounts;
 
 import java.util.Calendar;
-import java.util.HashSet;
 
 import database.BankingLogger;
 
 import java.math.BigInteger;
+import java.sql.Date;
 import java.sql.Timestamp;
 
 import exceptions.IllegalAmountException;
@@ -22,21 +22,32 @@ public class BankAccount {
 	
 	private float balance;
 	private String IBAN;
-	private CustomerAccount mainHolder;
-	private HashSet<CustomerAccount> holders;
+	private String mainHolderBSN;
 	
 	/**
 	 * Create a new <code>BankAccount</code> with a specific account holder and an initial balance of 0.
 	 * Adds it to the banking database with a newly-generated IBAN as primary key.
 	 * @param holder The <code>CustomerAccount</code> considered to be the main holder of this <code>BankAccount</code>
 	 */
-	public BankAccount(CustomerAccount holder) {
+	public BankAccount(String mainHolderBSN) {
 		this.balance = 0;
 		this.IBAN = generateIBAN(COUNTRY_CODE, BANK_CODE, randomPAN());
-		this.mainHolder = holder;
-		this.holders = new HashSet<CustomerAccount>();
-		this.holders.add(holder);
+		this.mainHolderBSN = mainHolderBSN;
 		BankingLogger.addBankAccountEntry(this);
+	}
+	
+	/**
+	 * Constructs a new <code>BankAccount</code> with specific field values. Used to
+	 * load a <code>BankAccount</code> from the SQLite database.
+	 * @param mainHolderBSN The BSN of the main <code>CustomerAccount</code> this account is paired to
+	 * @param balance The account's balance
+	 * @param holders The list of all <code>CustomerAccounts</code> that can access this account
+	 * @param IBAN The account's IBAN
+	 */
+	public BankAccount(String mainHolderBSN, float balance, String IBAN) {
+		this.mainHolderBSN = mainHolderBSN;
+		this.balance = balance;
+		this.IBAN = IBAN;
 	}
 	
 	/**
@@ -62,14 +73,23 @@ public class BankAccount {
 	 * @return resultIBAN The IBAN 
 	 */
 	public static String generateIBAN(String countryCode, String bankCode, String pan) {
-		//Compute the controlNumber for this IBAN
-		int controlNumber = generateControlNumber(countryCode, bankCode, pan.toString());
-		
-		//If the control number consists of 1 digit, prepend a 0
-		String controlNumberString = controlNumber < 10 ? "0" + controlNumber : "" + controlNumber;	
-		
-		//Concatenate all parts of the IBAN to a complete IBAN	
-		String resultIBAN = countryCode + controlNumberString + bankCode + pan;
+		boolean unique = false;
+		String resultIBAN = null;
+		while (!unique) {
+			// Compute the controlNumber for this IBAN
+			int controlNumber = generateControlNumber(countryCode, bankCode, pan.toString());
+			
+			// If the control number consists of 1 digit, prepend a 0
+			String controlNumberString = controlNumber < 10 ? "0" + controlNumber : "" + controlNumber;	
+			
+			// Concatenate all parts of the IBAN to a complete IBAN	
+			resultIBAN = countryCode + controlNumberString + bankCode + pan;
+			
+			// If the IBAN isn't already in use, we can continue
+			if (BankingLogger.getBankAccountByIBAN(resultIBAN) == null) {
+				unique = true;
+			}
+		}
 		
 		return resultIBAN;
 	}
@@ -125,7 +145,6 @@ public class BankAccount {
 		if (amount <= 0) {
 			throw new IllegalAmountException(amount);
 		}
-		balance += amount;
 		this.debit(amount, "Physical deposit.");
 	}
 	
@@ -149,20 +168,15 @@ public class BankAccount {
 	}
 	
 	/**
-	 * Close the <code>BankAccount</code>.
+	 * Closes the <code>BankAccount</code>, removing its corresponding entry
+	 * from the database.
 	 */
 	public void close() throws IllegalCloseException {
 		if (balance != 0) {
 			throw new IllegalCloseException(IBAN, balance);
 		}
 		
-		for (CustomerAccount account : holders) {
-			account.removeBankAccount(this);
-		}
-		
-		mainHolder = null;
-		holders = null;
-		//TODO: Log
+		BankingLogger.removeBankAccount(this.getIBAN());
 	}
 	
 	public float getBalance() {
@@ -208,7 +222,12 @@ public class BankAccount {
 		return IBAN;
 	}
 	
-	public CustomerAccount getMainHolder() {
-		return mainHolder;
+	public String getMainHolder() {
+		return mainHolderBSN;
+	}
+	
+	public static void main(String[] args) {
+		CustomerAccount customerAccount = new CustomerAccount("John", "Smith", "1453.25.62", "103 Testings Ave.", "000-TEST", "johntest@testing.test", new Date(0));
+		customerAccount.openBankAccount();
 	}
 }
