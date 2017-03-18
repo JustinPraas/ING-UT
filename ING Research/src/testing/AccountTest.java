@@ -13,7 +13,7 @@ import accounts.BankAccount;
 import accounts.CustomerAccount;
 import database.BankingLogger;
 import exceptions.IllegalAmountException;
-import exceptions.IllegalCloseException;
+import exceptions.IllegalAccountDeletionException;
 import exceptions.IllegalTransferException;
 
 public class AccountTest {
@@ -69,8 +69,8 @@ public class AccountTest {
 		}
 		
 		try {
-			bankAccount.close();
-		} catch (IllegalCloseException e) {
+			bankAccount.deleteAccount();
+		} catch (IllegalAccountDeletionException e) {
 			
 		}
 		
@@ -81,8 +81,8 @@ public class AccountTest {
 	@Test
 	public void accountClosingTest() {
 		try {
-			bankAccount.close();
-		} catch (IllegalCloseException e) {
+			bankAccount.deleteAccount();
+		} catch (IllegalAccountDeletionException e) {
 			
 		}
 		
@@ -95,8 +95,8 @@ public class AccountTest {
 		customerAccount.openBankAccount();
 		
 		try {
-			bankAccount.close();
-		} catch (IllegalCloseException e) {
+			bankAccount.deleteAccount();
+		} catch (IllegalAccountDeletionException e) {
 			
 		}
 		

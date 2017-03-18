@@ -14,7 +14,7 @@ import database.BankingLogger;
 public class BankingLoggerTest {
 	public static String testBSN = "TEST";
 	@Test 
-	public void testBankAccountAdditionRemovalLocation() {
+	public void testBankingLogger() {
 		CustomerAccount custAccount = new CustomerAccount("John", "Smith", testBSN, "103 Testings Ave.", "000-TEST", "johntest@testing.test", new Date(0));
 		BankAccount bankAccount = null;
 		custAccount.openBankAccount();

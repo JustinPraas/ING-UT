@@ -8,7 +8,7 @@ import java.util.HashSet;
 
 import accounts.BankAccount;
 import accounts.CustomerAccount;
-import exceptions.IllegalCloseException;
+import exceptions.IllegalAccountDeletionException;
 
 /**
  * An object facilitating a higher level of abstraction for the banking database functionality.
@@ -163,7 +163,7 @@ public class BankingLogger {
 			}
 			// Make sure the bank account has a non-negative balance before closing
 			if (rs.getFloat("balance") < 0) {
-				throw new IllegalCloseException(IBAN, rs.getFloat("balance"));
+				throw new IllegalAccountDeletionException(IBAN, rs.getFloat("balance"));
 			}
 			// Delete the bank account
 			String delete = "DELETE FROM bankaccounts WHERE IBAN='" + IBAN + "';";
@@ -177,7 +177,7 @@ public class BankingLogger {
 		} catch (SQLException e) {
 			//TODO: Handle
 			e.printStackTrace();
-		} catch (IllegalCloseException e) {
+		} catch (IllegalAccountDeletionException e) {
 			//TODO: Handle
 			e.printStackTrace();
 		}

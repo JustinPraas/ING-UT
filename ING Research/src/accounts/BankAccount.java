@@ -9,7 +9,7 @@ import java.sql.Date;
 import java.sql.Timestamp;
 
 import exceptions.IllegalAmountException;
-import exceptions.IllegalCloseException;
+import exceptions.IllegalAccountDeletionException;
 import exceptions.IllegalTransferException;
 
 /**
@@ -171,9 +171,9 @@ public class BankAccount {
 	 * Closes the <code>BankAccount</code>, removing its corresponding entry
 	 * from the database.
 	 */
-	public void close() throws IllegalCloseException {
+	public void deleteAccount() throws IllegalAccountDeletionException {
 		if (balance != 0) {
-			throw new IllegalCloseException(IBAN, balance);
+			throw new IllegalAccountDeletionException(IBAN, balance);
 		}
 		
 		BankingLogger.removeBankAccount(this.getIBAN());
