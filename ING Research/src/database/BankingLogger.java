@@ -1,11 +1,14 @@
 package database;
 
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.util.HashSet;
 
 import accounts.BankAccount;
 import accounts.CustomerAccount;
+import exceptions.IllegalCloseException;
 
 /**
  * An object facilitating a higher level of abstraction for the banking database functionality.
@@ -26,12 +29,15 @@ public class BankingLogger {
 		try {
 			SQLiteDB.getConn().setAutoCommit(false);
 			Statement statement = SQLiteDB.getConn().createStatement();
+			// Add the bank account entry into the bankaccounts table
 			String update = "INSERT INTO bankaccounts (IBAN, customer_BSN, balance) VALUES ('" + account.getIBAN() + "', '" 
-					+ account.getMainHolder().getBSN() + "', " + "0);";
+					+ account.getMainHolder() + "', " + "0);";
 			statement.executeUpdate(update);
+			// Create a pairing between the bankaccount and its designated main customeraccount
 			update = "INSERT INTO customerbankaccounts (customer_BSN, IBAN) VALUES ('" 
-					+ account.getMainHolder().getBSN() + "', '" + account.getIBAN() + "');";
+					+ account.getMainHolder() + "', '" + account.getIBAN() + "');";
 			statement.executeUpdate(update);
+			// Commit the changes to database after all statements were successfully executed
 			SQLiteDB.getConn().commit();
 			SQLiteDB.getConn().setAutoCommit(true);
 		} catch (SQLException e) {
@@ -71,13 +77,13 @@ public class BankingLogger {
 	 * @param customerAccount The <code>CustomerAccount</code> associated with the <code>BankAccount</code>
 	 * @param bankAccount The <code>BankAccount</code> associated with the <code>CustomerAccount</code>
 	 */
-	public static void removeCustomerBankAccountPairing(CustomerAccount customerAccount, BankAccount bankAccount) {
+	public static void removeCustomerBankAccountPairing(String BSN, String IBAN) {
 		initIfRequired();
 		
 		try {
 			Statement statement = SQLiteDB.getConn().createStatement();
-			String update = "DELETE FROM customerbankaccounts WHERE customer_BSN='" + customerAccount.getBSN() 
-				+ "' AND IBAN='" + bankAccount.getIBAN() + "';";
+			String update = "DELETE FROM customerbankaccounts WHERE customer_BSN='" + BSN 
+				+ "' AND IBAN='" + IBAN + "';";
 			statement.executeUpdate(update);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
@@ -133,6 +139,139 @@ public class BankingLogger {
 			String update = "INSERT INTO payments (IBAN, amount, date_time, payment_type, description) VALUES ('" + account.getIBAN() + "', " 
 					+ amount + ", '" + dateTime.toString() + "', '" + type + "', '" + description + "');";
 			statement.executeUpdate(update);
+		} catch (SQLException e) {
+			//TODO: Handle
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * Delete a specific <code>BankAccount</code> by IBAN.
+	 * @param IBAN The <code>BankAccount</code>'s IBAN
+	 */
+	public static void removeBankAccount(String IBAN) {
+		initIfRequired();
+		
+		try {
+			SQLiteDB.getConn().setAutoCommit(false);
+			Statement statement = SQLiteDB.getConn().createStatement();
+			// Find the bank account with the given IBAN
+			String query = "SELECT balance FROM bankaccounts WHERE IBAN='" + IBAN + "';";
+			ResultSet rs = statement.executeQuery(query);
+			if (rs.isClosed()) {
+				return;
+			}
+			// Make sure the bank account has a non-negative balance before closing
+			if (rs.getFloat("balance") < 0) {
+				throw new IllegalCloseException(IBAN, rs.getFloat("balance"));
+			}
+			// Delete the bank account
+			String delete = "DELETE FROM bankaccounts WHERE IBAN='" + IBAN + "';";
+			statement.executeUpdate(delete);
+			// Delete any pairings between customer accounts and the bank account
+			delete = "DELETE FROM customerbankaccounts WHERE IBAN='" + IBAN + "';";
+			statement.executeUpdate(delete);
+			// Commit the changes after all necessary operations are successful
+			SQLiteDB.getConn().commit();
+			SQLiteDB.getConn().setAutoCommit(true);
+		} catch (SQLException e) {
+			//TODO: Handle
+			e.printStackTrace();
+		} catch (IllegalCloseException e) {
+			//TODO: Handle
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * Retrieves a bank account from the database and creates a 
+	 * <code>BankAccount</code> instance corresponding to it.
+	 * @param IBAN The target <code>BankAccount</code>'s IBAN
+	 * @return A newly-created <code>BankAccount</code> object
+	 * corresponding to the target account. 
+	 */
+	public static BankAccount getBankAccountByIBAN(String IBAN) {
+		//TODO: Fix
+		initIfRequired();
+		
+		try {
+			BankAccount result;
+			Statement statement = SQLiteDB.getConn().createStatement();
+			// Find the bank account associated with the IBAN in the DB
+			String query = "SELECT * FROM bankaccounts WHERE IBAN='" + IBAN + "';";
+			ResultSet rs = statement.executeQuery(query);
+			// If the bank account exists, get its balance and main holder BSN
+			if (rs.next()) {
+				float balance = rs.getFloat("balance");
+				String customerBSN = rs.getString("customer_BSN");
+				// Create a BankAccount instance with the retrieved characteristics and return it
+				result = new BankAccount(customerBSN, balance, IBAN);
+			// If the bank account does not exist, return null	
+			} else {
+				result = null;
+			}
+			return result;
+		} catch (SQLException e) {
+			//TODO: Handle
+			e.printStackTrace();
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * Retrieves all <code>BankAccounts</code> paired with a specific <code>CustomerAccount</code>
+	 * in the database.
+	 * @param BSN The BSN of the customer whose <code>BankAccount</code>s should be retrieved
+	 * @return A HashSet<BankAccount> of all <code>BankAccounts</code> the given
+	 * customer has permission to use.
+	 */
+	public static HashSet<BankAccount> getBankAccountsByBSN(String BSN) {
+		HashSet<BankAccount> result = null;
+		
+		try {
+			Statement statement = SQLiteDB.getConn().createStatement();
+			// Find all bank accounts paired to the specified BSN
+			String query = "SELECT * FROM customerbankaccounts WHERE customer_BSN='" + BSN + "';";
+			ResultSet rs = statement.executeQuery(query);
+			// Add each bank account found to the HashSet
+			result = new HashSet<>();
+			while (rs.next()) {
+				String IBAN = rs.getString("IBAN");
+				BankAccount newAccount = getBankAccountByIBAN(IBAN);
+				if (newAccount != null) {
+					result.add(newAccount);
+				}
+			}
+		} catch (SQLException e) {
+			//TODO: Handle
+			e.printStackTrace();
+		}
+		// Return all bank accounts found
+		return result;
+	}
+	
+	public static void removeCustomerAccount(String BSN) {
+		//TODO: Make sure this plays nicely with transaction atomicity
+		//TODO: Make more robust
+		// Get all bank accounts paired to this customer account
+		HashSet<BankAccount> bankAccounts = getBankAccountsByBSN(BSN);
+		// Make sure the customer HAS bank accounts
+		if (bankAccounts != null) {
+			for (BankAccount key : bankAccounts) {
+				// If this is the main holder of the bank account, delete the bank account
+				if (key.getMainHolder() == BSN) {
+					removeBankAccount(key.getIBAN());
+				}
+				// Remove the pairing between this customer account and bank account
+				removeCustomerBankAccountPairing(BSN, key.getIBAN());
+			}
+		}
+		
+		try {
+			Statement statement = SQLiteDB.getConn().createStatement();
+			String delete = "DELETE FROM customeraccounts WHERE customer_BSN='" + BSN + "';";
+			statement.executeUpdate(delete);
 		} catch (SQLException e) {
 			//TODO: Handle
 			e.printStackTrace();
