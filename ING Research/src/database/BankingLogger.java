@@ -151,7 +151,7 @@ public class BankingLogger {
 	 */
 	public static void removeBankAccount(String IBAN) {
 		initIfRequired();
-		
+		//TODO: Delete related transfers and payments, or not? Should pairings also be deleted?
 		try {
 			SQLiteDB.getConn().setAutoCommit(false);
 			Statement statement = SQLiteDB.getConn().createStatement();
