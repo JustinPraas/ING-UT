@@ -24,6 +24,7 @@ public class BankingLogger {
 		initIfRequired();
 		
 		try {
+			SQLiteDB.getConn().setAutoCommit(false);
 			Statement statement = SQLiteDB.getConn().createStatement();
 			String update = "INSERT INTO bankaccounts (IBAN, customer_BSN, balance) VALUES ('" + account.getIBAN() + "', '" 
 					+ account.getMainHolder().getBSN() + "', " + "0);";
@@ -31,6 +32,8 @@ public class BankingLogger {
 			update = "INSERT INTO customerbankaccounts (customer_BSN, IBAN) VALUES ('" 
 					+ account.getMainHolder().getBSN() + "', '" + account.getIBAN() + "');";
 			statement.executeUpdate(update);
+			SQLiteDB.getConn().commit();
+			SQLiteDB.getConn().setAutoCommit(true);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
