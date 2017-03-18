@@ -3,28 +3,41 @@ package testing;
 import static org.junit.Assert.*;
 
 import java.sql.Date;
+import java.util.HashSet;
 
-import org.junit.BeforeClass;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import accounts.BankAccount;
 import accounts.CustomerAccount;
+import database.BankingLogger;
 import exceptions.IllegalAmountException;
 import exceptions.IllegalCloseException;
 import exceptions.IllegalTransferException;
 
 public class AccountTest {
+	public static String customerBSN = "1453.25.62";
 	public static BankAccount bankAccount;
 	public static CustomerAccount customerAccount;
 	
-	@BeforeClass
-	public static void setUp() throws Exception {
-		customerAccount = new CustomerAccount("John", "Smith", "1453.25.62", "103 Testings Ave.", "000-TEST", "johntest@testing.test", new Date(0));
+	@Before
+	public void init() throws Exception {
+		customerAccount = new CustomerAccount("John", "Test", customerBSN, "103 Testings Ave.", "000-TEST", "johntest@testing.test", new Date(0));
 		customerAccount.openBankAccount();
-		for (BankAccount account : customerAccount.getBankAccounts()) {
-			System.out.println("Run");
-			bankAccount = account;
+		HashSet<BankAccount> bankAccounts = BankingLogger.getBankAccountsByBSN(customerBSN);
+		for (BankAccount key : bankAccounts) {
+			bankAccount = key;
+			break;
 		}
+	}
+	
+	@After
+	public void end() throws Exception {
+		BankingLogger.removeBankAccount(bankAccount.getIBAN());
+		BankingLogger.removeCustomerAccount(customerBSN);
+		customerAccount = null;
+		bankAccount = null;
 	}
 
 	//Test whether new BankAccounts are correctly initialized and linked to the originating CustomerAccount
@@ -106,7 +119,7 @@ public class AccountTest {
 	//Test whether transfers are executed correctly
 	@Test
 	public void transferTest() {
-		BankAccount bankAccount2 = new BankAccount(customerAccount);
+		BankAccount bankAccount2 = new BankAccount(customerAccount.getBSN());
 		try {
 			bankAccount2.deposit(100);
 		} catch (IllegalAmountException e) {
@@ -122,6 +135,7 @@ public class AccountTest {
 		}
 		assertTrue(bankAccount.getBalance() == 100);
 		assertTrue(bankAccount2.getBalance() == 0);
+		BankingLogger.removeBankAccount(bankAccount2.getIBAN());
 	}
 	
 	
@@ -177,7 +191,7 @@ public class AccountTest {
 	//Test whether transfers with illegal (negative) amounts are recognized and handled correctly
 	@Test
 	public void illegalTransferAmountTest() {
-		BankAccount bankAccount2 = new BankAccount(customerAccount);
+		BankAccount bankAccount2 = new BankAccount(customerAccount.getBSN());
 		try {
 			bankAccount2.deposit(100);
 		} catch (IllegalAmountException e) {
@@ -194,12 +208,13 @@ public class AccountTest {
 		
 		assertTrue(bankAccount2.getBalance() == 100);
 		assertTrue(bankAccount.getBalance() == 0);
+		BankingLogger.removeBankAccount(bankAccount2.getIBAN());
 	}
 	
 	//Test whether attempting to transfer without having enough money is handled correctly
 	@Test
 	public void illegalTransferTest() {
-		BankAccount bankAccount2 = new BankAccount(customerAccount);
+		BankAccount bankAccount2 = new BankAccount(customerAccount.getBSN());
 		try {
 			bankAccount2.deposit(100);
 		} catch (IllegalAmountException e) {
@@ -216,5 +231,6 @@ public class AccountTest {
 		
 		assertTrue(bankAccount2.getBalance() == 100);
 		assertTrue(bankAccount.getBalance() == 0);
+		BankingLogger.removeBankAccount(bankAccount2.getIBAN());
 	}
 }
