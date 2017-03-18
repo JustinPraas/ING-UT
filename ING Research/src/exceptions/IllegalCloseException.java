@@ -5,6 +5,7 @@ package exceptions;
  * @author Andrei Cojocaru
  */
 public class IllegalCloseException extends Exception {
+	private static final long serialVersionUID = -8340410108674572686L;
 	float balance;
 	String IBAN;
 	
