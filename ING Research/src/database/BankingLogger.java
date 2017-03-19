@@ -15,7 +15,6 @@ import exceptions.IllegalAccountDeletionException;
  * @author Andrei Cojocaru
  */
 public class BankingLogger {
-	//TODO: Test intensely
 	private static boolean initialized = false;
 	
 	/**
@@ -256,6 +255,11 @@ public class BankingLogger {
 		return result;
 	}
 	
+	/**
+	 * Remove a <code>CustomerAccount</code> from the database,
+	 * along with all associated pairings and <code>BankAccounts</code>.
+	 * @param BSN The <code>CustomerAccount</code>'s BSN
+	 */
 	public static void removeCustomerAccount(String BSN) {
 		initIfRequired();
 		//TODO: Make sure this plays nicely with transaction atomicity
@@ -284,6 +288,13 @@ public class BankingLogger {
 		}
 	}
 	
+	/**
+	 * Determines whether a <code>CustomerAccount</code> exists in the database
+	 * with the given BSN.
+	 * @param BSN The <code>CustomerAccount</code>'s BSN
+	 * @return True or false, depending on whether a <code>CustomerAccount</code> with
+	 * the given BSN is found or not
+	 */
 	public static boolean customerAccountExists(String BSN) {
 		initIfRequired();
 		
@@ -303,6 +314,13 @@ public class BankingLogger {
 		return false;
 	}
 	
+	/**
+	 * Determines whetehr a </code>BankAccount</code> exists in the database
+	 * with the given IBAN.
+	 * @param IBAN The <code>BankAccount</code>'s IBAN
+	 * @return True or false, depending on whether a <code>BankAccount</code> with
+	 * the given IBAN is found in the database or not
+	 */
 	public static boolean bankAccountExists(String IBAN) {
 		initIfRequired();
 		
@@ -322,6 +340,13 @@ public class BankingLogger {
 		return false;
 	}
 	
+	/**
+	 * Determines whether a given <code>CustomerAccount</code> is paired with a
+	 * given <code>BankAccount</code> in the database.
+	 * @param BSN The <code>CustomerAccount</code>'s BSN
+	 * @param IBAN The <code>BankAccount</code>'s IBAN
+	 * @return True or false, depending on whether a matching pairing is found or not
+	 */
 	public static boolean customerBankAccountPairingExists(String BSN, String IBAN) {
 		initIfRequired();
 		
