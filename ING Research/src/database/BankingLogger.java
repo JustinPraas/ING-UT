@@ -45,6 +45,10 @@ public class BankingLogger {
 		}
 	}
 
+	/**
+	 * Generates the database plus tables and opens a connection,
+	 * as needed.
+	 */
 	private static void initIfRequired() {
 		if (initialized == false) {
 			SQLiteDB.initializeDB();
@@ -130,6 +134,15 @@ public class BankingLogger {
 		}
 	}
 	
+	/**
+	 * Creates a database entry for a payment. Payments differ from transfers in that they
+	 * do not necessarily have a destination account (e.g. physical deposits).
+	 * @param account The <code>BankAccount</code> the payment is going to/from
+	 * @param amount The amount paid
+	 * @param type The type of payment (debit or credit)
+	 * @param dateTime The timestamp of the payment
+	 * @param description A description of why the payment occurred
+	 */
 	public static void logPayment(BankAccount account, float amount, String type, Timestamp dateTime, String description) {
 		initIfRequired();
 		
