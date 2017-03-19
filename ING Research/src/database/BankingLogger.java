@@ -155,22 +155,29 @@ public class BankingLogger {
 		try {
 			SQLiteDB.getConn().setAutoCommit(false);
 			Statement statement = SQLiteDB.getConn().createStatement();
+			
 			// Find the bank account with the given IBAN
 			String query = "SELECT balance FROM bankaccounts WHERE IBAN='" + IBAN + "';";
 			ResultSet rs = statement.executeQuery(query);
-			if (rs.isClosed()) {
+			if (!rs.next()) {
+				System.out.println("Could not find account " + IBAN);
 				return;
 			}
+			
 			// Make sure the bank account has a non-negative balance before closing
 			if (rs.getFloat("balance") < 0) {
 				throw new IllegalAccountDeletionException(IBAN, rs.getFloat("balance"));
 			}
+			
 			// Delete the bank account
 			String delete = "DELETE FROM bankaccounts WHERE IBAN='" + IBAN + "';";
 			statement.executeUpdate(delete);
+			System.out.println("Executed statement " + delete);
+			
 			// Delete any pairings between customer accounts and the bank account
 			delete = "DELETE FROM customerbankaccounts WHERE IBAN='" + IBAN + "';";
 			statement.executeUpdate(delete);
+			
 			// Commit the changes after all necessary operations are successful
 			SQLiteDB.getConn().commit();
 			SQLiteDB.getConn().setAutoCommit(true);
@@ -191,7 +198,6 @@ public class BankingLogger {
 	 * corresponding to the target account. 
 	 */
 	public static BankAccount getBankAccountByIBAN(String IBAN) {
-		//TODO: Fix
 		initIfRequired();
 		
 		try {
@@ -227,6 +233,7 @@ public class BankingLogger {
 	 * customer has permission to use.
 	 */
 	public static HashSet<BankAccount> getBankAccountsByBSN(String BSN) {
+		initIfRequired();
 		HashSet<BankAccount> result = null;
 		
 		try {
@@ -252,6 +259,7 @@ public class BankingLogger {
 	}
 	
 	public static void removeCustomerAccount(String BSN) {
+		initIfRequired();
 		//TODO: Make sure this plays nicely with transaction atomicity
 		//TODO: Make more robust
 		// Get all bank accounts paired to this customer account
@@ -276,5 +284,43 @@ public class BankingLogger {
 			//TODO: Handle
 			e.printStackTrace();
 		}
+	}
+	
+	public static boolean customerAccountExists(String BSN) {
+		initIfRequired();
+		
+		try {
+			Statement statement = SQLiteDB.getConn().createStatement();
+			String query = "SELECT * FROM customeraccounts WHERE customer_BSN='" + BSN + "';";
+			ResultSet rs = statement.executeQuery(query);
+			if (!rs.next()) {
+				return true;
+			} else {
+				return false;
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return false;
+	}
+	
+	public static boolean bankAccountExists(String IBAN) {
+		initIfRequired();
+		
+		try {
+			Statement statement = SQLiteDB.getConn().createStatement();
+			String query = "SELECT * FROM bankaccounts WHERE IBAN='" + IBAN + "';";
+			ResultSet rs = statement.executeQuery(query);
+			if (!rs.next()) {
+				return false;
+			} else {
+				return true;
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return false;
 	}
 }
