@@ -160,7 +160,6 @@ public class BankingLogger {
 			String query = "SELECT balance FROM bankaccounts WHERE IBAN='" + IBAN + "';";
 			ResultSet rs = statement.executeQuery(query);
 			if (!rs.next()) {
-				System.out.println("Could not find account " + IBAN);
 				return;
 			}
 			
@@ -172,7 +171,6 @@ public class BankingLogger {
 			// Delete the bank account
 			String delete = "DELETE FROM bankaccounts WHERE IBAN='" + IBAN + "';";
 			statement.executeUpdate(delete);
-			System.out.println("Executed statement " + delete);
 			
 			// Delete any pairings between customer accounts and the bank account
 			delete = "DELETE FROM customerbankaccounts WHERE IBAN='" + IBAN + "';";
@@ -269,7 +267,6 @@ public class BankingLogger {
 			for (BankAccount key : bankAccounts) {
 				// If this is the main holder of the bank account, delete the bank account
 				if (key.getMainHolder().equals(BSN)) {
-					System.out.println("Label");
 					removeBankAccount(key.getIBAN());
 				}
 				// Remove the pairing between this customer account and bank account
