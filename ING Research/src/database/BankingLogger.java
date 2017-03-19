@@ -294,9 +294,9 @@ public class BankingLogger {
 			String query = "SELECT * FROM customeraccounts WHERE customer_BSN='" + BSN + "';";
 			ResultSet rs = statement.executeQuery(query);
 			if (!rs.next()) {
-				return true;
-			} else {
 				return false;
+			} else {
+				return true;
 			}
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
