@@ -27,6 +27,7 @@ public class SQLiteDB {
 		try {
 			Class.forName("org.sqlite.JDBC");
 			conn = DriverManager.getConnection("jdbc:sqlite:" + DBName + ".db");
+			conn.setAutoCommit(false);
 			SQLiteDB.initializeTableStructure();
 		} catch (Exception e) {
 			e.printStackTrace();

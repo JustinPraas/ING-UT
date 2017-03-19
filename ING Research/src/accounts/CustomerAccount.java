@@ -37,7 +37,7 @@ public class CustomerAccount {
 		this.setPhoneNumber(phoneNumber);
 		this.setEmail(email);
 		this.setBirthdate(birthdate);
-		BankingLogger.addCustomerAccountEntry(this);
+		BankingLogger.addCustomerAccountEntry(this, true);
 	}
 	
 	/**
@@ -56,7 +56,7 @@ public class CustomerAccount {
 	 * @param account The <code>BankAccount</code> to be owned by the customer.
 	 */
 	public void addBankAccount(BankAccount account) {
-		BankingLogger.addCustomerBankAccountPairing(this, account);
+		BankingLogger.addCustomerBankAccountPairing(this, account, true);
 	}
 	
 	/**
@@ -66,7 +66,7 @@ public class CustomerAccount {
 	 */
 	public void removeBankAccount(BankAccount account) {
 		//TODO: Make sure this is not the sole account holder
-		BankingLogger.removeCustomerBankAccountPairing(getBSN(), account.getIBAN());
+		BankingLogger.removeCustomerBankAccountPairing(getBSN(), account.getIBAN(), true);
 	}
 	
 	/**

@@ -33,7 +33,7 @@ public class BankAccount {
 		this.balance = 0;
 		this.IBAN = generateIBAN(COUNTRY_CODE, BANK_CODE, randomPAN());
 		this.mainHolderBSN = mainHolderBSN;
-		BankingLogger.addBankAccountEntry(this);
+		BankingLogger.addBankAccountEntry(this, true);
 	}
 	
 	/**
@@ -163,7 +163,7 @@ public class BankAccount {
 		this.credit(amount, "Transfer to " + destination.getIBAN());
 		destination.debit(amount, "Transfer from " + this.getIBAN());
 		Calendar c = Calendar.getInstance();
-		BankingLogger.logTransfer(this, destination, amount, new Timestamp(c.getTimeInMillis()));
+		BankingLogger.logTransfer(this, destination, amount, new Timestamp(c.getTimeInMillis()), true);
 		//TODO: Add transfer description
 	}
 	
@@ -176,7 +176,7 @@ public class BankAccount {
 			throw new IllegalAccountDeletionException(IBAN, balance);
 		}
 		
-		BankingLogger.removeBankAccount(this.getIBAN());
+		BankingLogger.removeBankAccount(this.getIBAN(), true);
 	}
 	
 	public float getBalance() {
@@ -201,7 +201,7 @@ public class BankAccount {
 		}
 		balance -= amount;
 		Calendar c = Calendar.getInstance();
-		BankingLogger.logPayment(this, amount, "credit", new Timestamp(c.getTimeInMillis()), description);
+		BankingLogger.logPayment(this, amount, "credit", new Timestamp(c.getTimeInMillis()), description, true);
 	}
 	
 	/**
@@ -215,7 +215,7 @@ public class BankAccount {
 		}
 		balance += amount;
 		Calendar c = Calendar.getInstance();
-		BankingLogger.logPayment(this, amount, "debit", new Timestamp(c.getTimeInMillis()), description);
+		BankingLogger.logPayment(this, amount, "debit", new Timestamp(c.getTimeInMillis()), description, true);
 	}
 	
 	public String getIBAN() {

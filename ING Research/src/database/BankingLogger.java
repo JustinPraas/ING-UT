@@ -21,24 +21,26 @@ public class BankingLogger {
 	 * Adds a new <code>BankAccount</code> to the database.
 	 * @param account The <code>BankAccount</code> to be added
 	 */
-	public static void addBankAccountEntry(BankAccount account) {
-		//TODO: Ensure there is no duplicate IBAN
+	public static void addBankAccountEntry(BankAccount account, boolean commit) {
 		initIfRequired();
 		
 		try {
-			SQLiteDB.getConn().setAutoCommit(false);
 			Statement statement = SQLiteDB.getConn().createStatement();
+			
 			// Add the bank account entry into the bankaccounts table
 			String update = "INSERT INTO bankaccounts (IBAN, customer_BSN, balance) VALUES ('" + account.getIBAN() + "', '" 
 					+ account.getMainHolder() + "', " + "0);";
 			statement.executeUpdate(update);
+			
 			// Create a pairing between the bankaccount and its designated main customeraccount
 			update = "INSERT INTO customerbankaccounts (customer_BSN, IBAN) VALUES ('" 
 					+ account.getMainHolder() + "', '" + account.getIBAN() + "');";
 			statement.executeUpdate(update);
-			// Commit the changes to database after all statements were successfully executed
-			SQLiteDB.getConn().commit();
-			SQLiteDB.getConn().setAutoCommit(true);
+			
+			// Commit the changes to database after all statements were successfully executed, if required
+			if (commit) {
+				SQLiteDB.getConn().commit();
+			}
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -61,7 +63,7 @@ public class BankingLogger {
 	 * @param customerAccount The <code>CustomerAccount</code> to associate the <code>BankAccount</code> with
 	 * @param bankAccount The <code>BankAccount</code> to associate the <code>CustomerAccount</code> with
 	 */
-	public static void addCustomerBankAccountPairing(CustomerAccount customerAccount, BankAccount bankAccount) {
+	public static void addCustomerBankAccountPairing(CustomerAccount customerAccount, BankAccount bankAccount, boolean commit) {
 		initIfRequired();
 		
 		try {
@@ -69,6 +71,9 @@ public class BankingLogger {
 			String update = "INSERT INTO customerbankaccounts (customer_BSN, IBAN) VALUES ('" 
 					+ customerAccount.getBSN() + "', '" + bankAccount.getIBAN() + "');";
 			statement.executeUpdate(update);
+			if (commit) {
+				SQLiteDB.getConn().commit();
+			}
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -80,7 +85,7 @@ public class BankingLogger {
 	 * @param customerAccount The <code>CustomerAccount</code> associated with the <code>BankAccount</code>
 	 * @param bankAccount The <code>BankAccount</code> associated with the <code>CustomerAccount</code>
 	 */
-	public static void removeCustomerBankAccountPairing(String BSN, String IBAN) {
+	public static void removeCustomerBankAccountPairing(String BSN, String IBAN, boolean commit) {
 		initIfRequired();
 		
 		try {
@@ -88,6 +93,9 @@ public class BankingLogger {
 			String update = "DELETE FROM customerbankaccounts WHERE customer_BSN='" + BSN 
 				+ "' AND IBAN='" + IBAN + "';";
 			statement.executeUpdate(update);
+			if (commit) {
+				SQLiteDB.getConn().commit();
+			}
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -98,7 +106,7 @@ public class BankingLogger {
 	 * Adds a <code>CustomerAccount</code> to the database.
 	 * @param account The <code>CustomerAccount</code> to be added
 	 */
-	public static void addCustomerAccountEntry(CustomerAccount account) {
+	public static void addCustomerAccountEntry(CustomerAccount account, boolean commit) {
 		initIfRequired();
 		
 		try {
@@ -107,6 +115,9 @@ public class BankingLogger {
 					+ "VALUES ('" + account.getBSN() + "', '" + account.getName() + "', '" + account.getSurname() + "', '" + account.getStreetAddress() 
 					+ "', '" + account.getEmail() + "', '" + account.getPhoneNumber() + "', '" + account.getBirthdate().toString() + "');";
 			statement.executeUpdate(update);
+			if (commit) {
+				SQLiteDB.getConn().commit();
+			}
 		} catch (SQLException e) {
 			//TODO: Handle
 			e.printStackTrace();
@@ -120,7 +131,7 @@ public class BankingLogger {
 	 * @param destination The destination <code>BankAccount</code>
 	 * @param amount The amount of funds transferred
 	 */
-	public static void logTransfer(BankAccount source, BankAccount destination, float amount, Timestamp dateTime) {
+	public static void logTransfer(BankAccount source, BankAccount destination, float amount, Timestamp dateTime, boolean commit) {
 		initIfRequired();
 		
 		try {
@@ -128,6 +139,9 @@ public class BankingLogger {
 			String update = "INSERT INTO transfers (source_IBAN, destination_IBAN, amount, date_time) VALUES ('" + source.getIBAN() + "', '" 
 					+ destination.getIBAN() + "', " + amount + ", '" + dateTime.toString() + "');";
 			statement.executeUpdate(update);
+			if (commit) {
+				SQLiteDB.getConn().commit();
+			}
 		} catch (SQLException e) {
 			//TODO: Handle
 			e.printStackTrace();
@@ -143,7 +157,7 @@ public class BankingLogger {
 	 * @param dateTime The timestamp of the payment
 	 * @param description A description of why the payment occurred
 	 */
-	public static void logPayment(BankAccount account, float amount, String type, Timestamp dateTime, String description) {
+	public static void logPayment(BankAccount account, float amount, String type, Timestamp dateTime, String description, boolean commit) {
 		initIfRequired();
 		
 		try {
@@ -151,6 +165,9 @@ public class BankingLogger {
 			String update = "INSERT INTO payments (IBAN, amount, date_time, payment_type, description) VALUES ('" + account.getIBAN() + "', " 
 					+ amount + ", '" + dateTime.toString() + "', '" + type + "', '" + description + "');";
 			statement.executeUpdate(update);
+			if (commit) {
+				SQLiteDB.getConn().commit();
+			}
 		} catch (SQLException e) {
 			//TODO: Handle
 			e.printStackTrace();
@@ -161,11 +178,10 @@ public class BankingLogger {
 	 * Delete a specific <code>BankAccount</code> by IBAN.
 	 * @param IBAN The <code>BankAccount</code>'s IBAN
 	 */
-	public static void removeBankAccount(String IBAN) {
+	public static void removeBankAccount(String IBAN, boolean commit) {
 		initIfRequired();
 		//TODO: Delete related transfers and payments, or not? Should pairings also be deleted?
 		try {
-			SQLiteDB.getConn().setAutoCommit(false);
 			Statement statement = SQLiteDB.getConn().createStatement();
 			
 			// Find the bank account with the given IBAN
@@ -188,9 +204,10 @@ public class BankingLogger {
 			delete = "DELETE FROM customerbankaccounts WHERE IBAN='" + IBAN + "';";
 			statement.executeUpdate(delete);
 			
-			// Commit the changes after all necessary operations are successful
-			SQLiteDB.getConn().commit();
-			SQLiteDB.getConn().setAutoCommit(true);
+			// Commit the changes after all necessary operations are successful, if requested
+			if (commit) {
+				SQLiteDB.getConn().commit();
+			}
 		} catch (SQLException e) {
 			//TODO: Handle
 			e.printStackTrace();
@@ -213,15 +230,19 @@ public class BankingLogger {
 		try {
 			BankAccount result;
 			Statement statement = SQLiteDB.getConn().createStatement();
+			
 			// Find the bank account associated with the IBAN in the DB
 			String query = "SELECT * FROM bankaccounts WHERE IBAN='" + IBAN + "';";
 			ResultSet rs = statement.executeQuery(query);
+			
 			// If the bank account exists, get its balance and main holder BSN
 			if (rs.next()) {
 				float balance = rs.getFloat("balance");
 				String customerBSN = rs.getString("customer_BSN");
+				
 				// Create a BankAccount instance with the retrieved characteristics and return it
 				result = new BankAccount(customerBSN, balance, IBAN);
+				
 			// If the bank account does not exist, return null	
 			} else {
 				result = null;
@@ -248,9 +269,11 @@ public class BankingLogger {
 		
 		try {
 			Statement statement = SQLiteDB.getConn().createStatement();
+			
 			// Find all bank accounts paired to the specified BSN
 			String query = "SELECT * FROM customerbankaccounts WHERE customer_BSN='" + BSN + "';";
 			ResultSet rs = statement.executeQuery(query);
+			
 			// Add each bank account found to the HashSet
 			result = new HashSet<>();
 			while (rs.next()) {
@@ -273,21 +296,25 @@ public class BankingLogger {
 	 * along with all associated pairings and <code>BankAccounts</code>.
 	 * @param BSN The <code>CustomerAccount</code>'s BSN
 	 */
-	public static void removeCustomerAccount(String BSN) {
+	public static void removeCustomerAccount(String BSN, boolean commit) {
 		initIfRequired();
 		//TODO: Make sure this plays nicely with transaction atomicity
 		//TODO: Make more robust
+		
 		// Get all bank accounts paired to this customer account
 		HashSet<BankAccount> bankAccounts = getBankAccountsByBSN(BSN);
+		
 		// Make sure the customer HAS bank accounts
 		if (bankAccounts != null) {
 			for (BankAccount key : bankAccounts) {
+				
 				// If this is the main holder of the bank account, delete the bank account
 				if (key.getMainHolder().equals(BSN)) {
-					removeBankAccount(key.getIBAN());
+					removeBankAccount(key.getIBAN(), false);
 				}
+				
 				// Remove the pairing between this customer account and bank account
-				removeCustomerBankAccountPairing(BSN, key.getIBAN());
+				removeCustomerBankAccountPairing(BSN, key.getIBAN(), false);
 			}
 		}
 		
@@ -295,6 +322,9 @@ public class BankingLogger {
 			Statement statement = SQLiteDB.getConn().createStatement();
 			String delete = "DELETE FROM customeraccounts WHERE customer_BSN='" + BSN + "';";
 			statement.executeUpdate(delete);
+			if (commit) {
+				SQLiteDB.getConn().commit();
+			}
 		} catch (SQLException e) {
 			//TODO: Handle
 			e.printStackTrace();

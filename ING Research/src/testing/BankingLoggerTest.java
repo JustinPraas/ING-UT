@@ -27,17 +27,17 @@ public class BankingLoggerTest {
 		}
 		assertTrue(bankAccount.getIBAN() == BankingLogger.getBankAccountByIBAN(bankAccount.getIBAN()).getIBAN());
 		assertTrue(BankingLogger.getBankAccountsByBSN(testBSN).size() == 1);
-		BankingLogger.removeBankAccount(bankAccount.getIBAN());
+		BankingLogger.removeBankAccount(bankAccount.getIBAN(), true);
 		assertTrue(BankingLogger.getBankAccountByIBAN(bankAccount.getIBAN()) == null);
 		assertTrue(BankingLogger.getBankAccountsByBSN(testBSN).size() == 0);
-		BankingLogger.removeCustomerAccount(testBSN);
+		BankingLogger.removeCustomerAccount(testBSN, true);
 	}
 	
 	@Test
 	public void testBankAccountExists() {
 		BankAccount bankAccount = new BankAccount(testBSN);
 		assertTrue(BankingLogger.bankAccountExists(bankAccount.getIBAN()));
-		BankingLogger.removeBankAccount(bankAccount.getIBAN());
+		BankingLogger.removeBankAccount(bankAccount.getIBAN(), true);
 		assertFalse(BankingLogger.bankAccountExists(bankAccount.getIBAN()));
 	}
 	
@@ -46,7 +46,7 @@ public class BankingLoggerTest {
 		@SuppressWarnings("unused")
 		CustomerAccount customerAccount = new CustomerAccount("John", "Smith", testBSN, "103 Testings Ave.", "000-TEST", "johntest@testing.test", new Date(0));
 		assertTrue(BankingLogger.customerAccountExists(testBSN));
-		BankingLogger.removeCustomerAccount(testBSN);
+		BankingLogger.removeCustomerAccount(testBSN, true);
 		assertFalse(BankingLogger.customerAccountExists(testBSN));
 	}
 	
@@ -64,7 +64,7 @@ public class BankingLoggerTest {
 		assertTrue(BankingLogger.customerBankAccountPairingExists(testBSN, bankAccount2.getIBAN()));
 		assertTrue(BankingLogger.customerBankAccountPairingExists(testBSN, bankAccount3.getIBAN()));
 		
-		BankingLogger.removeCustomerAccount(testBSN);
+		BankingLogger.removeCustomerAccount(testBSN, true);
 		
 		assertFalse(BankingLogger.customerBankAccountPairingExists(testBSN, bankAccount.getIBAN()));
 		assertFalse(BankingLogger.customerBankAccountPairingExists(testBSN, bankAccount2.getIBAN()));
@@ -74,8 +74,8 @@ public class BankingLoggerTest {
 		assertTrue(BankingLogger.bankAccountExists(bankAccount2.getIBAN()));
 		assertTrue(BankingLogger.bankAccountExists(bankAccount3.getIBAN()));
 		
-		BankingLogger.removeBankAccount(bankAccount.getIBAN());
-		BankingLogger.removeBankAccount(bankAccount2.getIBAN());
-		BankingLogger.removeBankAccount(bankAccount3.getIBAN());
+		BankingLogger.removeBankAccount(bankAccount.getIBAN(), true);
+		BankingLogger.removeBankAccount(bankAccount2.getIBAN(), true);
+		BankingLogger.removeBankAccount(bankAccount3.getIBAN(), true);
 	}
 }

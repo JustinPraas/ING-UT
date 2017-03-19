@@ -34,7 +34,7 @@ public class AccountTest {
 	
 	@After
 	public void end() throws Exception {
-		BankingLogger.removeCustomerAccount(customerBSN);
+		BankingLogger.removeCustomerAccount(customerBSN, true);
 		customerAccount = null;
 		bankAccount = null;
 	}
@@ -134,7 +134,7 @@ public class AccountTest {
 		}
 		assertTrue(bankAccount.getBalance() == 100);
 		assertTrue(bankAccount2.getBalance() == 0);
-		BankingLogger.removeBankAccount(bankAccount2.getIBAN());
+		BankingLogger.removeBankAccount(bankAccount2.getIBAN(), true);
 	}
 	
 	
@@ -207,7 +207,7 @@ public class AccountTest {
 		
 		assertTrue(bankAccount2.getBalance() == 100);
 		assertTrue(bankAccount.getBalance() == 0);
-		BankingLogger.removeBankAccount(bankAccount2.getIBAN());
+		BankingLogger.removeBankAccount(bankAccount2.getIBAN(), true);
 	}
 	
 	//Test whether attempting to transfer without having enough money is handled correctly
@@ -230,6 +230,6 @@ public class AccountTest {
 		
 		assertTrue(bankAccount2.getBalance() == 100);
 		assertTrue(bankAccount.getBalance() == 0);
-		BankingLogger.removeBankAccount(bankAccount2.getIBAN());
+		BankingLogger.removeBankAccount(bankAccount2.getIBAN(), true);
 	}
 }
