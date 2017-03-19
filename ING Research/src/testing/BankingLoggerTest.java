@@ -49,4 +49,33 @@ public class BankingLoggerTest {
 		BankingLogger.removeCustomerAccount(testBSN);
 		assertFalse(BankingLogger.customerAccountExists(testBSN));
 	}
+	
+	@Test
+	public void testPairing() {
+		BankAccount bankAccount = new BankAccount("NOTJOHN");
+		BankAccount bankAccount2 = new BankAccount("DAVE");
+		BankAccount bankAccount3 = new BankAccount("SALLY");
+		CustomerAccount customerAccount = new CustomerAccount("John", "Smith", testBSN, "103 Testings Ave.", "000-TEST", "johntest@testing.test", new Date(0));
+		customerAccount.addBankAccount(bankAccount);
+		customerAccount.addBankAccount(bankAccount2);
+		customerAccount.addBankAccount(bankAccount3);
+		
+		assertTrue(BankingLogger.customerBankAccountPairingExists(testBSN, bankAccount.getIBAN()));
+		assertTrue(BankingLogger.customerBankAccountPairingExists(testBSN, bankAccount2.getIBAN()));
+		assertTrue(BankingLogger.customerBankAccountPairingExists(testBSN, bankAccount3.getIBAN()));
+		
+		BankingLogger.removeCustomerAccount(testBSN);
+		
+		assertFalse(BankingLogger.customerBankAccountPairingExists(testBSN, bankAccount.getIBAN()));
+		assertFalse(BankingLogger.customerBankAccountPairingExists(testBSN, bankAccount2.getIBAN()));
+		assertFalse(BankingLogger.customerBankAccountPairingExists(testBSN, bankAccount3.getIBAN()));
+		
+		assertTrue(BankingLogger.bankAccountExists(bankAccount.getIBAN()));
+		assertTrue(BankingLogger.bankAccountExists(bankAccount2.getIBAN()));
+		assertTrue(BankingLogger.bankAccountExists(bankAccount3.getIBAN()));
+		
+		BankingLogger.removeBankAccount(bankAccount.getIBAN());
+		BankingLogger.removeBankAccount(bankAccount2.getIBAN());
+		BankingLogger.removeBankAccount(bankAccount3.getIBAN());
+	}
 }
