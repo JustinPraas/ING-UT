@@ -34,7 +34,6 @@ public class AccountTest {
 	
 	@After
 	public void end() throws Exception {
-		BankingLogger.removeBankAccount(bankAccount.getIBAN());
 		BankingLogger.removeCustomerAccount(customerBSN);
 		customerAccount = null;
 		bankAccount = null;
