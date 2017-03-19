@@ -268,7 +268,8 @@ public class BankingLogger {
 		if (bankAccounts != null) {
 			for (BankAccount key : bankAccounts) {
 				// If this is the main holder of the bank account, delete the bank account
-				if (key.getMainHolder() == BSN) {
+				if (key.getMainHolder().equals(BSN)) {
+					System.out.println("Label");
 					removeBankAccount(key.getIBAN());
 				}
 				// Remove the pairing between this customer account and bank account
