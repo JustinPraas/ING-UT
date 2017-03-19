@@ -321,4 +321,23 @@ public class BankingLogger {
 		}
 		return false;
 	}
+	
+	public static boolean customerBankAccountPairingExists(String BSN, String IBAN) {
+		initIfRequired();
+		
+		try {
+			Statement statement = SQLiteDB.getConn().createStatement();
+			String query = "SELECT * FROM customerbankaccounts WHERE customer_BSN='" + BSN +"' AND IBAN='" + IBAN + "';";
+			ResultSet rs = statement.executeQuery(query);
+			if (!rs.next()) {
+				return false;
+			} else {
+				return true;
+			}
+		} catch (SQLException e) {
+			// TODO: Handle
+			e.printStackTrace();
+		}
+		return false;
+	}
 }
