@@ -1,6 +1,6 @@
 package accounts;
 import java.util.Calendar;
-import java.util.Date;
+import java.sql.Date;
 
 import database.BankingLogger;
 
@@ -86,17 +86,14 @@ public class DebitCard {
 	 * The default expiration date (ING): 5 years after card creation
 	 * @return
 	 */
-	private Date generateExpirationDate() {		
+	public Date generateExpirationDate() {		
 		//Get a calendar using the default time zone and locale
 		Calendar c = Calendar.getInstance();
-		
-		//Set this Calendar's time to the current Date
-		c.setTime(new Date());
 		
 		//Add the specified amount of time to the given calendar field
 		c.add(Calendar.YEAR, 5);
 		
-		return c.getTime();
+		return new Date(c.getTime().getTime());
 	}
 	
 	/**
@@ -113,9 +110,9 @@ public class DebitCard {
 	 * Checks whether the <code>DebitCard</code> is expired.
 	 * @return true if the <code>DebitCard</code> is expired, otherwise false
 	 */
-	public boolean isExpired() {
-		return new Date().after(expirationDate);
-	}
+//	public boolean isExpired() {
+//		return new Date().after(expirationDate);
+//	}
 	
 	public String toString() {
 		StringBuilder result = new StringBuilder();
