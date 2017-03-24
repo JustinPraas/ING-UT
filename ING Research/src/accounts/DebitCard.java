@@ -2,6 +2,8 @@ package accounts;
 import java.util.Calendar;
 import java.util.Date;
 
+import database.BankingLogger;
+
 /**
  * A debit card that is associated with a combination of customer account and bank account.
  * @author Justin Praas
@@ -52,21 +54,28 @@ public class DebitCard {
 	 * @return resultCardNumber.toString() The generated card number for the <code>DebitCard</code>
 	 */
 	private String generateCardNumber() {
-		//TODO: Make sure this is unique
-		StringBuilder resultCardNumber = new StringBuilder();
-		
-		//Append the first 3 digits
-		for (int i = 0; i < 3; i++) {
-			resultCardNumber.append((int)(Math.random() * 10));
-		}
-		
-		//Append a random alphabetical character in the range of [A-Z]
-		char c = (char) ('A' + (int) (Math.random() * 26));
-		resultCardNumber.append(c);
-		
-		//Append the last 3 digits
-		for (int i = 0; i < 3; i++) {
-			resultCardNumber.append((int)(Math.random() * 10));
+		boolean unique = false;
+		StringBuilder resultCardNumber = null;
+		while (!unique) {
+			resultCardNumber = new StringBuilder();
+			
+			//Append the first 3 digits
+			for (int i = 0; i < 3; i++) {
+				resultCardNumber.append((int)(Math.random() * 10));
+			}
+			
+			//Append a random alphabetical character in the range of [A-Z]
+			char c = (char) ('A' + (int) (Math.random() * 26));
+			resultCardNumber.append(c);
+			
+			//Append the last 3 digits
+			for (int i = 0; i < 3; i++) {
+				resultCardNumber.append((int)(Math.random() * 10));
+			}
+			
+			if (!BankingLogger.debitCardExists(resultCardNumber.toString())) {
+				unique = true;
+			}
 		}
 		
 		return resultCardNumber.toString();
