@@ -110,9 +110,15 @@ public class DebitCard {
 	 * Checks whether the <code>DebitCard</code> is expired.
 	 * @return true if the <code>DebitCard</code> is expired, otherwise false
 	 */
-//	public boolean isExpired() {
-//		return new Date().after(expirationDate);
-//	}
+	public boolean isExpired() {
+		Calendar c = Calendar.getInstance();
+		Date today = new Date(c.getTime().getTime());
+		if (expirationDate.before(today)) {
+			return false;
+		} else {
+			return true;
+		}
+	}
 	
 	public String toString() {
 		StringBuilder result = new StringBuilder();
