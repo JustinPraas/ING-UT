@@ -10,7 +10,7 @@ import database.BankingLogger;
  */
 public class DebitCard {	
 	private final String PIN;
-	private String cardNumber;
+	private final String cardNumber;
 	private Date expirationDate;
 	private String bankAccountIBAN;
 	private String holderBSN;
@@ -22,14 +22,26 @@ public class DebitCard {
 	 * Create a new <code>DebitCard</code> associated with a BankAccount.
 	 * @param bankAccount The <code>bankAccount</code> associated with the new <code>DebitCard</code>
 	 */
-	public DebitCard(String mainHolderBSN, String bankAccountIBAN) {
+	public DebitCard(String holderBSN, String bankAccountIBAN) {
 		this.bankAccountIBAN = bankAccountIBAN;
-		this.holderBSN = mainHolderBSN;
+		this.holderBSN = holderBSN;
 		PIN = generatePin();
 		cardNumber = generateCardNumber();
 		expirationDate = generateExpirationDate();
 	}
-
+	
+	/**
+	 * Create a new <code>DebitCard</code> instance with details loaded
+	 * from the database.
+	 */
+	public DebitCard(String holderBSN, String bankAccountIBAN, Date expirationDate, String cardNumber, String PIN) {
+		this.holderBSN = holderBSN;
+		this.bankAccountIBAN = bankAccountIBAN;
+		this.expirationDate = expirationDate;
+		this.cardNumber = cardNumber;
+		this.PIN = PIN;
+	}
+	
 	/**
 	 * Generates a random PIN for the <code>DebitCard</code> object. 
 	 * The standardized format (ING): 4 digits.
