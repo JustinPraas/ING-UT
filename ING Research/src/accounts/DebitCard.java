@@ -19,7 +19,8 @@ public class DebitCard {
 	that have been associated with a BankAccount during the BankAccount's lifespan) */
 
 	/**
-	 * Create a new <code>DebitCard</code> associated with a BankAccount.
+	 * Create a new <code>DebitCard</code> associated with a BankAccount
+	 * and stores its details in the database.
 	 * @param bankAccount The <code>bankAccount</code> associated with the new <code>DebitCard</code>
 	 */
 	public DebitCard(String holderBSN, String bankAccountIBAN) {
@@ -28,6 +29,7 @@ public class DebitCard {
 		PIN = generatePin();
 		cardNumber = generateCardNumber();
 		expirationDate = generateExpirationDate();
+		BankingLogger.addDebitCardEntry(this, true);
 	}
 	
 	/**
