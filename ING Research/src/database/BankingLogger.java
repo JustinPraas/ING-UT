@@ -409,6 +409,13 @@ public class BankingLogger {
 		return false;
 	}
 	
+	/**
+	 * Checks whether a DebitCard with a given card number already exists in the 
+	 * database.
+	 * @param cardNum The unique card number String to look up in the database
+	 * @return True or false, depending on whether or not a card with the given cardNum
+	 * can be found in the database.
+	 */
 	public static boolean debitCardExists(String cardNum) {
 		initIfRequired();
 		
