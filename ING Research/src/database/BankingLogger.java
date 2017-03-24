@@ -505,6 +505,13 @@ public class BankingLogger {
 		return null;
 	}
 	
+	/**
+	 * Removes a debit card entry from the database.
+	 * @param cardNum The card number of the debit card that needs to be
+	 * removed from the DB
+	 * @param commit Whether or not the method should commit the changes immediately
+	 * upon finishing
+	 */
 	public static void removeDebitCard(String cardNum, boolean commit) {
 		initIfRequired();
 
@@ -530,6 +537,14 @@ public class BankingLogger {
 		}
 	}
 	
+	/**
+	 * Fetches all <code>DebitCard</code>s associated with
+	 * a given BSN from the database.
+	 * @param BSN The BSN of the customer whose debit cards
+	 * we are interested in
+	 * @return A HashSet containing all DebitCards associated with 
+	 * the given BSN.
+	 */
 	public static HashSet<DebitCard> getDebitCardsByBSN(String BSN) {
 		initIfRequired();
 		HashSet<DebitCard> result = null;
