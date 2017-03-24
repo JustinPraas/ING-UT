@@ -10,8 +10,8 @@ public class DebitCard {
 	private final String PIN;
 	private String cardNumber;
 	private Date expirationDate;
-	private BankAccount bankAccount;
-	private CustomerAccount mainHolder;
+	private String bankAccountIBAN;
+	private String mainHolderBSN;
 	
 	/*TODO implement 'follownumbers'? (follownumbers are basically the total number of passes 
 	that have been associated with a BankAccount during the BankAccount's lifespan) */
@@ -20,9 +20,9 @@ public class DebitCard {
 	 * Create a new <code>DebitCard</code> associated with a BankAccount.
 	 * @param bankAccount The <code>bankAccount</code> associated with the new <code>DebitCard</code>
 	 */
-	public DebitCard(BankAccount bankAccount) {
-		this.bankAccount = bankAccount;
-		this.mainHolder = bankAccount.getMainHolder();
+	public DebitCard(String mainHolderBSN, String bankAccountIBAN) {
+		this.bankAccountIBAN = bankAccountIBAN;
+		this.mainHolderBSN = mainHolderBSN;
 		PIN = generatePin();
 		cardNumber = generateCardNumber();
 		expirationDate = generateExpirationDate();
@@ -52,6 +52,7 @@ public class DebitCard {
 	 * @return resultCardNumber.toString() The generated card number for the <code>DebitCard</code>
 	 */
 	private String generateCardNumber() {
+		//TODO: Make sure this is unique
 		StringBuilder resultCardNumber = new StringBuilder();
 		
 		//Append the first 3 digits
@@ -110,16 +111,10 @@ public class DebitCard {
 	public String toString() {
 		StringBuilder result = new StringBuilder();
 		String format = "%1$-20s %2$s %n";
-		result.append(String.format(format, "Main holder:", mainHolder.getName()));
-		result.append(String.format(format, "DebitCard number:", cardNumber));
-		result.append(String.format(format, "IBAN:", bankAccount.getIBAN()));
+		result.append(String.format(format, "Main Holder BSN:", mainHolderBSN));
+		result.append(String.format(format, "Debit Card number:", cardNumber));
+		result.append(String.format(format, "Bank Account IBAN:", bankAccountIBAN));
 		result.append(String.format(format, "Expiration date:", expirationDate));
-		return  result.toString();
+		return result.toString();
 	}
-	
-	//Testing purposes for the toString method
-//	public static void main(String[] args) {
-//		DebitCard card = new DebitCard(new BankAccount(new CustomerAccount("Henk", "Henk", "052523532", "Steenanjer 3", "0651027395", "jw.praas@gmail.com", new Date())));
-//		System.out.println(card.toString());
-//	}
 }
