@@ -13,7 +13,7 @@ public class DebitCard {
 	private String cardNumber;
 	private Date expirationDate;
 	private String bankAccountIBAN;
-	private String mainHolderBSN;
+	private String holderBSN;
 	
 	/*TODO implement 'follownumbers'? (follownumbers are basically the total number of passes 
 	that have been associated with a BankAccount during the BankAccount's lifespan) */
@@ -24,7 +24,7 @@ public class DebitCard {
 	 */
 	public DebitCard(String mainHolderBSN, String bankAccountIBAN) {
 		this.bankAccountIBAN = bankAccountIBAN;
-		this.mainHolderBSN = mainHolderBSN;
+		this.holderBSN = mainHolderBSN;
 		PIN = generatePin();
 		cardNumber = generateCardNumber();
 		expirationDate = generateExpirationDate();
@@ -120,10 +120,30 @@ public class DebitCard {
 	public String toString() {
 		StringBuilder result = new StringBuilder();
 		String format = "%1$-20s %2$s %n";
-		result.append(String.format(format, "Main Holder BSN:", mainHolderBSN));
+		result.append(String.format(format, "Main Holder BSN:", holderBSN));
 		result.append(String.format(format, "Debit Card number:", cardNumber));
 		result.append(String.format(format, "Bank Account IBAN:", bankAccountIBAN));
 		result.append(String.format(format, "Expiration date:", expirationDate));
 		return result.toString();
+	}
+	
+	public String getPIN() {
+		return PIN;
+	}
+	
+	public String getCardNum() {
+		return cardNumber;
+	}
+	
+	public Date getExpirationDate() {
+		return expirationDate;
+	}
+	
+	public String getHolderBSN() {
+		return holderBSN;
+	}
+	
+	public String getBankAccountIBAN() {
+		return bankAccountIBAN;
 	}
 }
