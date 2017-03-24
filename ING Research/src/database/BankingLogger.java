@@ -470,7 +470,7 @@ public class BankingLogger {
 	 * @param cardNum The <code>DebitCard</code>'s unique card number
 	 * @return An instance representing the debit card found in the database
 	 */
-	public static DebitCard getCardByNumber(String cardNum) {
+	public static DebitCard getDebitCardByNumber(String cardNum) {
 		initIfRequired();
 		
 		try {
@@ -528,5 +528,33 @@ public class BankingLogger {
 			//TODO: Handle
 			e.printStackTrace();
 		}
+	}
+	
+	public static HashSet<DebitCard> getDebitCardsByBSN(String BSN) {
+		initIfRequired();
+		HashSet<DebitCard> result = null;
+		
+		try {
+			Statement statement = SQLiteDB.getConn().createStatement();
+			
+			// Find all debit cards paired to the specified BSN
+			String query = "SELECT * FROM debitcards WHERE customer_BSN='" + BSN + "';";
+			ResultSet rs = statement.executeQuery(query);
+			
+			// Add each debit card found to the HashSet
+			result = new HashSet<>();
+			while (rs.next()) {
+				String cardNum = rs.getString("card_number");
+				DebitCard newCard = getDebitCardByNumber(cardNum);
+				if (newCard != null) {
+					result.add(newCard);
+				}
+			}
+		} catch (SQLException e) {
+			//TODO: Handle
+			e.printStackTrace();
+		}
+		// Return all debit cards found
+		return result;
 	}
 }
