@@ -50,3 +50,11 @@ CREATE TABLE IF NOT EXISTS transfers (
     FOREIGN KEY (destination_IBAN) REFERENCES bankaccounts(IBAN),
     PRIMARY KEY (source_IBAN, destination_IBAN, date_time)
 );
+
+CREATE TABLE IF NOT EXISTS debitcards (
+	FOREIGN KEY (customer_BSN) REFERENCES customeraccounts(customer_BSN),
+	FOREIGN KEY (bankaccount_IBAN) REFERENCES bankaccounts(IBAN),
+	PIN CHAR(4) NOT NULL,
+	card_number VARCHAR UNIQUE NOT NULL,
+	expiration_date DATE NOT NULL
+);
