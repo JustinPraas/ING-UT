@@ -1,5 +1,6 @@
 package database;
 
+import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -436,6 +437,12 @@ public class BankingLogger {
 		return false;
 	}
 	
+	/**
+	 * Adds a debit card to the database.
+	 * @param card The DebitCard object to be added to DB
+	 * @param commit Whether this method should immediately commit the
+	 * changes to DB upon finishing
+	 */
 	public static void addDebitCardEntry(DebitCard card, boolean commit) {
 		initIfRequired();
 		
@@ -455,5 +462,46 @@ public class BankingLogger {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+	
+	/**
+	 * Fetches a debit card's details from the database and loads them into
+	 * an instance of the <code>DebitCard</code> object.
+	 * @param cardNum The <code>DebitCard</code>'s unique card number
+	 * @return An instance representing the debit card found in the database
+	 */
+	public static DebitCard getCardByNumber(String cardNum) {
+		initIfRequired();
+		
+		try {
+			DebitCard result;
+			Statement statement = SQLiteDB.getConn().createStatement();
+			
+			// Find the bank account associated with the IBAN in the DB
+			String query = "SELECT * FROM debitcards WHERE card_number='" + cardNum + "';";
+			ResultSet rs = statement.executeQuery(query);
+			
+			// If the card exists, get its information
+			if (rs.next()) {
+				String customerBSN = rs.getString("customer_BSN");
+				String bankAccountIBAN = rs.getString("bankaccount_IBAN");
+				Date expirationDate = rs.getDate("expiration_date");
+				String cardNumber = rs.getString("card_number");
+				String PIN = rs.getString("PIN");
+				
+				// Create a DebitCard instance with the retrieved characteristics and return it
+				result = new DebitCard(customerBSN, bankAccountIBAN, expirationDate, cardNumber, PIN);
+				
+			// If the debit card does not exist, return null	
+			} else {
+				result = null;
+			}
+			return result;
+		} catch (SQLException e) {
+			//TODO: Handle
+			e.printStackTrace();
+		}
+		
+		return null;
 	}
 }
