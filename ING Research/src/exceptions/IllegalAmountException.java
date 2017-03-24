@@ -6,6 +6,7 @@ package exceptions;
  * @author Andrei Cojocaru
  */
 public class IllegalAmountException extends Exception {
+	private static final long serialVersionUID = 8327769399825056386L;
 	private float amount;
 	
 	public IllegalAmountException (float amount) {

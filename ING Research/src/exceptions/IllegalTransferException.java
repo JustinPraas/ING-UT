@@ -6,6 +6,7 @@ package exceptions;
  * @author Andrei Cojocaru
  */
 public class IllegalTransferException extends Exception {
+	private static final long serialVersionUID = -8284837193637155915L;
 	float balance;
 	String IBAN;
 	float amount;
