@@ -8,6 +8,7 @@ import java.util.HashSet;
 
 import accounts.BankAccount;
 import accounts.CustomerAccount;
+import accounts.DebitCard;
 import exceptions.IllegalAccountDeletionException;
 
 /**
@@ -433,5 +434,26 @@ public class BankingLogger {
 			e.printStackTrace();
 		}
 		return false;
+	}
+	
+	public static void addDebitCardEntry(DebitCard card, boolean commit) {
+		initIfRequired();
+		
+		try {
+			Statement statement = SQLiteDB.getConn().createStatement();
+			
+			// Add the debit card entry into the debitcards table
+			String update = "INSERT INTO debitcards (PIN, card_number, expiration_date, bankaccount_IBAN, customer_BSN) VALUES ('" + card.getPIN() + "', '" 
+					+ card.getCardNum() + "', '" + card.getExpirationDate().toString() + "', " + card.getBankAccountIBAN() + "', '" + card.getHolderBSN() + "');";
+			statement.executeUpdate(update);
+			
+			// Commit the changes to database after all statements were successfully executed, if required
+			if (commit) {
+				SQLiteDB.getConn().commit();
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }
