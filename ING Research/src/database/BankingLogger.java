@@ -504,4 +504,29 @@ public class BankingLogger {
 		
 		return null;
 	}
+	
+	public static void removeDebitCard(String cardNum, boolean commit) {
+		initIfRequired();
+
+		try {
+			Statement statement = SQLiteDB.getConn().createStatement();
+			
+			// If the debit card doesn't exist, stop
+			if (!debitCardExists(cardNum)) {
+				return;
+			}
+			
+			// Delete the debit card
+			String delete = "DELETE FROM debitcards WHERE card_number='" + cardNum + "';";
+			statement.executeUpdate(delete);
+			
+			// Commit the changes after all necessary operations are successful, if requested
+			if (commit) {
+				SQLiteDB.getConn().commit();
+			}
+		} catch (SQLException e) {
+			//TODO: Handle
+			e.printStackTrace();
+		}
+	}
 }
