@@ -1,6 +1,5 @@
 package accounts;
 
-import java.sql.Date;
 import java.util.HashSet;
 
 import database.BankingLogger;
@@ -16,7 +15,7 @@ public class CustomerAccount {
 	private String streetAddress;
 	private String phoneNumber;
 	private String email;
-	private Date birthdate;
+	private String birthdate;
 	
 	/**
 	 * Create a new <code>CustomerAccount</code> with the given customer information.
@@ -30,7 +29,7 @@ public class CustomerAccount {
 	 * @param addToDB Whether or not to add the newly-created customer account to the database
 	 */
 	public CustomerAccount(String name, String surname, String BSN, String streetAddress, String phoneNumber, 
-			String email, Date birthdate, boolean addToDB) {
+			String email, String birthdate, boolean addToDB) {
 		this.setName(name);
 		this.setSurname(surname);
 		this.setBSN(BSN);
@@ -130,11 +129,11 @@ public class CustomerAccount {
 		this.email = email;
 	}
 
-	public Date getBirthdate() {
+	public String getBirthdate() {
 		return birthdate;
 	}
 
-	public void setBirthdate(Date birthdate) {
+	public void setBirthdate(String birthdate) {
 		this.birthdate = birthdate;
 	}
 }

@@ -2,7 +2,6 @@ package testing;
 
 import static org.junit.Assert.*;
 
-import java.sql.Date;
 import java.util.HashSet;
 
 import org.junit.After;
@@ -23,7 +22,7 @@ public class AccountTest {
 	
 	@Before
 	public void init() throws Exception {
-		customerAccount = new CustomerAccount("John", "Test", customerBSN, "103 Testings Ave.", "000-TEST", "johntest@testing.test", new Date(0), true);
+		customerAccount = new CustomerAccount("John", "Test", customerBSN, "103 Testings Ave.", "000-TEST", "johntest@testing.test", "TESTDATE", true);
 		customerAccount.openBankAccount();
 		HashSet<BankAccount> bankAccounts = BankingLogger.getBankAccountsByBSN(customerBSN);
 		for (BankAccount key : bankAccounts) {

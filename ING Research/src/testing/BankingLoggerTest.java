@@ -24,7 +24,7 @@ public class BankingLoggerTest {
 	
 	@Test 
 	public void testBankingLoggerGeneral() {
-		CustomerAccount custAccount = new CustomerAccount("John", "Smith", testBSN, "103 Testings Ave.", "000-TEST", "johntest@testing.test", new Date(0), true);
+		CustomerAccount custAccount = new CustomerAccount("John", "Smith", testBSN, "103 Testings Ave.", "000-TEST", "johntest@testing.test", "TESTDATE", true);
 		assertTrue(BankingLogger.getCustomerAccountByBSN(testBSN).getBSN().equals(testBSN));
 		BankAccount bankAccount = null;
 		custAccount.openBankAccount();
@@ -51,7 +51,7 @@ public class BankingLoggerTest {
 	@Test
 	public void testCustomerAccountExists() {
 		@SuppressWarnings("unused")
-		CustomerAccount customerAccount = new CustomerAccount("John", "Smith", testBSN, "103 Testings Ave.", "000-TEST", "johntest@testing.test", new Date(0), true);
+		CustomerAccount customerAccount = new CustomerAccount("John", "Smith", testBSN, "103 Testings Ave.", "000-TEST", "johntest@testing.test", "TESTDATE", true);
 		assertTrue(BankingLogger.customerAccountExists(testBSN));
 		BankingLogger.removeCustomerAccount(testBSN, true);
 		assertFalse(BankingLogger.customerAccountExists(testBSN));
@@ -62,7 +62,7 @@ public class BankingLoggerTest {
 		BankAccount bankAccount = new BankAccount("NOTJOHN");
 		BankAccount bankAccount2 = new BankAccount("DAVE");
 		BankAccount bankAccount3 = new BankAccount("SALLY");
-		CustomerAccount customerAccount = new CustomerAccount("John", "Smith", testBSN, "103 Testings Ave.", "000-TEST", "johntest@testing.test", new Date(0), true);
+		CustomerAccount customerAccount = new CustomerAccount("John", "Smith", testBSN, "103 Testings Ave.", "000-TEST", "johntest@testing.test", "TESTDATE", true);
 		customerAccount.addBankAccount(bankAccount);
 		customerAccount.addBankAccount(bankAccount2);
 		customerAccount.addBankAccount(bankAccount3);

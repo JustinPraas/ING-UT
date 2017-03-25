@@ -279,8 +279,7 @@ public class BankingLogger {
 				String streetAddress = rs.getString("street_address");
 				String email = rs.getString("email");
 				String phoneNum = rs.getString("phone_number");
-				java.util.Date tempBirthDate = new SimpleDateFormat("yyyy-MM-dd").parse(rs.getString("birth_date"));
-				java.sql.Date birthDate = new Date(tempBirthDate.getTime());
+				String birthDate = rs.getString("birth_date");
 				
 				// Create a CustomerAccount instance with the retrieved characteristics and return it
 				result = new CustomerAccount(customerName, customerSurname, customerBSN, streetAddress, phoneNum, email, birthDate, false);
@@ -290,7 +289,7 @@ public class BankingLogger {
 				result = null;
 			}
 			return result;
-		} catch (SQLException | ParseException e) {
+		} catch (SQLException e) {
 			//TODO: Handle
 			e.printStackTrace();
 		}
