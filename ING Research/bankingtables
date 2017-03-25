@@ -9,8 +9,8 @@ CREATE TABLE IF NOT EXISTS customeraccounts (
     customer_BSN VARCHAR PRIMARY KEY NOT NULL,
     name VARCHAR NOT NULL,
     surname VARCHAR NOT NULL,
-    street_address VARCHAR,
-    email VARCHAR,
+    street_address VARCHAR NOT NULL,
+    email VARCHAR NOT NULL,
     phone_number VARCHAR NOT NULL,
     birth_date VARCHAR NOT NULL
 );

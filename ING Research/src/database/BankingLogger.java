@@ -260,6 +260,44 @@ public class BankingLogger {
 		return null;
 	}
 	
+	public static CustomerAccount getCustomerAccountByBSN(String BSN) {
+		initIfRequired();
+		
+		try {
+			CustomerAccount result;
+			Statement statement = SQLiteDB.getConn().createStatement();
+			
+			// Find the customer account associated with the BSN in the DB
+			String query = "SELECT * FROM customeraccounts WHERE customer_BSN='" + BSN + "';";
+			ResultSet rs = statement.executeQuery(query);
+			
+			// If the customer account exists, get its characteristics
+			if (rs.next()) {
+				String customerBSN = rs.getString("customer_BSN");
+				String customerName = rs.getString("name");
+				String customerSurname = rs.getString("surname");
+				String streetAddress = rs.getString("street_address");
+				String email = rs.getString("email");
+				String phoneNum = rs.getString("phone_number");
+				java.util.Date tempBirthDate = new SimpleDateFormat("yyyy-MM-dd").parse(rs.getString("birth_date"));
+				java.sql.Date birthDate = new Date(tempBirthDate.getTime());
+				
+				// Create a CustomerAccount instance with the retrieved characteristics and return it
+				result = new CustomerAccount(customerName, customerSurname, customerBSN, streetAddress, phoneNum, email, birthDate, false);
+				
+			// If the CustomerAccount does not exist, return null	
+			} else {
+				result = null;
+			}
+			return result;
+		} catch (SQLException | ParseException e) {
+			//TODO: Handle
+			e.printStackTrace();
+		}
+		
+		return null;
+	}
+	
 	/**
 	 * Retrieves all <code>BankAccounts</code> paired with a specific <code>CustomerAccount</code>
 	 * in the database.
