@@ -27,9 +27,10 @@ public class CustomerAccount {
 	 * @param phoneNumber The customer's phone number
 	 * @param email The customer's email
 	 * @param birthdate The customer's date of birth
+	 * @param addToDB Whether or not to add the newly-created customer account to the database
 	 */
 	public CustomerAccount(String name, String surname, String BSN, String streetAddress, String phoneNumber, 
-			String email, Date birthdate) {
+			String email, Date birthdate, boolean addToDB) {
 		this.setName(name);
 		this.setSurname(surname);
 		this.setBSN(BSN);
@@ -37,7 +38,9 @@ public class CustomerAccount {
 		this.setPhoneNumber(phoneNumber);
 		this.setEmail(email);
 		this.setBirthdate(birthdate);
-		BankingLogger.addCustomerAccountEntry(this, true);
+		if (addToDB) {
+			BankingLogger.addCustomerAccountEntry(this, true);
+		}
 	}
 	
 	/**
