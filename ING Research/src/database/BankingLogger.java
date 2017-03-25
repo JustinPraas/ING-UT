@@ -5,6 +5,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.HashSet;
 
 import accounts.BankAccount;
@@ -451,7 +453,7 @@ public class BankingLogger {
 			
 			// Add the debit card entry into the debitcards table
 			String update = "INSERT INTO debitcards (PIN, card_number, expiration_date, bankaccount_IBAN, customer_BSN) VALUES ('" + card.getPIN() + "', '" 
-					+ card.getCardNum() + "', '" + card.getExpirationDate().toString() + "', " + card.getBankAccountIBAN() + "', '" + card.getHolderBSN() + "');";
+					+ card.getCardNum() + "', '" + card.getExpirationDate().toString() + "', '" + card.getBankAccountIBAN() + "', '" + card.getHolderBSN() + "');";
 			statement.executeUpdate(update);
 			
 			// Commit the changes to database after all statements were successfully executed, if required
@@ -485,7 +487,8 @@ public class BankingLogger {
 			if (rs.next()) {
 				String customerBSN = rs.getString("customer_BSN");
 				String bankAccountIBAN = rs.getString("bankaccount_IBAN");
-				Date expirationDate = rs.getDate("expiration_date");
+				java.util.Date tempExpirationDate = new SimpleDateFormat("yyyy-MM-dd").parse(rs.getString("expiration_date"));
+				java.sql.Date expirationDate = new Date(tempExpirationDate.getTime());
 				String cardNumber = rs.getString("card_number");
 				String PIN = rs.getString("PIN");
 				
@@ -497,7 +500,7 @@ public class BankingLogger {
 				result = null;
 			}
 			return result;
-		} catch (SQLException e) {
+		} catch (SQLException | ParseException e) {
 			//TODO: Handle
 			e.printStackTrace();
 		}
