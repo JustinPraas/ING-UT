@@ -6,6 +6,7 @@ import static org.junit.Assert.assertTrue;
 import java.sql.Date;
 import java.util.HashSet;
 
+import org.junit.After;
 import org.junit.Test;
 
 import accounts.BankAccount;
@@ -16,9 +17,15 @@ import database.BankingLogger;
 public class BankingLoggerTest {
 	public static String testBSN = "TEST";
 	
+	@After
+	public void after() {
+		BankingLogger.removeCustomerAccount(testBSN, true);
+	}
+	
 	@Test 
 	public void testBankingLoggerGeneral() {
-		CustomerAccount custAccount = new CustomerAccount("John", "Smith", testBSN, "103 Testings Ave.", "000-TEST", "johntest@testing.test", new Date(0));
+		CustomerAccount custAccount = new CustomerAccount("John", "Smith", testBSN, "103 Testings Ave.", "000-TEST", "johntest@testing.test", new Date(0), true);
+		assertTrue(BankingLogger.getCustomerAccountByBSN(testBSN).getBSN().equals(testBSN));
 		BankAccount bankAccount = null;
 		custAccount.openBankAccount();
 		HashSet<BankAccount> bankAccounts = BankingLogger.getBankAccountsByBSN(testBSN);
@@ -31,7 +38,6 @@ public class BankingLoggerTest {
 		BankingLogger.removeBankAccount(bankAccount.getIBAN(), true);
 		assertTrue(BankingLogger.getBankAccountByIBAN(bankAccount.getIBAN()) == null);
 		assertTrue(BankingLogger.getBankAccountsByBSN(testBSN).size() == 0);
-		BankingLogger.removeCustomerAccount(testBSN, true);
 	}
 	
 	@Test
@@ -45,7 +51,7 @@ public class BankingLoggerTest {
 	@Test
 	public void testCustomerAccountExists() {
 		@SuppressWarnings("unused")
-		CustomerAccount customerAccount = new CustomerAccount("John", "Smith", testBSN, "103 Testings Ave.", "000-TEST", "johntest@testing.test", new Date(0));
+		CustomerAccount customerAccount = new CustomerAccount("John", "Smith", testBSN, "103 Testings Ave.", "000-TEST", "johntest@testing.test", new Date(0), true);
 		assertTrue(BankingLogger.customerAccountExists(testBSN));
 		BankingLogger.removeCustomerAccount(testBSN, true);
 		assertFalse(BankingLogger.customerAccountExists(testBSN));
@@ -56,7 +62,7 @@ public class BankingLoggerTest {
 		BankAccount bankAccount = new BankAccount("NOTJOHN");
 		BankAccount bankAccount2 = new BankAccount("DAVE");
 		BankAccount bankAccount3 = new BankAccount("SALLY");
-		CustomerAccount customerAccount = new CustomerAccount("John", "Smith", testBSN, "103 Testings Ave.", "000-TEST", "johntest@testing.test", new Date(0));
+		CustomerAccount customerAccount = new CustomerAccount("John", "Smith", testBSN, "103 Testings Ave.", "000-TEST", "johntest@testing.test", new Date(0), true);
 		customerAccount.addBankAccount(bankAccount);
 		customerAccount.addBankAccount(bankAccount2);
 		customerAccount.addBankAccount(bankAccount3);
