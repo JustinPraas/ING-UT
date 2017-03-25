@@ -10,6 +10,7 @@ import org.junit.Test;
 
 import accounts.BankAccount;
 import accounts.CustomerAccount;
+import accounts.DebitCard;
 import database.BankingLogger;
 
 public class BankingLoggerTest {
@@ -77,5 +78,24 @@ public class BankingLoggerTest {
 		BankingLogger.removeBankAccount(bankAccount.getIBAN(), true);
 		BankingLogger.removeBankAccount(bankAccount2.getIBAN(), true);
 		BankingLogger.removeBankAccount(bankAccount3.getIBAN(), true);
+	}
+	
+	@Test
+	public void testDebitCardManagement() {
+		assertFalse(BankingLogger.debitCardExists("TESTNUM"));
+		assertTrue(BankingLogger.getDebitCardsByBSN(testBSN).size() == 0);
+		DebitCard testCard = new DebitCard(testBSN, "TESTIBAN", new Date(0), "TESTNUM" ,"7357");
+		BankingLogger.addDebitCardEntry(testCard, true);
+		assertTrue(BankingLogger.debitCardExists("TESTNUM"));
+		assertTrue(BankingLogger.getDebitCardsByBSN(testBSN).size() == 1);
+		DebitCard testCard2 = new DebitCard(testBSN, "TESTIBAN", new Date(0), "TESTNUM2" ,"7357");
+		BankingLogger.addDebitCardEntry(testCard2, true);
+		assertTrue(BankingLogger.getDebitCardsByBSN(testBSN).size() == 2);
+		BankingLogger.removeDebitCard(testCard2.getCardNum(), true);
+		assertFalse(BankingLogger.debitCardExists(testCard2.getCardNum()));
+		assertTrue(BankingLogger.getDebitCardsByBSN(testBSN).size() == 1);
+		BankingLogger.removeDebitCard(testCard.getCardNum(), true);
+		assertFalse(BankingLogger.debitCardExists(testCard.getCardNum()));
+		assertTrue(BankingLogger.getDebitCardsByBSN(testBSN).size() == 0);
 	}
 }

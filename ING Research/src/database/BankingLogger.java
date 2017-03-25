@@ -1,13 +1,17 @@
 package database;
 
+import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.HashSet;
 
 import accounts.BankAccount;
 import accounts.CustomerAccount;
+import accounts.DebitCard;
 import exceptions.IllegalAccountDeletionException;
 
 /**
@@ -407,5 +411,168 @@ public class BankingLogger {
 			e.printStackTrace();
 		}
 		return false;
+	}
+	
+	/**
+	 * Checks whether a DebitCard with a given card number already exists in the 
+	 * database.
+	 * @param cardNum The unique card number String to look up in the database
+	 * @return True or false, depending on whether or not a card with the given cardNum
+	 * can be found in the database.
+	 */
+	public static boolean debitCardExists(String cardNum) {
+		initIfRequired();
+		
+		try {
+			Statement statement = SQLiteDB.getConn().createStatement();
+			String query = "SELECT * FROM debitcards WHERE card_number='" + cardNum + "';";
+			ResultSet rs = statement.executeQuery(query);
+			if (!rs.next()) {
+				return false;
+			} else {
+				return true;
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return false;
+	}
+	
+	/**
+	 * Adds a debit card to the database.
+	 * @param card The DebitCard object to be added to DB
+	 * @param commit Whether this method should immediately commit the
+	 * changes to DB upon finishing
+	 */
+	public static void addDebitCardEntry(DebitCard card, boolean commit) {
+		initIfRequired();
+		
+		try {
+			Statement statement = SQLiteDB.getConn().createStatement();
+			
+			// Add the debit card entry into the debitcards table
+			String update = "INSERT INTO debitcards (PIN, card_number, expiration_date, bankaccount_IBAN, customer_BSN) VALUES ('" + card.getPIN() + "', '" 
+					+ card.getCardNum() + "', '" + card.getExpirationDate().toString() + "', '" + card.getBankAccountIBAN() + "', '" + card.getHolderBSN() + "');";
+			statement.executeUpdate(update);
+			
+			// Commit the changes to database after all statements were successfully executed, if required
+			if (commit) {
+				SQLiteDB.getConn().commit();
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * Fetches a debit card's details from the database and loads them into
+	 * an instance of the <code>DebitCard</code> object.
+	 * @param cardNum The <code>DebitCard</code>'s unique card number
+	 * @return An instance representing the debit card found in the database
+	 */
+	public static DebitCard getDebitCardByNumber(String cardNum) {
+		initIfRequired();
+		
+		try {
+			DebitCard result;
+			Statement statement = SQLiteDB.getConn().createStatement();
+			
+			// Find the bank account associated with the IBAN in the DB
+			String query = "SELECT * FROM debitcards WHERE card_number='" + cardNum + "';";
+			ResultSet rs = statement.executeQuery(query);
+			
+			// If the card exists, get its information
+			if (rs.next()) {
+				String customerBSN = rs.getString("customer_BSN");
+				String bankAccountIBAN = rs.getString("bankaccount_IBAN");
+				java.util.Date tempExpirationDate = new SimpleDateFormat("yyyy-MM-dd").parse(rs.getString("expiration_date"));
+				java.sql.Date expirationDate = new Date(tempExpirationDate.getTime());
+				String cardNumber = rs.getString("card_number");
+				String PIN = rs.getString("PIN");
+				
+				// Create a DebitCard instance with the retrieved characteristics and return it
+				result = new DebitCard(customerBSN, bankAccountIBAN, expirationDate, cardNumber, PIN);
+				
+			// If the debit card does not exist, return null	
+			} else {
+				result = null;
+			}
+			return result;
+		} catch (SQLException | ParseException e) {
+			//TODO: Handle
+			e.printStackTrace();
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * Removes a debit card entry from the database.
+	 * @param cardNum The card number of the debit card that needs to be
+	 * removed from the DB
+	 * @param commit Whether or not the method should commit the changes immediately
+	 * upon finishing
+	 */
+	public static void removeDebitCard(String cardNum, boolean commit) {
+		initIfRequired();
+
+		try {
+			Statement statement = SQLiteDB.getConn().createStatement();
+			
+			// If the debit card doesn't exist, stop
+			if (!debitCardExists(cardNum)) {
+				return;
+			}
+			
+			// Delete the debit card
+			String delete = "DELETE FROM debitcards WHERE card_number='" + cardNum + "';";
+			statement.executeUpdate(delete);
+			
+			// Commit the changes after all necessary operations are successful, if requested
+			if (commit) {
+				SQLiteDB.getConn().commit();
+			}
+		} catch (SQLException e) {
+			//TODO: Handle
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * Fetches all <code>DebitCard</code>s associated with
+	 * a given BSN from the database.
+	 * @param BSN The BSN of the customer whose debit cards
+	 * we are interested in
+	 * @return A HashSet containing all DebitCards associated with 
+	 * the given BSN.
+	 */
+	public static HashSet<DebitCard> getDebitCardsByBSN(String BSN) {
+		initIfRequired();
+		HashSet<DebitCard> result = null;
+		
+		try {
+			Statement statement = SQLiteDB.getConn().createStatement();
+			
+			// Find all debit cards paired to the specified BSN
+			String query = "SELECT * FROM debitcards WHERE customer_BSN='" + BSN + "';";
+			ResultSet rs = statement.executeQuery(query);
+			
+			// Add each debit card found to the HashSet
+			result = new HashSet<>();
+			while (rs.next()) {
+				String cardNum = rs.getString("card_number");
+				DebitCard newCard = getDebitCardByNumber(cardNum);
+				if (newCard != null) {
+					result.add(newCard);
+				}
+			}
+		} catch (SQLException e) {
+			//TODO: Handle
+			e.printStackTrace();
+		}
+		// Return all debit cards found
+		return result;
 	}
 }

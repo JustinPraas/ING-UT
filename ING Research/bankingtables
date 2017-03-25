@@ -12,17 +12,7 @@ CREATE TABLE IF NOT EXISTS customeraccounts (
     street_address VARCHAR,
     email VARCHAR,
     phone_number VARCHAR NOT NULL,
-    birth_date DATE NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS debitcards (
-    PIN INTEGER NOT NULL,
-    card_number VARCHAR NOT NULL,
-    customer_BSN VARCHAR NOT NULL,
-    bankaccount_IBAN VARCHAR NOT NULL,
-    FOREIGN KEY (customer_BSN) REFERENCES customeraccounts(customer_BSN),
-    FOREIGN KEY (bankaccount_IBAN) REFERENCES bankaccounts(IBAN),
-    PRIMARY KEY (card_number)
+    birth_date VARCHAR NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS customerbankaccounts (
@@ -49,4 +39,15 @@ CREATE TABLE IF NOT EXISTS transfers (
     FOREIGN KEY (source_IBAN) REFERENCES bankaccounts(IBAN),
     FOREIGN KEY (destination_IBAN) REFERENCES bankaccounts(IBAN),
     PRIMARY KEY (source_IBAN, destination_IBAN, date_time)
+);
+
+CREATE TABLE IF NOT EXISTS debitcards (
+	customer_BSN VARCHAR NOT NULL,
+	bankaccount_IBAN VARCHAR NOT NULL,
+	PIN CHAR(4) NOT NULL,
+	card_number VARCHAR UNIQUE NOT NULL,
+	expiration_date VARCHAR NOT NULL,
+	FOREIGN KEY (customer_BSN) REFERENCES customeraccounts(customer_BSN),
+	FOREIGN KEY (bankaccount_IBAN) REFERENCES bankaccounts(IBAN),
+    PRIMARY KEY (card_number)
 );
