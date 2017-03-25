@@ -28,5 +28,10 @@
   		<artifactId>sqlite-jdbc</artifactId>
   		<version>3.16.1</version>
   	</dependency>
+  	<dependency>
+  		<groupId>com.enigmabridge</groupId>
+  		<artifactId>hibernate4-sqlite-dialect</artifactId>
+  		<version>0.1.2</version>
+  	</dependency>
   </dependencies>
 </project>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE hibernate-configuration SYSTEM 
+"http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
+
+<hibernate-configuration>
+   <session-factory>
+    <property name="hibernate.dialect">com.enigmabridge.hibernate.dialect.SQLiteDialect</property>
+    <property name="hibernate.connection.driver_class">org.sqlite.JDBC</property>
+    <property name="hibernate.connection.url">jdbc:sqlite:banking.db</property>
+    <property name="connection.username"></property>
+    <property name="connection.password"></property>
+    <property name="hibernate.hbm2ddl.auto">update</property>
+    <mapping resource="CustomerAccount.hbm.xml"/>
+   </session-factory>
+</hibernate-configuration>
