@@ -225,9 +225,4 @@ public class BankAccount {
 	public String getMainHolder() {
 		return mainHolderBSN;
 	}
-	
-	public static void main(String[] args) {
-		CustomerAccount customerAccount = new CustomerAccount("John", "Smith", "1453.25.62", "103 Testings Ave.", "000-TEST", "johntest@testing.test", new Date(0));
-		customerAccount.openBankAccount();
-	}
 }
