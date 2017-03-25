@@ -5,7 +5,6 @@ import java.util.Calendar;
 import database.BankingLogger;
 
 import java.math.BigInteger;
-import java.sql.Date;
 import java.sql.Timestamp;
 
 import exceptions.IllegalAmountException;
