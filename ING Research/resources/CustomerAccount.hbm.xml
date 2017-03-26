@@ -4,15 +4,24 @@
  "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">  
   
  <hibernate-mapping>  
-  <class name="accounts.CustomerAccount" table="customeraccounts">  
-    <id name="BSN" type="string" column="customer_BSN">  
-     <generator class="assigned"></generator>  
-    </id>  
-    <property name="name" type="string" column="name"></property>
-    <property name="surname" type="string" column="surname"></property>
-    <property name="streetAddress" type="string" column="street_address"></property>
-    <property name="phoneNumber" type="string" column="phone_number"></property>
-    <property name="email" type="string" column="email"></property>
-    <property name="birthdate" type="string" column="birth_date"></property>
-  </class>  
+ 	<class name="accounts.CustomerAccount" table="customeraccounts">  
+    	<id name="BSN" type="string" column="customer_BSN">  
+    		<generator class="assigned"></generator>  
+    	</id>  
+    	<property name="name" type="string" column="name"></property>
+    	<property name="surname" type="string" column="surname"></property>
+    	<property name="streetAddress" type="string" column="street_address"></property>
+    	<property name="phoneNumber" type="string" column="phone_number"></property>
+    	<property name="email" type="string" column="email"></property>
+    	<property name="birthdate" type="string" column="birth_date"></property>
+    	<set name = "bankAccounts" table="customerbankaccounts"
+    		inverse="false" lazy="true" fetch="select">
+    		<key>
+    			<column name="customer_BSN" not-null="true"/>
+    		</key>
+    		<many-to-many entity-name="accounts.BankAccount">
+    			<column name="IBAN" not-null="true"/>
+    		</many-to-many>
+    	</set>
+ 	</class>
  </hibernate-mapping>  
