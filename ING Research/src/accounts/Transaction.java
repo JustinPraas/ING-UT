@@ -6,6 +6,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 import database.DBObject;
 import database.DataManager;
@@ -79,7 +80,7 @@ public class Transaction implements DBObject{
 	
 	@Id
 	@Column(name = "ID")
-	@GeneratedValue(strategy = GenerationType.AUTO)
+	@GeneratedValue(strategy=GenerationType.AUTO)
 	public int getId() {
 		return id;
 	}
@@ -89,16 +90,19 @@ public class Transaction implements DBObject{
 	}
 
 	@Override
+	@Transient
 	public String getPrimaryKeyName() {
 		return "id";
 	}
 
 	@Override
-	public String getPrimaryKeyVal() {
-		return Integer.toString(this.id);
+	@Transient
+	public Integer getPrimaryKeyVal() {
+		return new Integer(this.id);
 	}
 
 	@Override
+	@Transient
 	public String getClassName() {
 		return "accounts.Transaction";
 	}
