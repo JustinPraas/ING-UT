@@ -95,7 +95,7 @@ public class AccountTest {
 	@Test
 	public void illegalDebitTest() {
 		try {
-			bankAccount.debit(-2000, "Test");
+			bankAccount.debit(-2000);
 		} catch (IllegalAmountException e) {
 			
 		}
@@ -107,7 +107,7 @@ public class AccountTest {
 	@Test
 	public void illegalCreditTest() {
 		try {
-			bankAccount.credit(-2000, "Test");
+			bankAccount.credit(-2000);
 		} catch (IllegalAmountException e) {
 			
 		}
@@ -119,7 +119,7 @@ public class AccountTest {
 	@Test
 	public void creditTest() {
 		try {
-			bankAccount.credit(1000, "Test");
+			bankAccount.credit(1000);
 		} catch (IllegalAmountException e) {
 			
 		}
@@ -131,7 +131,7 @@ public class AccountTest {
 	@Test
 	public void debitTest() {
 		try {
-			bankAccount.debit(1000, "Test");
+			bankAccount.debit(1000);
 		} catch (IllegalAmountException e) {
 			
 		}
