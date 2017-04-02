@@ -10,6 +10,10 @@ import javax.persistence.Table;
 import database.DBObject;
 import database.DataManager;
 
+/**
+ * Provides transaction logging. Used to computer standing balance for a given BankAccount.
+ * @author Andrei Cojocaru
+ */
 @Entity
 @Table(name = "transactions")
 public class Transaction implements DBObject{
@@ -25,6 +29,7 @@ public class Transaction implements DBObject{
 	}
 	
 	public String toString() {
+		//TODO: Implement
 		return "UNFINISHED";
 	}
 	
@@ -40,6 +45,7 @@ public class Transaction implements DBObject{
 	public String getDestinationIBAN() {
 		return destinationIBAN;
 	}
+	
 	public void setDestinationIBAN(String destinationIBAN) {
 		this.destinationIBAN = destinationIBAN;
 	}
