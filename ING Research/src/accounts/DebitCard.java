@@ -1,15 +1,26 @@
 package accounts;
 import java.util.Calendar;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+
+import database.DataManager;
+
 import java.sql.Date;
 
 /**
  * A debit card that is associated with a combination of customer account and bank account.
  * @author Justin Praas
  */
+@Entity
+@Table(name = "debitcards")
 public class DebitCard implements database.DBObject {	
 	private String PIN;
 	private String cardNumber;
-	private Date expirationDate;
+	private String expirationDate;
 	private String bankAccountIBAN;
 	private String holderBSN;
 	
@@ -31,14 +42,13 @@ public class DebitCard implements database.DBObject {
 		PIN = generatePin();
 		cardNumber = generateCardNumber();
 		expirationDate = generateExpirationDate();
-//		BankingLogger.addDebitCardEntry(this, true);
 	}
 	
 	/**
 	 * Create a new <code>DebitCard</code> instance with details loaded
 	 * from the database.
 	 */
-	public DebitCard(String holderBSN, String bankAccountIBAN, Date expirationDate, String cardNumber, String PIN) {
+	public DebitCard(String holderBSN, String bankAccountIBAN, String expirationDate, String cardNumber, String PIN) {
 		this.holderBSN = holderBSN;
 		this.bankAccountIBAN = bankAccountIBAN;
 		this.expirationDate = expirationDate;
@@ -89,9 +99,9 @@ public class DebitCard implements database.DBObject {
 				resultCardNumber.append((int)(Math.random() * 10));
 			}
 			
-//			if (!BankingLogger.debitCardExists(resultCardNumber.toString())) {
-//				unique = true;
-//			}
+			if (!DataManager.objectExists(this)) {
+				unique = true;
+			}
 		}
 		
 		return resultCardNumber.toString();
@@ -102,14 +112,14 @@ public class DebitCard implements database.DBObject {
 	 * The default expiration date (ING): 5 years after card creation
 	 * @return
 	 */
-	public Date generateExpirationDate() {		
+	public String generateExpirationDate() {		
 		//Get a calendar using the default time zone and locale
 		Calendar c = Calendar.getInstance();
 		
 		//Add the specified amount of time to the given calendar field
 		c.add(Calendar.YEAR, 5);
 		
-		return new Date(c.getTime().getTime());
+		return new Date(c.getTime().getTime()).toString();
 	}
 	
 	/**
@@ -126,10 +136,11 @@ public class DebitCard implements database.DBObject {
 	 * Checks whether the <code>DebitCard</code> is expired.
 	 * @return true if the <code>DebitCard</code> is expired, otherwise false
 	 */
+	@Transient
 	public boolean isExpired() {
 		Calendar c = Calendar.getInstance();
 		Date today = new Date(c.getTime().getTime());
-		if (expirationDate.before(today)) {
+		if (new Date(today.parse(expirationDate)).before(today)) {
 			return false;
 		} else {
 			return true;
@@ -146,35 +157,72 @@ public class DebitCard implements database.DBObject {
 		return result.toString();
 	}
 	
+	@Column(name = "PIN")
 	public String getPIN() {
 		return PIN;
 	}
 	
-	public String getCardNum() {
+	@Id
+	@Column(name = "card_number")
+	public String getCardNumber() {
 		return cardNumber;
 	}
 	
-	public Date getExpirationDate() {
+	@Column(name = "expiration_date")
+	public String getExpirationDate() {
 		return expirationDate;
 	}
 	
+	@Column(name = "customer_BSN")
 	public String getHolderBSN() {
 		return holderBSN;
 	}
 	
+	@Column(name = "bankaccount_IBAN")
 	public String getBankAccountIBAN() {
 		return bankAccountIBAN;
 	}
+
+	public void setCardNumber(String num) {
+		cardNumber = num;
+	}
 	
+	public void setHolderBSN(String BSN) {
+		holderBSN = BSN;
+	}
+	
+	public void setPIN(String PIN) {
+		this.PIN = PIN;
+	}
+	
+	public void setBankAccountIBAN(String IBAN) {
+		bankAccountIBAN = IBAN;
+	}
+	
+	public void setExpirationDate(String expirationDate) {
+		this.expirationDate = expirationDate;
+	}
+	
+	@Transient
 	public String getPrimaryKeyName() {
 		return "cardNumber";
 	}
 	
+	@Transient
 	public String getPrimaryKeyVal() {
 		return cardNumber;
 	}
 	
+	@Transient
 	public String getClassName() {
 		return "accounts.DebitCard";
+	}
+	
+	public void saveToDB() {
+		DataManager.save(this);
+	}
+	
+	public void deleteFromDB() {
+		DataManager.removeEntryFromDB(this);
 	}
 }
