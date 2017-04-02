@@ -34,6 +34,7 @@ public class DataManager {
     	cfg.addAnnotatedClass(DebitCard.class);
     	cfg.addAnnotatedClass(BankAccount.class);
     	cfg.addAnnotatedClass(CustomerAccount.class);
+    	cfg.addAnnotatedClass(accounts.Transaction.class);
     	factory = cfg.buildSessionFactory();
     }
     
