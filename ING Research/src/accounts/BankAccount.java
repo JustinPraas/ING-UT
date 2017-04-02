@@ -1,8 +1,26 @@
 package accounts;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToMany;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+
+import org.hibernate.criterion.Criterion;
+import org.hibernate.criterion.Restrictions;
+
+import database.DataManager;
+
 import java.math.BigInteger;
 
 import exceptions.IllegalAmountException;
@@ -13,6 +31,8 @@ import exceptions.IllegalTransferException;
  * A simple model of a bank account in an abstract currency.
  * @author Andrei Cojocaru
  */
+@Entity
+@Table(name = "bankaccounts")
 public class BankAccount implements database.DBObject {
 	private final static String COUNTRY_CODE = "NL";
 	private final static String BANK_CODE = "INGB";
@@ -185,15 +205,9 @@ public class BankAccount implements database.DBObject {
 //		BankingLogger.removeBankAccount(this.getIBAN(), true);
 	}
 	
+	@Column(name = "balance")
 	public float getBalance() {
 		return balance;
-	}
-	
-	/**
-	 * Displays the <code>BankAccount</code>'s balance to the TUI.
-	 */
-	public void viewBalance() {
-		System.out.println("Current balance for account " + IBAN + ": " + balance);
 	}
 	
 	/**
@@ -201,7 +215,7 @@ public class BankAccount implements database.DBObject {
 	 * @param amount The amount of money to credit the <code>BankAccount</code> with
 	 * @throws IllegalAmountException Thrown when the specified amount is 0 or negative
 	 */
-	public void credit (float amount, String description) throws IllegalAmountException {
+	public void credit(float amount, String description) throws IllegalAmountException {
 		if (amount <= 0) {
 			throw new IllegalAmountException(amount);
 		}
@@ -215,7 +229,7 @@ public class BankAccount implements database.DBObject {
 	 * @param amount The amount of money to debit the <code>BankAccount</code> with
 	 * @throws Thrown when the specified amount is 0 or negative
 	 */
-	public void debit (float amount, String description) throws IllegalAmountException {
+	public void debit(float amount, String description) throws IllegalAmountException {
 		if (amount <= 0) {
 			throw new IllegalAmountException(amount);
 		}
@@ -236,31 +250,64 @@ public class BankAccount implements database.DBObject {
 		mainHolderBSN = BSN;
 	}
 	
+	@Id
+	@Column(name = "IBAN")
 	public String getIBAN() {
 		return IBAN;
 	}
 	
+	@Column(name = "customer_BSN")
 	public String getMainHolderBSN() {
 		return mainHolderBSN;
 	}
 	
+	@Transient
 	public String getPrimaryKeyName() {
 		return "IBAN";
 	}
 	
+	@Transient
 	public String getPrimaryKeyVal() {
 		return IBAN;
 	}
 	
+	@Transient
 	public String getClassName() {
 		return "accounts.BankAccount";
 	}
 
+	@ManyToMany(fetch = FetchType.LAZY, mappedBy = "bankAccounts")
 	public Set<CustomerAccount> getOwners() {
 		return owners;
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Transient
+	public List<DebitCard> getDebitCards() {
+		List<DebitCard> result = new ArrayList<>();
+		ArrayList<Criterion> criteria = new ArrayList<>();
+		criteria.add(Restrictions.eq("bankAccountIBAN", getPrimaryKeyVal()));
+		result = DataManager.getObjectsFromDB(new DebitCard().getClassName(), criteria);
+		return result;
 	}
 
 	public void setOwners(Set<CustomerAccount> owners) {
 		this.owners = owners;
+	}
+	
+	/**
+	 * This should never be called on a BankAccount. 
+	 * When a CustomerAccount is updated/saved, all of its
+	 * corresponding BankAccounts are also updated/saved.
+	 */
+	public void saveToDB() {
+		return;
+	}
+	
+	public void deleteFromDB() {
+		for (DebitCard key : getDebitCards()) {
+			key.deleteFromDB();
+		}
+		DataManager.removeEntryFromDB(this);
 	}
 }
