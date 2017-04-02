@@ -3,11 +3,25 @@ package accounts;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.JoinColumn;
+import javax.persistence.FetchType;
+import javax.persistence.Id;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+
+import database.DataManager;
+
 /**
  * A bank customer's main account, to which multiple <code>BankAccounts</code> may be tied.
  * @author Andrei Cojocaru
  */
-
+@Entity
+@Table(name = "customeraccounts")
 public class CustomerAccount implements database.DBObject {
 	private String name;
 	private String surname;
@@ -74,6 +88,7 @@ public class CustomerAccount implements database.DBObject {
 		bankAccounts.remove(account);
 	}
 
+	@Column(name = "name")
 	public String getName() {
 		return name;
 	}
@@ -82,6 +97,7 @@ public class CustomerAccount implements database.DBObject {
 		this.name = name;
 	}
 
+	@Column(name = "surname")
 	public String getSurname() {
 		return surname;
 	}
@@ -90,6 +106,8 @@ public class CustomerAccount implements database.DBObject {
 		this.surname = surname;
 	}
 
+	@Id
+	@Column(name = "customer_BSN")
 	public String getBSN() {
 		return BSN;
 	}
@@ -98,6 +116,7 @@ public class CustomerAccount implements database.DBObject {
 		BSN = bSN;
 	}
 
+	@Column(name = "street_address")
 	public String getStreetAddress() {
 		return streetAddress;
 	}
@@ -106,6 +125,7 @@ public class CustomerAccount implements database.DBObject {
 		this.streetAddress = streetAddress;
 	}
 
+	@Column(name = "phone_number")
 	public String getPhoneNumber() {
 		return phoneNumber;
 	}
@@ -114,6 +134,7 @@ public class CustomerAccount implements database.DBObject {
 		this.phoneNumber = phoneNumber;
 	}
 
+	@Column(name = "email")
 	public String getEmail() {
 		return email;
 	}
@@ -122,6 +143,7 @@ public class CustomerAccount implements database.DBObject {
 		this.email = email;
 	}
 
+	@Column(name = "birth_date")
 	public String getBirthdate() {
 		return birthdate;
 	}
@@ -130,24 +152,42 @@ public class CustomerAccount implements database.DBObject {
 		this.birthdate = birthdate;
 	}
 	
+	@Transient
 	public String getPrimaryKeyName() {
 		return "BSN";
 	}
 	
+	@Transient
 	public String getPrimaryKeyVal() {
 		return BSN;
 	}
 	
+	@Transient
 	public String getClassName() {
 		return "accounts.CustomerAccount";
 	}
 
+	@ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+	@JoinTable(name = "customerbankaccounts", joinColumns = {
+			@JoinColumn(name = "customer_BSN", nullable = false, updatable = false)}, inverseJoinColumns = {
+					@JoinColumn(name = "IBAN", nullable = false, updatable = false)})
 	public Set<BankAccount> getBankAccounts() {
 		return bankAccounts;
 	}
 
 	public void setBankAccounts(Set<BankAccount> bankAccounts) {
 		this.bankAccounts = bankAccounts;
+	}
+	
+	public void saveToDB() {
+		DataManager.save(this);
+	}
+	
+	public void deleteFromDB() {
+		for (BankAccount key : getBankAccounts()) {
+			key.deleteFromDB();
+		}
+		DataManager.removeEntryFromDB(this);
 	}
 }
 
