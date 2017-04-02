@@ -12,8 +12,6 @@ import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.query.Query;
 
-import com.fasterxml.classmate.AnnotationConfiguration;
-
 import accounts.BankAccount;
 import accounts.CustomerAccount;
 import accounts.DebitCard;
