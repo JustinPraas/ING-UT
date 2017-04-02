@@ -72,8 +72,10 @@ public class DataManager {
     	Criteria cr = session.createCriteria(o.getClassName());
     	cr.add(Restrictions.eq(o.getPrimaryKeyName(), o.getPrimaryKeyVal()));
     	if (cr.list().size() != 0) {
+    		session.close();
     		return true;
     	}
+    	session.close();
     	return false;
     }
     
@@ -102,6 +104,7 @@ public class DataManager {
     		cr.add(c);
     	}
     	List results = cr.list();
+    	session.close();
     	return results;
     }
     
@@ -111,6 +114,7 @@ public class DataManager {
     	Session session = factory.openSession();
     	Criteria cr = session.createCriteria(className);
     	List results = cr.list();
+    	session.close();
     	return results;
     }
     
@@ -121,11 +125,11 @@ public class DataManager {
     	Criteria cr = session.createCriteria(className);
     	cr.add(Restrictions.eq(primaryKeyName, primaryKey));
     	List results = cr.list();
-    	
     	if (results.size() != 0) {
+    		session.close();
     		return false;
     	}
-    	
+    	session.close();
     	return true;
     }
     
