@@ -168,7 +168,18 @@ public class BankAccount implements database.DBObject {
 		if (amount <= 0) {
 			throw new IllegalAmountException(amount);
 		}
-		this.debit(amount, "Physical deposit.");
+		this.debit(amount);
+		
+		Calendar c = Calendar.getInstance();
+		String date = c.getTime().toString();
+		Transaction t = new Transaction();
+		t.setDateTime(date);
+		t.setDestinationIBAN(this.getIBAN());
+		t.setAmount(amount);
+		t.setDescription("Physical deposit.");
+		//TODO: Only commit once all operations have succeeded
+		t.saveToDB();
+		this.saveToDB();
 	}
 	
 	/**
@@ -177,17 +188,25 @@ public class BankAccount implements database.DBObject {
 	 * @param amount The amount of money to be transferred from this <code>BankAccount</code> to the destination
 	 */
 	public void transfer(BankAccount destination, float amount) throws IllegalAmountException, IllegalTransferException {
-		//TODO: Log
 		if (amount <= 0) {
 			throw new IllegalAmountException(amount);
 		} else if (balance < amount) {
 			throw new IllegalTransferException(balance, IBAN, amount);
 		}
 		
-		this.credit(amount, "Transfer to " + destination.getIBAN());
-		destination.debit(amount, "Transfer from " + this.getIBAN());
+		this.credit(amount);
+		destination.debit(amount);
 		Calendar c = Calendar.getInstance();
-		//TODO: Add transfer description
+		String date = c.getTime().toString();
+		Transaction t = new Transaction();
+		t.setDateTime(date);
+		t.setSourceIBAN(this.getIBAN());
+		t.setDestinationIBAN(destination.getIBAN());
+		t.setAmount(amount);
+		t.setDescription("Transfer to " + destination.getIBAN() + ".");
+		//TODO: Only commit once all operations have succeeded
+		t.saveToDB();
+		this.saveToDB();
 	}
 	
 	@Column(name = "balance")
@@ -200,13 +219,11 @@ public class BankAccount implements database.DBObject {
 	 * @param amount The amount of money to credit the <code>BankAccount</code> with
 	 * @throws IllegalAmountException Thrown when the specified amount is 0 or negative
 	 */
-	public void credit(float amount, String description) throws IllegalAmountException {
-		//TODO: Log
+	public void credit(float amount) throws IllegalAmountException {
 		if (amount <= 0) {
 			throw new IllegalAmountException(amount);
 		}
 		balance -= amount;
-		Calendar c = Calendar.getInstance();
 	}
 	
 	/**
@@ -214,13 +231,11 @@ public class BankAccount implements database.DBObject {
 	 * @param amount The amount of money to debit the <code>BankAccount</code> with
 	 * @throws Thrown when the specified amount is 0 or negative
 	 */
-	public void debit(float amount, String description) throws IllegalAmountException {
-		//TODO: Log
+	public void debit(float amount) throws IllegalAmountException {
 		if (amount <= 0) {
 			throw new IllegalAmountException(amount);
 		}
 		balance += amount;
-		Calendar c = Calendar.getInstance();
 	}
 	
 	public void setIBAN(String IBAN) {
@@ -280,13 +295,8 @@ public class BankAccount implements database.DBObject {
 		this.owners = owners;
 	}
 	
-	/**
-	 * This should never be called on a BankAccount. 
-	 * When a CustomerAccount is updated/saved, all of its
-	 * corresponding BankAccounts are also updated/saved.
-	 */
 	public void saveToDB() {
-		return;
+		DataManager.save(this);
 	}
 	
 	public void deleteFromDB() {
