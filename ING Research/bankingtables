@@ -24,15 +24,14 @@ CREATE TABLE IF NOT EXISTS customerbankaccounts (
 );
 
 CREATE TABLE IF NOT EXISTS transactions (
-	ID NUMERIC NOT NULL,
-    source_IBAN VARCHAR NOT NULL,
+	ID INTEGER PRIMARY KEY,
+    source_IBAN VARCHAR,
     destination_IBAN VARCHAR,
     date_time VARCHAR NOT NULL,
     amount NUMERIC NOT NULL,
     description VARCHAR NOT NULL,
     FOREIGN KEY (source_IBAN) REFERENCES bankaccounts(IBAN),
-    FOREIGN KEY (destination_IBAN) REFERENCES bankaccounts(IBAN),
-    PRIMARY KEY (ID)
+    FOREIGN KEY (destination_IBAN) REFERENCES bankaccounts(IBAN)
 );
 
 CREATE TABLE IF NOT EXISTS debitcards (
