@@ -112,9 +112,9 @@ public class BankAccount implements database.DBObject {
 			resultIBAN = countryCode + controlNumberString + bankCode + pan;
 			
 			// If the IBAN isn't already in use, we can continue
-//			if (BankingLogger.getBankAccountByIBAN(resultIBAN) == null) {
-//				unique = true;
-//			}
+			if (DataManager.isPrimaryKeyUnique(new BankAccount().getClassName(), new BankAccount().getPrimaryKeyName(), resultIBAN)) {
+				unique = true;
+			}
 		}
 		
 		return resultIBAN;
@@ -189,20 +189,7 @@ public class BankAccount implements database.DBObject {
 		this.credit(amount, "Transfer to " + destination.getIBAN());
 		destination.debit(amount, "Transfer from " + this.getIBAN());
 		Calendar c = Calendar.getInstance();
-//		BankingLogger.logTransfer(this, destination, amount, new Timestamp(c.getTimeInMillis()), true);
 		//TODO: Add transfer description
-	}
-	
-	/**
-	 * Closes the <code>BankAccount</code>, removing its corresponding entry
-	 * from the database.
-	 */
-	public void deleteAccount() throws IllegalAccountDeletionException {
-		if (balance != 0) {
-			throw new IllegalAccountDeletionException(IBAN, balance);
-		}
-		
-//		BankingLogger.removeBankAccount(this.getIBAN(), true);
 	}
 	
 	@Column(name = "balance")
@@ -221,7 +208,6 @@ public class BankAccount implements database.DBObject {
 		}
 		balance -= amount;
 		Calendar c = Calendar.getInstance();
-//		BankingLogger.logPayment(this, amount, "credit", new Timestamp(c.getTimeInMillis()), description, true);
 	}
 	
 	/**
@@ -235,7 +221,6 @@ public class BankAccount implements database.DBObject {
 		}
 		balance += amount;
 		Calendar c = Calendar.getInstance();
-//		BankingLogger.logPayment(this, amount, "debit", new Timestamp(c.getTimeInMillis()), description, true);
 	}
 	
 	public void setIBAN(String IBAN) {
