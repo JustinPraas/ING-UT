@@ -15,7 +15,7 @@
     	<property name="email" type="string" column="email"></property>
     	<property name="birthdate" type="string" column="birth_date"></property>
     	<set name = "bankAccounts" table="customerbankaccounts"
-    		inverse="false" lazy="true" fetch="select">
+    		inverse="false" lazy="true" fetch="select" cascade="all">
     		<key>
     			<column name="customer_BSN" not-null="true"/>
     		</key>

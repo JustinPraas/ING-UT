@@ -2,18 +2,20 @@ package accounts;
 import java.util.Calendar;
 import java.sql.Date;
 
-import database.BankingLogger;
-
 /**
  * A debit card that is associated with a combination of customer account and bank account.
  * @author Justin Praas
  */
-public class DebitCard {	
-	private final String PIN;
-	private final String cardNumber;
+public class DebitCard implements database.DBObject {	
+	private String PIN;
+	private String cardNumber;
 	private Date expirationDate;
 	private String bankAccountIBAN;
 	private String holderBSN;
+	
+	public DebitCard() {
+		
+	}
 	
 	/*TODO implement 'follownumbers'? (follownumbers are basically the total number of passes 
 	that have been associated with a BankAccount during the BankAccount's lifespan) */
@@ -29,7 +31,7 @@ public class DebitCard {
 		PIN = generatePin();
 		cardNumber = generateCardNumber();
 		expirationDate = generateExpirationDate();
-		BankingLogger.addDebitCardEntry(this, true);
+//		BankingLogger.addDebitCardEntry(this, true);
 	}
 	
 	/**
@@ -87,9 +89,9 @@ public class DebitCard {
 				resultCardNumber.append((int)(Math.random() * 10));
 			}
 			
-			if (!BankingLogger.debitCardExists(resultCardNumber.toString())) {
-				unique = true;
-			}
+//			if (!BankingLogger.debitCardExists(resultCardNumber.toString())) {
+//				unique = true;
+//			}
 		}
 		
 		return resultCardNumber.toString();
@@ -162,5 +164,17 @@ public class DebitCard {
 	
 	public String getBankAccountIBAN() {
 		return bankAccountIBAN;
+	}
+	
+	public String getPrimaryKeyName() {
+		return "cardNumber";
+	}
+	
+	public String getPrimaryKeyVal() {
+		return cardNumber;
+	}
+	
+	public String getClassName() {
+		return "accounts.DebitCard";
 	}
 }

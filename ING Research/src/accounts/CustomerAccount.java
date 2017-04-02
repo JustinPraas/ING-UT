@@ -1,14 +1,14 @@
 package accounts;
 
 import java.util.HashSet;
-
-import database.BankingLogger;
+import java.util.Set;
 
 /**
  * A bank customer's main account, to which multiple <code>BankAccounts</code> may be tied.
  * @author Andrei Cojocaru
  */
-public class CustomerAccount {
+
+public class CustomerAccount implements database.DBObject {
 	private String name;
 	private String surname;
 	private String BSN;
@@ -16,6 +16,7 @@ public class CustomerAccount {
 	private String phoneNumber;
 	private String email;
 	private String birthdate;
+	private Set<BankAccount> bankAccounts = new HashSet<BankAccount>();
 	
 	/**
 	 * Create a new <code>CustomerAccount</code> with the given customer information.
@@ -29,7 +30,7 @@ public class CustomerAccount {
 	 * @param addToDB Whether or not to add the newly-created customer account to the database
 	 */
 	public CustomerAccount(String name, String surname, String BSN, String streetAddress, String phoneNumber, 
-			String email, String birthdate, boolean addToDB) {
+			String email, String birthdate) {
 		this.setName(name);
 		this.setSurname(surname);
 		this.setBSN(BSN);
@@ -37,9 +38,10 @@ public class CustomerAccount {
 		this.setPhoneNumber(phoneNumber);
 		this.setEmail(email);
 		this.setBirthdate(birthdate);
-		if (addToDB) {
-			BankingLogger.addCustomerAccountEntry(this, true);
-		}
+	}
+	
+	public CustomerAccount() {
+		
 	}
 	
 	/**
@@ -47,8 +49,8 @@ public class CustomerAccount {
 	 * Adds this and the respective association to the database.
 	 */
 	public void openBankAccount() {
-		@SuppressWarnings("unused")
 		BankAccount newAccount = new BankAccount(getBSN());
+		addBankAccount(newAccount);
 	}
 	
 	/**
@@ -58,7 +60,8 @@ public class CustomerAccount {
 	 * @param account The <code>BankAccount</code> to be owned by the customer.
 	 */
 	public void addBankAccount(BankAccount account) {
-		BankingLogger.addCustomerBankAccountPairing(this, account, true);
+		bankAccounts.add(account);
+		account.addOwner(this);
 	}
 	
 	/**
@@ -67,18 +70,8 @@ public class CustomerAccount {
 	 * @param account The <code>BankAccount</code> to remove ownership of
 	 */
 	public void removeBankAccount(BankAccount account) {
-		//TODO: Make sure this is not the sole account holder
-		BankingLogger.removeCustomerBankAccountPairing(getBSN(), account.getIBAN(), true);
-	}
-	
-	/**
-	 * Retrieves all <code>BankAccounts</code> paired to this <code>
-	 * CustomerAccount</code>.
-	 * @return A HashSet<BankAccount> of all <code>BankAccounts</code> 
-	 * this <code>CustomerAccount</code> can access.
-	 */
-	public HashSet<BankAccount> getBankAccounts() {
-		return BankingLogger.getBankAccountsByBSN(getBSN());
+		//TODO: Check if sole owner
+		bankAccounts.remove(account);
 	}
 
 	public String getName() {
@@ -135,6 +128,26 @@ public class CustomerAccount {
 
 	public void setBirthdate(String birthdate) {
 		this.birthdate = birthdate;
+	}
+	
+	public String getPrimaryKeyName() {
+		return "BSN";
+	}
+	
+	public String getPrimaryKeyVal() {
+		return BSN;
+	}
+	
+	public String getClassName() {
+		return "accounts.CustomerAccount";
+	}
+
+	public Set<BankAccount> getBankAccounts() {
+		return bankAccounts;
+	}
+
+	public void setBankAccounts(Set<BankAccount> bankAccounts) {
+		this.bankAccounts = bankAccounts;
 	}
 }
 

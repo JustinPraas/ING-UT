@@ -1,11 +1,9 @@
 package accounts;
 
 import java.util.Calendar;
-
-import database.BankingLogger;
-
+import java.util.HashSet;
+import java.util.Set;
 import java.math.BigInteger;
-import java.sql.Timestamp;
 
 import exceptions.IllegalAmountException;
 import exceptions.IllegalAccountDeletionException;
@@ -15,13 +13,18 @@ import exceptions.IllegalTransferException;
  * A simple model of a bank account in an abstract currency.
  * @author Andrei Cojocaru
  */
-public class BankAccount {
+public class BankAccount implements database.DBObject {
 	private final static String COUNTRY_CODE = "NL";
 	private final static String BANK_CODE = "INGB";
 	
 	private float balance;
 	private String IBAN;
 	private String mainHolderBSN;
+	private Set<CustomerAccount> owners = new HashSet<CustomerAccount>();
+	
+	public BankAccount() {
+		
+	}
 	
 	/**
 	 * Create a new <code>BankAccount</code> with a specific account holder and an initial balance of 0.
@@ -32,7 +35,7 @@ public class BankAccount {
 		this.balance = 0;
 		this.IBAN = generateIBAN(COUNTRY_CODE, BANK_CODE, randomPAN());
 		this.mainHolderBSN = mainHolderBSN;
-		BankingLogger.addBankAccountEntry(this, true);
+		//BankingLogger.addBankAccountEntry(this, true);
 	}
 	
 	/**
@@ -47,6 +50,10 @@ public class BankAccount {
 		this.mainHolderBSN = mainHolderBSN;
 		this.balance = balance;
 		this.IBAN = IBAN;
+	}
+	
+	public void addOwner(CustomerAccount owner) {
+		owners.add(owner);
 	}
 	
 	/**
@@ -85,9 +92,9 @@ public class BankAccount {
 			resultIBAN = countryCode + controlNumberString + bankCode + pan;
 			
 			// If the IBAN isn't already in use, we can continue
-			if (BankingLogger.getBankAccountByIBAN(resultIBAN) == null) {
-				unique = true;
-			}
+//			if (BankingLogger.getBankAccountByIBAN(resultIBAN) == null) {
+//				unique = true;
+//			}
 		}
 		
 		return resultIBAN;
@@ -162,7 +169,7 @@ public class BankAccount {
 		this.credit(amount, "Transfer to " + destination.getIBAN());
 		destination.debit(amount, "Transfer from " + this.getIBAN());
 		Calendar c = Calendar.getInstance();
-		BankingLogger.logTransfer(this, destination, amount, new Timestamp(c.getTimeInMillis()), true);
+//		BankingLogger.logTransfer(this, destination, amount, new Timestamp(c.getTimeInMillis()), true);
 		//TODO: Add transfer description
 	}
 	
@@ -175,7 +182,7 @@ public class BankAccount {
 			throw new IllegalAccountDeletionException(IBAN, balance);
 		}
 		
-		BankingLogger.removeBankAccount(this.getIBAN(), true);
+//		BankingLogger.removeBankAccount(this.getIBAN(), true);
 	}
 	
 	public float getBalance() {
@@ -200,7 +207,7 @@ public class BankAccount {
 		}
 		balance -= amount;
 		Calendar c = Calendar.getInstance();
-		BankingLogger.logPayment(this, amount, "credit", new Timestamp(c.getTimeInMillis()), description, true);
+//		BankingLogger.logPayment(this, amount, "credit", new Timestamp(c.getTimeInMillis()), description, true);
 	}
 	
 	/**
@@ -214,14 +221,46 @@ public class BankAccount {
 		}
 		balance += amount;
 		Calendar c = Calendar.getInstance();
-		BankingLogger.logPayment(this, amount, "debit", new Timestamp(c.getTimeInMillis()), description, true);
+//		BankingLogger.logPayment(this, amount, "debit", new Timestamp(c.getTimeInMillis()), description, true);
+	}
+	
+	public void setIBAN(String IBAN) {
+		this.IBAN = IBAN; 
+	}
+	
+	public void setBalance(float balance) {
+		this.balance = balance; 
+	}
+	
+	public void setMainHolderBSN(String BSN) {
+		mainHolderBSN = BSN;
 	}
 	
 	public String getIBAN() {
 		return IBAN;
 	}
 	
-	public String getMainHolder() {
+	public String getMainHolderBSN() {
 		return mainHolderBSN;
+	}
+	
+	public String getPrimaryKeyName() {
+		return "IBAN";
+	}
+	
+	public String getPrimaryKeyVal() {
+		return IBAN;
+	}
+	
+	public String getClassName() {
+		return "accounts.BankAccount";
+	}
+
+	public Set<CustomerAccount> getOwners() {
+		return owners;
+	}
+
+	public void setOwners(Set<CustomerAccount> owners) {
+		this.owners = owners;
 	}
 }

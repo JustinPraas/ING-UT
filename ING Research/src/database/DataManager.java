@@ -9,10 +9,17 @@ import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.criterion.Criterion;
+import org.hibernate.criterion.Restrictions;
 import org.hibernate.query.Query;
 
+import accounts.BankAccount;
 import accounts.CustomerAccount;
 
+/**
+ * Provides utility methods to store/retrieve objects from DB
+ * easily via the Hibernate ORM.
+ * @author Andrei Cojocaru
+ */
 public class DataManager {
 	public static final String CFGPATH = "hibernate.cfg.xml";
 	private static Configuration cfg;
@@ -44,6 +51,7 @@ public class DataManager {
 
     public static void removeEntryFromDB(DBObject o) {
     	initIfRequired();
+    	
     	Session session = factory.openSession();
     	Transaction t = session.beginTransaction();
     	String HQL = "delete " + o.getClassName() + " where " + o.getPrimaryKeyName() + " = '" + o.getPrimaryKeyVal() + "'";
@@ -58,11 +66,28 @@ public class DataManager {
     	
     	Session session = factory.openSession();
     	Criteria cr = session.createCriteria(o.getClassName());
+    	cr.add(Restrictions.eq(o.getPrimaryKeyName(), o.getPrimaryKeyVal()));
     	if (cr.list().size() != 0) {
     		return true;
     	}
     	return false;
     }
+    
+	public static void save(DBObject o) {
+		initIfRequired();
+		
+		Session session = factory.openSession();
+		Transaction t = session.beginTransaction();
+		
+		if (objectExists(o)) {
+			session.merge(o);
+		} else {
+			addEntryToDB(o);
+		}
+		
+		t.commit();
+		session.close();
+	}
     
     public static List getObjectsFromDB(String className, ArrayList<Criterion> criteria) {
     	initIfRequired();
@@ -86,11 +111,23 @@ public class DataManager {
     }
     
     public static void main(String[] args) {
-    	CustomerAccount john = new CustomerAccount("John", "Smith", "TEST", "103 Testings Ave.", "000-TEST", "johntest@testing.test", "TESTDATE", false);
-    	System.out.println(objectExists(john));
-    	addEntryToDB(john);
-    	System.out.println(objectExists(john));
+    	//TODO Remember: New CustomerAccounts must be saved immediately upon creation, before adding BankAccounts to them 
+    	CustomerAccount john = new CustomerAccount("John", "Test", "TEST", "103 Testings Ave.", "000-TEST", "johntest@testing.test", "TESTDATE");
+    	CustomerAccount jane = new CustomerAccount("Jane", "Test", "TEST2", "104 Testings Ave.", "001-TEST", "janetest@testing.test", "TESTDATE2");
+    	BankAccount bAcc = new BankAccount("TEST", 100, "TESTIBAN");
+    	BankAccount bAcc2 = new BankAccount("TEST2", 100, "TESTIBAN2");
+    	save(john);
+    	save(jane);
+    	jane.addBankAccount(bAcc);
+    	john.addBankAccount(bAcc);
+    	jane.addBankAccount(bAcc2);
+    	save(john);
+    	save(jane);
+    	//save(bAcc);
+    	//save(bAcc2);
+    	System.out.println(john.getBankAccounts().size());
+    	System.out.println(jane.getBankAccounts().size());
     	removeEntryFromDB(john);
-    	System.out.println(objectExists(john));
+    	removeEntryFromDB(jane);
     }
 }
