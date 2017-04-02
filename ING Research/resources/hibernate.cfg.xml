@@ -10,7 +10,5 @@
     <property name="connection.username"></property>
     <property name="connection.password"></property>
     <property name="hibernate.hbm2ddl.auto">update</property>
-    <mapping resource="CustomerAccount.hbm.xml"/>
-    <mapping resource="BankAccount.hbm.xml"/>
    </session-factory>
 </hibernate-configuration>
