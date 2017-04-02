@@ -28,6 +28,7 @@ public class DataManager {
 	private static boolean initialized = false;
 	
     public static void init() {
+    	SQLiteDB.initializeDB();
     	cfg = new Configuration();
     	cfg.configure(CFGPATH);
     	cfg.addAnnotatedClass(DebitCard.class);
