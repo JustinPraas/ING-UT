@@ -12,8 +12,11 @@ import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.query.Query;
 
+import com.fasterxml.classmate.AnnotationConfiguration;
+
 import accounts.BankAccount;
 import accounts.CustomerAccount;
+import accounts.DebitCard;
 
 /**
  * Provides utility methods to store/retrieve objects from DB
@@ -29,6 +32,9 @@ public class DataManager {
     public static void init() {
     	cfg = new Configuration();
     	cfg.configure(CFGPATH);
+    	cfg.addAnnotatedClass(DebitCard.class);
+    	cfg.addAnnotatedClass(BankAccount.class);
+    	cfg.addAnnotatedClass(CustomerAccount.class);
     	factory = cfg.buildSessionFactory();
     }
     
@@ -39,7 +45,7 @@ public class DataManager {
     	}
 	}
     
-    public static void addEntryToDB(DBObject o) {
+    private static void addEntryToDB(DBObject o) {
     	initIfRequired();
     	
     	Session session = factory.openSession();
@@ -110,24 +116,25 @@ public class DataManager {
     	return results;
     }
     
-    public static void main(String[] args) {
-    	//TODO Remember: New CustomerAccounts must be saved immediately upon creation, before adding BankAccounts to them 
-    	CustomerAccount john = new CustomerAccount("John", "Test", "TEST", "103 Testings Ave.", "000-TEST", "johntest@testing.test", "TESTDATE");
-    	CustomerAccount jane = new CustomerAccount("Jane", "Test", "TEST2", "104 Testings Ave.", "001-TEST", "janetest@testing.test", "TESTDATE2");
-    	BankAccount bAcc = new BankAccount("TEST", 100, "TESTIBAN");
-    	BankAccount bAcc2 = new BankAccount("TEST2", 100, "TESTIBAN2");
-    	save(john);
-    	save(jane);
-    	jane.addBankAccount(bAcc);
-    	john.addBankAccount(bAcc);
-    	jane.addBankAccount(bAcc2);
-    	save(john);
-    	save(jane);
-    	//save(bAcc);
-    	//save(bAcc2);
-    	System.out.println(john.getBankAccounts().size());
-    	System.out.println(jane.getBankAccounts().size());
-    	removeEntryFromDB(john);
-    	removeEntryFromDB(jane);
-    }
+//    public static void main(String[] args) {
+//    	CustomerAccount john = new CustomerAccount("John", "Test", "TEST", "103 Testings Ave.", "000-TEST", "johntest@testing.test", "TESTDATE");
+//    	CustomerAccount jane = new CustomerAccount("Jane", "Test", "TEST2", "104 Testings Ave.", "001-TEST", "janetest@testing.test", "TESTDATE2");
+//    	BankAccount bAcc = new BankAccount("TEST", 100, "TESTIBAN");
+//    	BankAccount bAcc2 = new BankAccount("TEST2", 100, "TESTIBAN2");
+//    	DebitCard card = new DebitCard("TEST", "TESTIBAN");
+//    	john.saveToDB();
+//    	jane.saveToDB();
+//    	card.saveToDB();
+//    	jane.addBankAccount(bAcc);
+//    	john.addBankAccount(bAcc);
+//    	jane.addBankAccount(bAcc2);
+//    	save(john);
+//    	save(jane);
+//    	System.out.println(bAcc.getDebitCards().size());
+//    	System.out.println(bAcc2.getDebitCards().size());
+//    	john.deleteFromDB();
+//    	jane.deleteFromDB();
+//    	System.out.println(bAcc.getDebitCards().size());
+//    	System.out.println(bAcc2.getDebitCards().size());
+//    }
 }
