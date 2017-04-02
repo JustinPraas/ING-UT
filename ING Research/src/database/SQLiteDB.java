@@ -18,7 +18,7 @@ public class SQLiteDB {
 	public static final String schema = "bankingtables";
 	
 	/**
-	 * Opens a connection to the database, creates a .db file if it does not already exist.
+	 * Creates a .db file if it does not already exist.
 	 */
 	public static void initializeDB() {
 		try {
