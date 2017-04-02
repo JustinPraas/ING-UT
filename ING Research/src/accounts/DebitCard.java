@@ -99,7 +99,7 @@ public class DebitCard implements database.DBObject {
 				resultCardNumber.append((int)(Math.random() * 10));
 			}
 			
-			if (!DataManager.objectExists(this)) {
+			if (DataManager.isPrimaryKeyUnique(getClassName(), getPrimaryKeyName(), resultCardNumber.toString())) {
 				unique = true;
 			}
 		}
