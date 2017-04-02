@@ -10,9 +10,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
 import javax.persistence.ManyToMany;
-import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
@@ -179,6 +177,7 @@ public class BankAccount implements database.DBObject {
 	 * @param amount The amount of money to be transferred from this <code>BankAccount</code> to the destination
 	 */
 	public void transfer(BankAccount destination, float amount) throws IllegalAmountException, IllegalTransferException {
+		//TODO: Log
 		if (amount <= 0) {
 			throw new IllegalAmountException(amount);
 		} else if (balance < amount) {
@@ -202,6 +201,7 @@ public class BankAccount implements database.DBObject {
 	 * @throws IllegalAmountException Thrown when the specified amount is 0 or negative
 	 */
 	public void credit(float amount, String description) throws IllegalAmountException {
+		//TODO: Log
 		if (amount <= 0) {
 			throw new IllegalAmountException(amount);
 		}
@@ -215,6 +215,7 @@ public class BankAccount implements database.DBObject {
 	 * @throws Thrown when the specified amount is 0 or negative
 	 */
 	public void debit(float amount, String description) throws IllegalAmountException {
+		//TODO: Log
 		if (amount <= 0) {
 			throw new IllegalAmountException(amount);
 		}
