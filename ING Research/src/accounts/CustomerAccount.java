@@ -13,7 +13,7 @@ public class CustomerAccount {
 	private String name;
 	private String surname;
 	private String BSN;
-	private String streetAddress;
+	private String streetAddress; // TODO: Implement postal-code and city fields
 	private String phoneNumber;
 	private String email;
 	private Date birthdate;

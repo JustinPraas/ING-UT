@@ -2,6 +2,7 @@ package userinterface;
 
 import accounts.BankAccount;
 import accounts.CustomerAccount;
+import database.BankingLogger;
 
 public class Session {
 	
@@ -13,7 +14,8 @@ public class Session {
 	
 	CustomerAccount customerAccount;
 	BankAccount bankAccount;
-	State state;	
+	State state;
+	BankingLogger bankingLogger = new BankingLogger();
 
 	public Session() {
 		state = State.LOGGED_OUT;

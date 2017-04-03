@@ -1,5 +1,8 @@
 package userinterface;
 
+import java.sql.Date;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Scanner;
 
 import accounts.BankAccount;
@@ -112,5 +115,24 @@ public class TUI {
 				break;
 			}
 		}
+	}
+
+	private void createCustomerAccount(String parameters) {
+		String[] parameterArray = parameters.split(":");
+		
+		String BSN = parameterArray[0];
+		String firstName = parameterArray[1];
+		String surname = parameterArray[2];
+		String streetAddress = parameterArray[3];
+		String email = parameterArray[4];
+		String phoneNumber = parameterArray[5];
+		String birthDate = parameterArray[6];
+		
+		if (InputChecker.isValidCustomer(BSN, firstName, surname, streetAddress, email, phoneNumber, birthDate)) {
+			DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd-mm-yyyy");
+			Date dateOfBirth = Date.valueOf(LocalDate.parse(birthDate, dtf));
+			new CustomerAccount(firstName, surname, BSN, streetAddress, phoneNumber, email, dateOfBirth, true);
+			System.out.println("Account created for: " + firstName + " " + surname + "(" + BSN + ")");
+		}		
 	}
 }
