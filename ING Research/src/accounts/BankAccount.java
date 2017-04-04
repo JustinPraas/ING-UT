@@ -148,6 +148,13 @@ public class BankAccount {
 		this.debit(amount, "Physical deposit.");
 	}
 	
+	public void withdraw(float amount) throws IllegalAmountException {
+		if (amount <= 0) {
+			throw new IllegalAmountException(amount);
+		}
+		this.credit(amount, "Physical withdrawal.");
+	}
+	
 	/**
 	 * Transfers a specific amount of money from this <code>BankAccount</code> to another.
 	 * @param destination The <code>BankAccount</code> to which the transferred money should go
