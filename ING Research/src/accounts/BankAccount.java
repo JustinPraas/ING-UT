@@ -5,7 +5,6 @@ import java.util.Calendar;
 import database.BankingLogger;
 
 import java.math.BigInteger;
-import java.sql.Date;
 import java.sql.Timestamp;
 
 import exceptions.IllegalAmountException;
@@ -146,13 +145,6 @@ public class BankAccount {
 			throw new IllegalAmountException(amount);
 		}
 		this.debit(amount, "Physical deposit.");
-	}
-	
-	public void withdraw(float amount) throws IllegalAmountException {
-		if (amount <= 0) {
-			throw new IllegalAmountException(amount);
-		}
-		this.credit(amount, "Physical withdrawal.");
 	}
 	
 	/**
