@@ -4,9 +4,7 @@ import java.sql.Date;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Scanner;
 
 import accounts.BankAccount;
@@ -19,11 +17,15 @@ import userinterface.Session.State;
 /**
  * A class that processes the input and handles the output of the application
  * @author Justin Praas
+ * @version 2nd of April, 2017
  */
 public class TUI {
 	
 	Session session;
 
+	/**
+	 * Binds a <code>Session</code> object to this TUI. Start listening to input.
+	 */
 	public TUI() {
 		session = new Session();
 		try {
@@ -37,6 +39,11 @@ public class TUI {
 		}
 	}
 
+	/**
+	 * Occupies the main thread, listens to input and processes the input.
+	 * @throws IllegalAmountException thrown when the processing methods perform an illegal operation
+	 * @throws IllegalTransferException thrown when the processing methods perform an illegal operation
+	 */
 	private void listen() throws IllegalAmountException, IllegalTransferException {
 		boolean continues = true;
 		Scanner inputScanner = new Scanner(System.in);
@@ -51,19 +58,22 @@ public class TUI {
 		inputScanner.close();
 	}
 
+	/**
+	 * Prints the available commands to the output.
+	 */
 	private void printCommands() {
 		switch (session.state) {
 		case LOGGED_OUT: 
 			System.out.println("\nUse one of the following commands:"
 					+ "\nCUST_LOGIN <BSN>, "
-					+ "\nCREATE_CUSTOMER_ACCOUNT <BSN> <firstName> <surname> <streetAddress> <email> <phoneNumber> <birthDate>"
+					+ "\nCREATE_CUSTOMER_ACCOUNT <BSN> <firstname> <surname> <streetaddress> <email> <phonenumber> <birthdate>"
 					+ "\nEXIT");
 			break;
 		case CUST_LOGGED_IN:
 			System.out.println("\nUse one of the following commands: "
 					+ "\nCREATE_BANK_ACCOUNT"
 					+ "\nLIST_BANK_ACCOUNTS"
-					+ "\nBANK_LOGIN <#>"
+					+ "\nBANK_LOGIN <number_from_list>"
 					+ "\nCUST_LOGOUT"
 					+ "\nEXIT");
 			break;
@@ -71,26 +81,35 @@ public class TUI {
 			System.out.println("\nUse one of the following commands: "
 					+ "\nDEBIT <amount> [description]"
 					+ "\nCREDIT <amount> [description]"
-					+ "\nTRANSFER <toIBAN> <amount>"
+					+ "\nTRANSFER <destination IBAN> <amount>"
 					+ "\nBANK_LOGOUT"
 					+ "\nEXIT");
 		}
 	}
 	
+	/**
+	 * Redirects the input to the correct handler-method for the given command.
+	 * @param input the user input
+	 * @throws IllegalAmountException
+	 * @throws IllegalTransferException
+	 */
 	private void processInput(String input) throws IllegalAmountException, IllegalTransferException {
 		String[] inputArray = input.split(" ");
 		String command = inputArray[0];
 		String parameters = "";
 		
+		// Only look for parameters if they are actually there.
 		if (inputArray.length != 1) {
 			parameters = input.substring(command.length() + 1, input.length());
 		}		
 		
+		// Exit the application when the command is 'EXIT'.
 		if (command.equals("EXIT")) {
 			System.err.println("Shutting down.");
 			System.exit(0);
 		}
 
+		// Act according to the given input. Pass parameters with the handler-methods.
 		if (session.state == State.LOGGED_OUT) {
 			switch (command) {
 			case "CREATE_CUSTOMER_ACCOUNT":
@@ -115,7 +134,7 @@ public class TUI {
 				bankLogin(parameters);
 				break;
 			case "CUST_LOGOUT":
-				customerLogout();
+				session.logoutCustomer();
 				break;
 			default: 
 				System.err.println("Invalid command");
@@ -133,7 +152,7 @@ public class TUI {
 				transfer(parameters);
 				break;
 			case "BANK_LOGOUT":
-				bankLogout();
+				session.logoutBank();
 			default: 
 				System.err.println("Invalid command.");
 				break;
@@ -141,33 +160,28 @@ public class TUI {
 		}
 	}
 
-	private void bankLogout() {
-		session.state = State.CUST_LOGGED_IN;
-		session.bankAccount = null;
-		session.bankAccountMap = new ArrayList<>();
-		
-	}
-
-	private void customerLogout() {
-		session.state = State.LOGGED_OUT;
-		session.bankAccount = null;
-		session.customerAccount = null;
-		session.bankAccountMap = new ArrayList<>();
-		
-	}
-
+	/**
+	 * Handler-method for the 'TRANSFER' command. Takes the IBAN and the
+	 * amount from the parameters, checks if they are valid and makes the 
+	 * transfer if they are valid.
+	 * @param parameters consists of the destination IBAN and the amount to be transfered
+	 * @throws IllegalAmountException thrown when an invalid amount is entered
+	 * @throws IllegalTransferException thrown when the transfer is invalid
+	 */
 	private void transfer(String parameters) throws IllegalAmountException, IllegalTransferException {
 		String[] parameterArray = parameters.split(":");
 		String toIBAN = parameterArray[0];
 		
+		// Try to parse the given amount. Throws an exception if it's an invalid amount.
 		float amount = 0;		
 		try {
 			amount = Float.parseFloat(parameterArray[1]);
 		} catch (NumberFormatException e) {
-			System.err.println("Please enter a valid amount.");
+			System.err.println("Please enter a valid amount. Example: 36.10");
 			return;
 		}
 		
+		// Check if the IBAN is valid. If the IBAN is valid then proceed to make the actual transfer.
 		if (InputChecker.isValidIBAN(toIBAN)) {
 			if (BankingLogger.bankAccountExists(toIBAN)) {
 				BankAccount toBankAccount = BankingLogger.getBankAccountByIBAN(toIBAN);
@@ -175,42 +189,59 @@ public class TUI {
 				System.out.println("Transfer done: " + amount + ", to: " + toIBAN + ".");
 			} else {
 				System.err.println("The bankaccount you're trying to transfer money to does not exist.");
+				return;
 			}
 		} else {
-			System.err.println("Please enter a valid IBAN.");
-		}
-		
-		
+			System.err.println("Please enter a valid IBAN. Example: NL10INGB0002352362");
+			return;
+		}		
 	}
 
+	/**
+	 * Handler-method for crediting a <code>BankAccout</code>. Takes the amount and
+	 * (optional) description to credit the session's <code>BankAccount</code>.
+	 * @param parameters consists of the amount (and optional description)
+	 * @throws IllegalAmountException thrown when an illegal amount is given.
+	 */
 	private void credit(String parameters) throws IllegalAmountException {
 		String[] parameterArray = parameters.split(":");
 		String strAmount = parameters.split(":")[0];
 		String description = "No description";
 		
+		// Set the description if it's provided.
 		if (parameterArray.length > 1) {
 			description = parameters.substring(strAmount.length() + 1);
 		}
 		
+		// Parse the amount. Perform the credit if it's a valid and legal amount.
 		float amount = 0;
 		try {
 			amount = Float.parseFloat(strAmount);
 			session.bankAccount.credit(amount, description);
 			System.out.println("Credit done: " + amount + ", description: " + description + ".");
 		} catch (NumberFormatException e) {
-			System.err.println("Please enter a valid amount.");
+			System.err.println("Please enter a valid amount. Example: 30.10");
+			return;
 		}
 	}
 
+	/**
+	 * Handler-method for crediting a <code>BankAccout</code>. Takes the amount and
+	 * (optional) description to credit the session's <code>BankAccount</code>.
+	 * @param parameters consists of the amount (and optional description)
+	 * @throws IllegalAmountException thrown when an illegal amount is given.
+	 */
 	private void debit(String parameters) throws IllegalAmountException {		
 		String[] parameterArray = parameters.split(":");
 		String strAmount = parameters.split(":")[0];
 		String description = "No description";
 
+		// Set the description if it's provided.
 		if (parameterArray.length > 1) {
 			description = parameters.substring(strAmount.length() + 1);
 		}
 		
+		// Parse the amount. Perform the debit if it's a valid and legal amount.
 		float amount = 0;
 		try {
 			amount = Float.parseFloat(parameters.split(":")[0]);
@@ -218,86 +249,108 @@ public class TUI {
 			System.out.println("Debit done: " + amount + ", description: " + description + ".");
 		} catch (NumberFormatException e) {
 			System.err.println("Please enter a valid amount.");
+			return;
 		}		
 	}
 
+	/**
+	 * Prints the list of <code>BankAccount</code> objects currently owned 
+	 * by the session's <code>CustomerAccount</code>.
+	 */
 	private void listBankAccounts() {
-		if (session.bankAccountMap.size() == 0) {
+		if (session.bankAccountList.size() == 0) {
 			System.out.println("This customer doesn't own any bankaccount.");
+			return;
 		} else {
-			for (int i = 0; i < session.bankAccountMap.size(); i++) {
-				System.out.println(i + ": " + session.bankAccountMap.get(i).getIBAN());
+			for (int i = 0; i < session.bankAccountList.size(); i++) {
+				System.out.println(i + ": " + session.bankAccountList.get(i).getIBAN());
 				// TODO: Better text formatting? Show more info per bankaccount?
 			}
 		}		
 	}
 
+	/**
+	 * Signs in to the <code>BankAccount</code> using the given parameter.
+	 * @param parameters consists of the number linked to the <code>BankAccount</code>
+	 */
 	private void bankLogin(String parameters) {
 		int numberOfBankAccount = -1;
 		
+		// Parse the number from the parameters.
 		try {
 			numberOfBankAccount = Integer.parseInt(parameters.split(" ")[0]);
 		} catch (NumberFormatException e) {
-			System.err.println("Choose a number from the bankaccount-list (use: LIST_BANK_ACCOUNTS)");
+			System.err.println("Choose a number from the bank-account-list. Use: LIST_BANK_ACCOUNTS");
 			return;
 		}		
 		
-		if (session.bankAccountMap.size() == 0) {
-			System.out.println("There is no bankaccount to login to.");
+		// You can't login to a bank-account if there's none.
+		if (session.bankAccountList.size() == 0) {
+			System.out.println("There is no bank-account to login to.");
+			return;
 		} else {
-			if (numberOfBankAccount >= 0 && numberOfBankAccount < session.bankAccountMap.size()) {
-				session.bankAccount = session.bankAccountMap.get(numberOfBankAccount);
-				System.out.println("Logged in: " + session.bankAccountMap.get(numberOfBankAccount).getIBAN());
-				session.state = State.BANK_LOGGED_IN;
+			if (numberOfBankAccount >= 0 && numberOfBankAccount < session.bankAccountList.size()) {
+				session.loginBank(session.bankAccountList.get(numberOfBankAccount));
+				System.out.println("Logged in: " + session.bankAccountList.get(numberOfBankAccount).getIBAN());
 			} else {
-				System.err.println("That number doesn't point to a bankaccount.");
+				System.err.println("That number is not linked to a bank-account.");
+				return;
 			}
 		}		
 	}
 
+	/**
+	 * Creates a <code>BankAccount</code> for the session's <code>CustomerAccount</code>.
+	 */
 	private void createBankAccount() {		
 		CustomerAccount customer = session.customerAccount;
 		if (customer != null) {
 			BankAccount newBankAccount = new BankAccount(customer.getBSN());
-			session.bankAccountMap.add(newBankAccount);
+			session.bankAccountList.add(newBankAccount);
 			System.out.println("Bankaccount created for: " + customer.getBSN() + "(BSN)");
-		}	
+		} else {
+			System.err.println("Session does not have a customer assigned.");
+		}
 	}
 
+	/**
+	 * Signs in the <code>CustomerAccount</code> using the given parameter.
+	 * @param parameters consists of the customer's BSN
+	 */
 	private void customerLogin(String parameters) {
 		String[] parameterArray = parameters.split(":");
 		String BSN = parameterArray[0];
 		
+		// Check if the parameter is a valid BSN.
 		if (parameterArray.length == 1 && InputChecker.isValidBSN(BSN)) {
-			if (BankingLogger.customerAccountExists(BSN)) {
-				session.customerAccount = BankingLogger.getCustomerAccountByBSN(BSN);
-				
-				//Put this customer's bank-accounts in the session bankAccounts map
-				Iterator<BankAccount> it = session.customerAccount.getBankAccounts().iterator();
-				int i = 1;
-				while (it.hasNext()) {
-					BankAccount bankAccount = it.next();
-					session.bankAccountMap.add(bankAccount);
-					i++;
-				}
-				
+			// Check if the user exists.
+			if (BankingLogger.customerAccountExists(BSN)) {				
+				session.loginCustomer(BankingLogger.getCustomerAccountByBSN(BSN));			
 				System.out.println("Logged in to customer (BSN): " + BSN);
-				session.state = State.CUST_LOGGED_IN;
-			}else {
+			} else {
 				System.err.println("Customer with BSN: " + BSN + " does not exist.");
-			}			
+				return;
+			}		
 		}		
 	}
 
+	/**
+	 * Creates a <code>CustomerAccount</code> using the given parameters.
+	 * @param parameters consists of the BSN, first name, surname, street address,
+	 * email address, phone number and the birth date
+	 */
 	private void createCustomerAccount(String parameters) {
 		String[] parameterArray = parameters.split(":");
 		
-		if (parameterArray.length != 7) { // TODO: Change the indexes and numbers when postal-code and city fields are added
+		// Check if the required parameters are given.
+		if (parameterArray.length != 7) { 
+			// TODO: Change the indexes and numbers when postal-code and city fields are added.
 			// TODO: Throw exception
 			System.err.println("Please enter the required parameters");
 			return;
 		}
 		
+		// Assign the parameter values to the right fields.
 		String BSN = parameterArray[0];
 		String firstName = parameterArray[1];
 		String surname = parameterArray[2];
@@ -306,16 +359,18 @@ public class TUI {
 		String phoneNumber = parameterArray[5];
 		String birthDate = parameterArray[6];
 		
+		// Create the account if all is fine.
 		if (InputChecker.isValidCustomer(BSN, firstName, surname, streetAddress, email, phoneNumber, birthDate)) {
 			
+			// Format the time
 			DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd-MM-yyyy");
 			Date dateOfBirth = Date.valueOf(LocalDate.parse(birthDate, dtf));
 			
-			new CustomerAccount(firstName, surname, BSN, streetAddress, phoneNumber, email, dateOfBirth, true);
-			
+			new CustomerAccount(firstName, surname, BSN, streetAddress, phoneNumber, email, dateOfBirth, true);			
 			System.out.println("Account created for: " + firstName + " " + surname + "(" + BSN + ")");
 		} else {
-			
+			System.err.println("Something went wrong.");
+			return;
 		}
 	}
 }
