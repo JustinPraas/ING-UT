@@ -3,6 +3,7 @@ package userinterface;
 import java.sql.Date;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -99,13 +100,13 @@ public class TUI {
 				customerLogin(parameters);
 				break;
 			default: 
-				System.out.println("Invalid command");
+				System.err.println("Invalid command.");
 				break;
 			}
 		} else if (session.state == State.CUST_LOGGED_IN) {
 			switch (command) {
 			case "CREATE_BANK_ACCOUNT":
-				createBankAccount(parameters);
+				createBankAccount();
 				break;
 			case "LIST_BANK_ACCOUNTS":
 				listBankAccounts();
@@ -114,18 +115,15 @@ public class TUI {
 				bankLogin(parameters);
 				break;
 			case "CUST_LOGOUT":
-				session.state = State.LOGGED_OUT;
-				session.bankAccount = null;
-				session.customerAccount = null;
-				session.bankAccountMap = new HashMap<>();
+				customerLogout();
 				break;
 			default: 
-				System.out.println("Invalid command");
+				System.err.println("Invalid command");
 				break;
 			}
 		} else if (session.state == State.BANK_LOGGED_IN) {
 			switch (command) {
-			case "DEPOSIT":
+			case "DEBIT":
 				debit(parameters);
 				break;
 			case "CREDIT":
@@ -135,12 +133,27 @@ public class TUI {
 				transfer(parameters);
 				break;
 			case "BANK_LOGOUT":
-				session.state = State.CUST_LOGGED_IN;
+				bankLogout();
 			default: 
-				System.out.println("Invalid command");
+				System.err.println("Invalid command.");
 				break;
 			}
 		}
+	}
+
+	private void bankLogout() {
+		session.state = State.CUST_LOGGED_IN;
+		session.bankAccount = null;
+		session.bankAccountMap = new ArrayList<>();
+		
+	}
+
+	private void customerLogout() {
+		session.state = State.LOGGED_OUT;
+		session.bankAccount = null;
+		session.customerAccount = null;
+		session.bankAccountMap = new ArrayList<>();
+		
 	}
 
 	private void transfer(String parameters) throws IllegalAmountException, IllegalTransferException {
@@ -149,13 +162,13 @@ public class TUI {
 		
 		float amount = 0;		
 		try {
-			amount = Float.parseFloat(parameters.split(" ")[0]);
+			amount = Float.parseFloat(parameterArray[1]);
 		} catch (NumberFormatException e) {
 			System.err.println("Please enter a valid amount.");
 			return;
 		}
 		
-		if (InputChecker.isvalidIBAN(toIBAN)) {
+		if (InputChecker.isValidIBAN(toIBAN)) {
 			if (BankingLogger.bankAccountExists(toIBAN)) {
 				BankAccount toBankAccount = BankingLogger.getBankAccountByIBAN(toIBAN);
 				session.bankAccount.transfer(toBankAccount, amount);
@@ -212,11 +225,10 @@ public class TUI {
 		if (session.bankAccountMap.size() == 0) {
 			System.out.println("This customer doesn't own any bankaccount.");
 		} else {
-			for (Map.Entry<Integer, BankAccount> entry : session.bankAccountMap.entrySet()) {
-				System.out.print(entry.getKey() + ": " + entry.getValue().getIBAN());
-				// TODO: Better formatting? Show more info per bankaccount?
+			for (int i = 0; i < session.bankAccountMap.size(); i++) {
+				System.out.println(i + ": " + session.bankAccountMap.get(i).getIBAN());
+				// TODO: Better text formatting? Show more info per bankaccount?
 			}
-			System.out.println("");
 		}		
 	}
 
@@ -233,26 +245,23 @@ public class TUI {
 		if (session.bankAccountMap.size() == 0) {
 			System.out.println("There is no bankaccount to login to.");
 		} else {
-			if (session.bankAccountMap.containsKey(numberOfBankAccount)) {
+			if (numberOfBankAccount >= 0 && numberOfBankAccount < session.bankAccountMap.size()) {
 				session.bankAccount = session.bankAccountMap.get(numberOfBankAccount);
+				System.out.println("Logged in: " + session.bankAccountMap.get(numberOfBankAccount).getIBAN());
+				session.state = State.BANK_LOGGED_IN;
 			} else {
 				System.err.println("That number doesn't point to a bankaccount.");
 			}
 		}		
 	}
 
-	private void createBankAccount(String parameters) {
-		String[] parameterArray = parameters.split(":"); // TODO doesn't need BSN as parameter
-		String BSN = parameterArray[0];
-		
-		if (parameterArray.length == 1 && InputChecker.isValidBSN(BSN)) {
-			if (BankingLogger.getCustomerAccountByBSN(BSN) != null) {
-				new BankAccount(BSN);
-				System.out.println("Bankaccount created for: " + BSN + "(BSN)");
-			}else {
-				System.err.println("Customer with BSN: " + BSN + " does not exist.");
-			}			
-		}		
+	private void createBankAccount() {		
+		CustomerAccount customer = session.customerAccount;
+		if (customer != null) {
+			BankAccount newBankAccount = new BankAccount(customer.getBSN());
+			session.bankAccountMap.add(newBankAccount);
+			System.out.println("Bankaccount created for: " + customer.getBSN() + "(BSN)");
+		}	
 	}
 
 	private void customerLogin(String parameters) {
@@ -268,7 +277,7 @@ public class TUI {
 				int i = 1;
 				while (it.hasNext()) {
 					BankAccount bankAccount = it.next();
-					session.bankAccountMap.put(i, bankAccount);
+					session.bankAccountMap.add(bankAccount);
 					i++;
 				}
 				

@@ -1,6 +1,8 @@
 package userinterface;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import accounts.BankAccount;
@@ -16,7 +18,7 @@ public class Session {
 	}
 	
 	CustomerAccount customerAccount;
-	Map<Integer, BankAccount> bankAccountMap = new HashMap<>();
+	List<BankAccount> bankAccountMap = new ArrayList<>();
 	BankAccount bankAccount;
 	State state;
 	BankingLogger bankingLogger = new BankingLogger();

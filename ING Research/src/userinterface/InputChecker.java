@@ -2,14 +2,18 @@ package userinterface;
 
 import java.time.DateTimeException;
 import java.time.LocalDate;
-
 import org.apache.commons.validator.routines.EmailValidator;
 
+/**
+ * A class that checks user-input from the UI.
+ * @author Justin Praas
+ * @version 3rd of April 2017
+ */
 public class InputChecker {
 	
-	public static final String VALID_NAME_CHARACTERS = "abcdefghijklmnopqrstuvwxyzˆÙÈËABCDEFGHIJKLMNOPQRSTUVWXYZ÷‘…»-'";
-	public static final String UPPER_CASE_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ÷‘…»";
-	public static final String LOWER_CASE_LETTERS = "abcdefghijklmnopqrstuvwxyzˆÙÈË";
+	public static final String VALID_NAME_CHARACTERS = "abcdefghijklmnopqrstuvwxyzÎˆÙÈËABCDEFGHIJKLMNOPQRSTUVWXYZ÷‘…»-' ";
+	public static final String UPPER_CASE_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZÀ÷‘…»";
+	public static final String LOWER_CASE_LETTERS = "abcdefghijklmnopqrstuvwxyzÎˆÙÈË";
 	public static final String NUMERICALS = "0123456789";
 
 	public static boolean isValidBSN(String bsn) {
@@ -28,7 +32,7 @@ public class InputChecker {
 		// TODO: Check if a customer with this bsn already exists
 		
 		if (!isValid) {
-			System.out.println("Invalid BSN.");
+			System.err.println("Invalid BSN.");
 		}
 		
 		// There are more requirements for a valid BSN, but for now this is sufficient
@@ -36,73 +40,71 @@ public class InputChecker {
 	}
 	
 	public static boolean isValidName(String name) {
-		boolean isValid = true;
-		
-		if (name.length() < 1 && name.length() > 30) {
+		// Only allow names that are longer than 1 character and shorter than 31
+		if (name.length() < 2 || name.length() > 30) {
 			// TODO: Throw exception
-			isValid = false;;
+			System.err.println("Invalid name.");
+			return false;
 		}
 		
 		for (int i = 0; i < name.length(); i++) {
-			if (!VALID_NAME_CHARACTERS.contains(name.substring(i, i))) {
+			String character = "" + name.charAt(i);
+			if (!VALID_NAME_CHARACTERS.contains(character)) {
 				// TODO: Throw exception
-				isValid = false;
+				System.err.println("Invalid name.");
+				return false;
 			}
-		}	
-		
-		if (!isValid) {
-			System.err.println("Invalid name.");
-		}
-		return isValid;
+		}			
+		return true;
 	}
 	
 	public static boolean isValidStreetAddress(String streetAddress) {
-		boolean isValid = true;
-		
 		String[] streetAddressArray = streetAddress.split(" ");
-		String number = streetAddressArray[1]; // Can include optional letters, for example: 13A, 462
-		String street = streetAddress.substring(0, streetAddress.length() - number.length()); // 
 		
-		if (!isAlphabeticalOnly(street)) {
-			// TODO: Returns false if a street with spaces is entered
-			// TODO: Throw exception
-			isValid = false;;
+		if (streetAddressArray.length < 2) {
+			System.err.println("Invalid streetaddress.");
+			return false;
 		}
 		
-		if (!isValid) {
-			System.err.println("Invalid streetaddress.");
+		String number = streetAddressArray[streetAddressArray.length - 1]; // Can include optional letters, for example: 13A, 462
+		String street = streetAddress.substring(0, streetAddress.length() - number.length() - 1);
+		
+		for (int i = 0; i < street.length(); i++) {
+			String character = "" + street.charAt(i);
+			if (!(VALID_NAME_CHARACTERS + ".").contains(character)) {
+				// TODO: Throw exception
+				System.err.println("Invalid streetaddress.");
+				return false;
+			}
 		}
 		
 		// TODO: For now assume that the number is valid
-		return isValid;
+		return true;
 	}
 	
 	public static boolean isValidEmailAddress(String email) {
 		boolean isValid = EmailValidator.getInstance().isValid(email);
 		// Using the Apache Commons Validator library
 		if (!isValid) {
-			System.out.println("Invalid emailaddress.");
+			System.err.println("Invalid emailaddress.");
 		}
 		
 		return isValid;
 	}
 	
 	public static boolean isValidPhoneNumber(String phoneNumber) {
-		boolean isValid = true;
 		if (phoneNumber.length() != 10) {
+			System.err.println("Invalid phone number.");
 			// TODO: Throw exception
-			isValid = false;
+			return false;
 		}
 		
 		if (!isNumericalOnly(phoneNumber)) {
+			System.err.println("Invalid phone number.");
 			// TODO: Throw exception
-			isValid = false;
-		}		
-		
-		if (!isValid) {
-			System.out.println("Invalid phone number.");
+			return false;
 		}
-		return isValid;
+		return true;
 	}
 	
 	public static boolean isValidBirthDate(String birthDate) {
@@ -122,7 +124,7 @@ public class InputChecker {
 			if (now.minusYears(15).isBefore(dateOfBirth)) {
 				// TODO: Throw 'too young' exception
 				isValid = false; 
-				System.out.print("You're too young. ");
+				System.err.print("You're too young. ");
 			}
 			
 			// Triggers a DateTimeException if the given date can't exist (e.g. 2017-18-42)
@@ -137,31 +139,40 @@ public class InputChecker {
 		}	
 		
 		if (!isValid) {
-			System.out.println("Invalid birthdate.");
+			System.err.println("Invalid birthdate.");
 		}
 		
 		return isValid;		
 	}
 	
 	public static boolean isNumericalOnly(String input) {
+		boolean isNumerical = true;		
 		for (int i = 0; i < input.length(); i++) {
-			if (!NUMERICALS.contains(input.substring(i, i))) {
-				// TODO: Throw exception
-				return false;
+			try {
+				Integer.parseInt("" + input.charAt(i));
+			} catch (NumberFormatException e) {
+				isNumerical = false;
+				break;
 			}
 		}		
-		return true;
+		return isNumerical;
 	}
 	
 	public static boolean isAlphabeticalOnly(String input) {
+		boolean isAlphabetical = true;
+		
+		if (input.length() == 0) {
+			isAlphabetical = false;
+		}
+		
 		for (int i = 0; i < input.length(); i++) {
-			if (!UPPER_CASE_LETTERS.contains(input.substring(i, i)) &&
-					!LOWER_CASE_LETTERS.contains(input.substring(i, i))) {
-				// TODO: Throw exception
-				return false;
+			String character = "" + input.charAt(i);
+			if (!(UPPER_CASE_LETTERS + LOWER_CASE_LETTERS).contains(character)) {
+				isAlphabetical = false;
+				break;
 			}
 		}
-		return true;
+		return isAlphabetical;
 	}
 
 	public static boolean isValidCustomer(String BSN, String firstName, String surname, String streetAddress, String email,
@@ -172,7 +183,7 @@ public class InputChecker {
 				isValidBirthDate(birthDate);
 	}
 
-	public static boolean isvalidIBAN(String toIBAN) {
+	public static boolean isValidIBAN(String toIBAN) {
 		
 		boolean isValid = true;
 		
@@ -191,7 +202,7 @@ public class InputChecker {
 			System.err.println("IBAN does not contain a valid country code.");
 		}
 		
-		if (!isNumericalOnly(bankNumber)) {
+		if (!isNumericalOnly(bankNumber) || bankNumber.length() != 10) {
 			isValid = false;
 			System.err.println("IBAN does not contain a valid bank number.");
 		}

@@ -4,5 +4,6 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry kind="lib" path="sqlite-jdbc-3.16.1.jar"/>
+	<classpathentry kind="lib" path="C:/Users/jwpra/Desktop/commons-validator-1.6/commons-validator-1.6.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
