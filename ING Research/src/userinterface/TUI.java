@@ -3,8 +3,6 @@ package userinterface;
 import java.sql.Date;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.Scanner;
 
 import accounts.BankAccount;
@@ -71,9 +69,9 @@ public class TUI {
 			break;
 		case CUST_LOGGED_IN:
 			System.out.println("\nUse one of the following commands: "
+					+ "\nBANK_LOGIN <number_from_list>"
 					+ "\nCREATE_BANK_ACCOUNT"
 					+ "\nLIST_BANK_ACCOUNTS"
-					+ "\nBANK_LOGIN <number_from_list>"
 					+ "\nCUST_LOGOUT"
 					+ "\nEXIT");
 			break;
@@ -84,6 +82,7 @@ public class TUI {
 					+ "\nTRANSFER <destination IBAN> <amount>"
 					+ "\nBANK_LOGOUT"
 					+ "\nEXIT");
+			break;			
 		}
 	}
 	
@@ -124,14 +123,14 @@ public class TUI {
 			}
 		} else if (session.state == State.CUST_LOGGED_IN) {
 			switch (command) {
+			case "BANK_LOGIN":
+				bankLogin(parameters);
+				break;
 			case "CREATE_BANK_ACCOUNT":
 				createBankAccount();
 				break;
 			case "LIST_BANK_ACCOUNTS":
 				listBankAccounts();
-				break;
-			case "BANK_LOGIN":
-				bankLogin(parameters);
 				break;
 			case "CUST_LOGOUT":
 				session.logoutCustomer();
@@ -159,6 +158,53 @@ public class TUI {
 			}
 		}
 	}
+	
+	/**
+	 * Signs in the <code>CustomerAccount</code> using the given parameter.
+	 * @param parameters consists of the customer's BSN
+	 */
+	private void customerLogin(String parameters) {
+		String BSN = parameters;
+		
+		// Check if the parameter is a valid BSN.
+		if (InputChecker.isValidBSN(BSN)) {
+			// Check if the user exists.
+			if (BankingLogger.customerAccountExists(BSN)) {				
+				session.loginCustomer(BankingLogger.getCustomerAccountByBSN(BSN));			
+				System.out.println("Logged in to customer (BSN): " + BSN);
+			} else {
+				System.err.println("Customer with BSN: " + BSN + " does not exist.");
+			}		
+		}		
+	}
+	
+	/**
+	 * Signs in to the <code>BankAccount</code> using the given parameter.
+	 * @param parameters consists of the number linked to the <code>BankAccount</code>
+	 */
+	private void bankLogin(String parameters) {
+		int numberOfBankAccount = -1;
+		
+		// Parse the number from the parameters.
+		try {
+			numberOfBankAccount = Integer.parseInt(parameters.split(" ")[0]);
+		} catch (NumberFormatException e) {
+			System.err.println("Choose a number from the bank-account-list. Use: LIST_BANK_ACCOUNTS");
+			return;
+		}		
+		
+		// You can't login to a bank-account if there's none.
+		if (session.bankAccountList.size() == 0) {
+			System.out.println("There is no bank-account to login to.");
+		} else {
+			if (numberOfBankAccount >= 0 && numberOfBankAccount < session.bankAccountList.size()) {
+				session.loginBank(session.bankAccountList.get(numberOfBankAccount));
+				System.out.println("Logged in: " + session.bankAccountList.get(numberOfBankAccount).getIBAN());
+			} else {
+				System.err.println("That number is not linked to a bank-account.");
+			}
+		}		
+	}
 
 	/**
 	 * Handler-method for the 'TRANSFER' command. Takes the IBAN and the
@@ -170,6 +216,11 @@ public class TUI {
 	 */
 	private void transfer(String parameters) throws IllegalAmountException, IllegalTransferException {
 		String[] parameterArray = parameters.split(":");
+		
+		if (parameterArray.length != 2) {
+			System.err.println("Invalid transfer input. Example: NL10INGB0002365302:80.50");
+			return;
+		}
 		String toIBAN = parameterArray[0];
 		
 		// Try to parse the given amount. Throws an exception if it's an invalid amount.
@@ -189,11 +240,9 @@ public class TUI {
 				System.out.println("Transfer done: " + amount + ", to: " + toIBAN + ".");
 			} else {
 				System.err.println("The bankaccount you're trying to transfer money to does not exist.");
-				return;
 			}
 		} else {
 			System.err.println("Please enter a valid IBAN. Example: NL10INGB0002352362");
-			return;
 		}		
 	}
 
@@ -207,6 +256,11 @@ public class TUI {
 		String[] parameterArray = parameters.split(":");
 		String strAmount = parameters.split(":")[0];
 		String description = "No description";
+		
+		if (parameterArray.length != 1 && parameterArray.length != 2) {
+			System.err.println("Invalid credit input. Exapmle: 30.50:Cash for groceries");
+			return;
+		}
 		
 		// Set the description if it's provided.
 		if (parameterArray.length > 1) {
@@ -235,6 +289,11 @@ public class TUI {
 		String[] parameterArray = parameters.split(":");
 		String strAmount = parameters.split(":")[0];
 		String description = "No description";
+		
+		if (parameterArray.length != 1 && parameterArray.length != 2) {
+			System.err.println("Invalid debit input. Exapmle: 30.50:Cash for groceries");
+			return;
+		}
 
 		// Set the description if it's provided.
 		if (parameterArray.length > 1) {
@@ -260,41 +319,10 @@ public class TUI {
 	private void listBankAccounts() {
 		if (session.bankAccountList.size() == 0) {
 			System.out.println("This customer doesn't own any bankaccount.");
-			return;
 		} else {
 			for (int i = 0; i < session.bankAccountList.size(); i++) {
 				System.out.println(i + ": " + session.bankAccountList.get(i).getIBAN());
 				// TODO: Better text formatting? Show more info per bankaccount?
-			}
-		}		
-	}
-
-	/**
-	 * Signs in to the <code>BankAccount</code> using the given parameter.
-	 * @param parameters consists of the number linked to the <code>BankAccount</code>
-	 */
-	private void bankLogin(String parameters) {
-		int numberOfBankAccount = -1;
-		
-		// Parse the number from the parameters.
-		try {
-			numberOfBankAccount = Integer.parseInt(parameters.split(" ")[0]);
-		} catch (NumberFormatException e) {
-			System.err.println("Choose a number from the bank-account-list. Use: LIST_BANK_ACCOUNTS");
-			return;
-		}		
-		
-		// You can't login to a bank-account if there's none.
-		if (session.bankAccountList.size() == 0) {
-			System.out.println("There is no bank-account to login to.");
-			return;
-		} else {
-			if (numberOfBankAccount >= 0 && numberOfBankAccount < session.bankAccountList.size()) {
-				session.loginBank(session.bankAccountList.get(numberOfBankAccount));
-				System.out.println("Logged in: " + session.bankAccountList.get(numberOfBankAccount).getIBAN());
-			} else {
-				System.err.println("That number is not linked to a bank-account.");
-				return;
 			}
 		}		
 	}
@@ -307,31 +335,10 @@ public class TUI {
 		if (customer != null) {
 			BankAccount newBankAccount = new BankAccount(customer.getBSN());
 			session.bankAccountList.add(newBankAccount);
-			System.out.println("Bankaccount created for: " + customer.getBSN() + "(BSN)");
+			System.out.println("Bankaccount created for: " + customer.getName() + " (BSN: "+ customer.getBSN() + ")");
 		} else {
 			System.err.println("Session does not have a customer assigned.");
 		}
-	}
-
-	/**
-	 * Signs in the <code>CustomerAccount</code> using the given parameter.
-	 * @param parameters consists of the customer's BSN
-	 */
-	private void customerLogin(String parameters) {
-		String[] parameterArray = parameters.split(":");
-		String BSN = parameterArray[0];
-		
-		// Check if the parameter is a valid BSN.
-		if (parameterArray.length == 1 && InputChecker.isValidBSN(BSN)) {
-			// Check if the user exists.
-			if (BankingLogger.customerAccountExists(BSN)) {				
-				session.loginCustomer(BankingLogger.getCustomerAccountByBSN(BSN));			
-				System.out.println("Logged in to customer (BSN): " + BSN);
-			} else {
-				System.err.println("Customer with BSN: " + BSN + " does not exist.");
-				return;
-			}		
-		}		
 	}
 
 	/**
@@ -360,9 +367,10 @@ public class TUI {
 		String birthDate = parameterArray[6];
 		
 		// Create the account if all is fine.
-		if (InputChecker.isValidCustomer(BSN, firstName, surname, streetAddress, email, phoneNumber, birthDate)) {
+		if (InputChecker.isValidCustomer(BSN, firstName, surname, streetAddress, email, phoneNumber, birthDate) && 
+				!BankingLogger.customerAccountExists(BSN)) {
 			
-			// Format the time
+			// Format the time.
 			DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd-MM-yyyy");
 			Date dateOfBirth = Date.valueOf(LocalDate.parse(birthDate, dtf));
 			
@@ -370,7 +378,6 @@ public class TUI {
 			System.out.println("Account created for: " + firstName + " " + surname + "(" + BSN + ")");
 		} else {
 			System.err.println("Something went wrong.");
-			return;
 		}
 	}
 }
