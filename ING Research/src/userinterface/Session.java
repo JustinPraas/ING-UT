@@ -85,7 +85,10 @@ public class Session {
 	 */
 	public void logoutBank() {
 		this.bankAccount = null;
-		this.bankAccountList = new ArrayList<>();
+		// Why do we want the instruction below? We're still
+		// logged into the same customer account, so the list
+		// of bank accounts should stay the same.
+		//this.bankAccountList = new ArrayList<>();
 		this.state = State.CUST_LOGGED_IN;
 	}
 
