@@ -52,7 +52,6 @@ public class BankAccount implements database.DBObject {
 		this.balance = 0;
 		this.IBAN = generateIBAN(COUNTRY_CODE, BANK_CODE, randomPAN());
 		this.mainHolderBSN = mainHolderBSN;
-		//BankingLogger.addBankAccountEntry(this, true);
 	}
 	
 	/**
