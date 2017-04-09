@@ -167,7 +167,7 @@ public class CustomerAccount implements database.DBObject {
 		return "accounts.CustomerAccount";
 	}
 
-	@ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+	@ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
 	@JoinTable(name = "customerbankaccounts", joinColumns = {
 			@JoinColumn(name = "customer_BSN", nullable = false, updatable = false)}, inverseJoinColumns = {
 					@JoinColumn(name = "IBAN", nullable = false, updatable = false)})
@@ -190,4 +190,3 @@ public class CustomerAccount implements database.DBObject {
 		DataManager.removeEntryFromDB(this);
 	}
 }
-

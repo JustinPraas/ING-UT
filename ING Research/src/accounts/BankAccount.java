@@ -39,6 +39,21 @@ public class BankAccount implements database.DBObject {
 	private String mainHolderBSN;
 	private Set<CustomerAccount> owners = new HashSet<CustomerAccount>();
 	
+	public String toString() {
+		String output = "";
+		String ownerBSNs = "";
+		
+		for (CustomerAccount key : this.getOwners()) {
+			ownerBSNs += key.getBSN() + "; ";
+		}
+		
+		output += "IBAN: " + IBAN;
+		output += "\nHolder BSN: " + mainHolderBSN;
+		output += "\nBalance: " + balance;
+		output += "\nCustomers with access: " + ownerBSNs + "\n";
+		return output;
+	}
+	
 	public BankAccount() {
 		
 	}
@@ -52,7 +67,6 @@ public class BankAccount implements database.DBObject {
 		this.balance = 0;
 		this.IBAN = generateIBAN(COUNTRY_CODE, BANK_CODE, randomPAN());
 		this.mainHolderBSN = mainHolderBSN;
-		//BankingLogger.addBankAccountEntry(this, true);
 	}
 	
 	/**
@@ -276,7 +290,7 @@ public class BankAccount implements database.DBObject {
 		return "accounts.BankAccount";
 	}
 
-	@ManyToMany(fetch = FetchType.LAZY, mappedBy = "bankAccounts")
+	@ManyToMany(fetch = FetchType.EAGER, mappedBy = "bankAccounts")
 	public Set<CustomerAccount> getOwners() {
 		return owners;
 	}

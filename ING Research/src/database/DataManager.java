@@ -26,7 +26,7 @@ public class DataManager {
 	private static Configuration cfg;
 	private static SessionFactory factory;
 	private static boolean initialized = false;
-	
+
     public static void init() {
     	SQLiteDB.initializeDB();
     	cfg = new Configuration();
@@ -120,6 +120,18 @@ public class DataManager {
     	return results;
     }
     
+    public static Object getObjectByPrimaryKey(String className, Object primaryKey) {
+    	initIfRequired();
+    	
+    	Session session = factory.openSession();
+    	Criteria cr = session.createCriteria(className);
+    	Criterion c = Restrictions.idEq(primaryKey);
+    	cr.add(c);
+    	List results = cr.list();
+    	session.close();
+    	return results.get(0);
+    }
+    
     public static boolean isPrimaryKeyUnique(String className, String primaryKeyName, String primaryKey) {
     	initIfRequired();
     	
@@ -135,25 +147,7 @@ public class DataManager {
     	return true;
     }
     
-//    public static void main(String[] args) {
-//    	CustomerAccount john = new CustomerAccount("John", "Test", "TEST", "103 Testings Ave.", "000-TEST", "johntest@testing.test", "TESTDATE");
-//    	CustomerAccount jane = new CustomerAccount("Jane", "Test", "TEST2", "104 Testings Ave.", "001-TEST", "janetest@testing.test", "TESTDATE2");
-//    	BankAccount bAcc = new BankAccount("TEST", 100, "TESTIBAN");
-//    	BankAccount bAcc2 = new BankAccount("TEST2", 100, "TESTIBAN2");
-//    	DebitCard card = new DebitCard("TEST", "TESTIBAN");
-//    	john.saveToDB();
-//    	jane.saveToDB();
-//    	card.saveToDB();
-//    	jane.addBankAccount(bAcc);
-//    	john.addBankAccount(bAcc);
-//    	jane.addBankAccount(bAcc2);
-//    	save(john);
-//    	save(jane);
-//    	System.out.println(bAcc.getDebitCards().size());
-//    	System.out.println(bAcc2.getDebitCards().size());
-//    	john.deleteFromDB();
-//    	jane.deleteFromDB();
-//    	System.out.println(bAcc.getDebitCards().size());
-//    	System.out.println(bAcc2.getDebitCards().size());
-//    }
+    public static Session getSession() {
+    	return factory.openSession();
+    }
 }

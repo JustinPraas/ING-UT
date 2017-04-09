@@ -12,7 +12,7 @@ import database.DBObject;
 import database.DataManager;
 
 /**
- * Provides transaction logging. Used to computer standing balance for a given BankAccount.
+ * Provides transaction logging. Used to compute standing balance for a given BankAccount.
  * @author Andrei Cojocaru
  */
 @Entity
@@ -30,8 +30,15 @@ public class Transaction implements DBObject{
 	}
 	
 	public String toString() {
-		//TODO: Implement
-		return "UNFINISHED";
+		String output = "";
+		output += "==================================";
+		output += "\nFROM: " + sourceIBAN;
+		output += "\nTO: " + destinationIBAN;
+		output += "\nAMOUNT: " + amount;
+		output += "\nDESCRIPTION: " + description + "\n";
+		output += "==================================";
+		output += "\n";
+		return output;
 	}
 	
 	@Column(name = "source_IBAN")
