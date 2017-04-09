@@ -2,9 +2,8 @@ package userinterface;
 
 import java.time.DateTimeException;
 import java.time.LocalDate;
-import org.apache.commons.validator.routines.EmailValidator;
 
-import database.BankingLogger;
+import org.apache.commons.validator.routines.EmailValidator;
 
 /**
  * A class that checks user-input from the UI.
