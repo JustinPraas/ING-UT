@@ -1,9 +1,14 @@
 package userinterface;
 
+import java.util.ArrayList;
 import java.util.Scanner;
+
+import org.hibernate.criterion.Criterion;
+import org.hibernate.criterion.Restrictions;
 
 import accounts.BankAccount;
 import accounts.CustomerAccount;
+import accounts.Transaction;
 import database.DataManager;
 import exceptions.IllegalAmountException;
 import exceptions.IllegalTransferException;
@@ -74,6 +79,8 @@ public class TUI {
 			break;
 		case BANK_LOGGED_IN:
 			System.out.println("\nUse one of the following commands: "
+					+ "\nTRANSACTIONS"
+					+ "\nINFO"
 					+ "\nDEPOSIT <amount>"
 					+ "\nTRANSFER <destination IBAN> <amount>"
 					+ "\nBANK_LOGOUT"
@@ -137,6 +144,12 @@ public class TUI {
 			}
 		} else if (session.state == State.BANK_LOGGED_IN) {
 			switch (command) {
+			case "INFO":
+				getBankAccountInformation();
+				break;
+			case "TRANSACTIONS":
+				getTransactionHistory();
+				break;
 			case "DEPOSIT":
 				deposit(parameters);
 				break;
@@ -151,6 +164,33 @@ public class TUI {
 				break;
 			}
 		}
+	}
+	
+	private void getTransactionHistory() {
+		ArrayList<Criterion> criteria = new ArrayList<>();
+		Criterion cr = Restrictions.eq("sourceIBAN", session.bankAccount.getIBAN());
+		criteria.add(cr);
+		ArrayList<Transaction> outgoing = (ArrayList<Transaction>) DataManager.getObjectsFromDB("accounts.Transaction", criteria);
+		
+		criteria = new ArrayList<>();
+		cr = Restrictions.eq("destinationIBAN", session.bankAccount.getIBAN());
+		criteria.add(cr);
+		ArrayList<Transaction> incoming = (ArrayList<Transaction>) DataManager.getObjectsFromDB("accounts.Transaction", criteria);
+		
+		System.out.println("Outgoing transactions:");
+		for (Transaction key : outgoing) {
+			System.out.println(key.toString());
+		}
+		
+		System.out.println("\n\nIncoming transactions:");
+		
+		for (Transaction key : incoming) {
+			System.out.println(key.toString());
+		}
+	}
+
+	private void getBankAccountInformation() {
+		System.out.println(session.bankAccount.toString());
 	}
 	
 	/**
