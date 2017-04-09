@@ -39,6 +39,21 @@ public class BankAccount implements database.DBObject {
 	private String mainHolderBSN;
 	private Set<CustomerAccount> owners = new HashSet<CustomerAccount>();
 	
+	public String toString() {
+		String output = "";
+		String ownerBSNs = "";
+		
+		for (CustomerAccount key : this.getOwners()) {
+			ownerBSNs += key.getBSN() + "; ";
+		}
+		
+		output += "IBAN: " + IBAN;
+		output += "\nHolder BSN: " + mainHolderBSN;
+		output += "\nBalance: " + balance;
+		output += "\nCustomers with access: " + ownerBSNs + "\n";
+		return output;
+	}
+	
 	public BankAccount() {
 		
 	}
