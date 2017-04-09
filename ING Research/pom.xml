@@ -33,5 +33,10 @@
   		<artifactId>hibernate4-sqlite-dialect</artifactId>
   		<version>0.1.2</version>
   	</dependency>
+  	<dependency>
+  		<groupId>org.slf4j</groupId>
+  		<artifactId>slf4j-log4j12</artifactId>
+  		<version>1.7.25</version>
+  	</dependency>
   </dependencies>
 </project>
