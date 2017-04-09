@@ -1,22 +1,36 @@
 package accounts;
 
-import java.sql.Date;
 import java.util.HashSet;
+import java.util.Set;
 
-import database.BankingLogger;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.JoinColumn;
+import javax.persistence.FetchType;
+import javax.persistence.Id;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+
+import database.DataManager;
 
 /**
  * A bank customer's main account, to which multiple <code>BankAccounts</code> may be tied.
  * @author Andrei Cojocaru
  */
-public class CustomerAccount {
+@Entity
+@Table(name = "customeraccounts")
+public class CustomerAccount implements database.DBObject {
 	private String name;
 	private String surname;
 	private String BSN;
 	private String streetAddress;
 	private String phoneNumber;
 	private String email;
-	private Date birthdate;
+	private String birthdate;
+	private Set<BankAccount> bankAccounts = new HashSet<BankAccount>();
 	
 	/**
 	 * Create a new <code>CustomerAccount</code> with the given customer information.
@@ -30,7 +44,7 @@ public class CustomerAccount {
 	 * @param addToDB Whether or not to add the newly-created customer account to the database
 	 */
 	public CustomerAccount(String name, String surname, String BSN, String streetAddress, String phoneNumber, 
-			String email, Date birthdate, boolean addToDB) {
+			String email, String birthdate) {
 		this.setName(name);
 		this.setSurname(surname);
 		this.setBSN(BSN);
@@ -38,9 +52,10 @@ public class CustomerAccount {
 		this.setPhoneNumber(phoneNumber);
 		this.setEmail(email);
 		this.setBirthdate(birthdate);
-		if (addToDB) {
-			BankingLogger.addCustomerAccountEntry(this, true);
-		}
+	}
+	
+	public CustomerAccount() {
+		
 	}
 	
 	/**
@@ -48,8 +63,8 @@ public class CustomerAccount {
 	 * Adds this and the respective association to the database.
 	 */
 	public void openBankAccount() {
-		@SuppressWarnings("unused")
 		BankAccount newAccount = new BankAccount(getBSN());
+		addBankAccount(newAccount);
 	}
 	
 	/**
@@ -59,7 +74,8 @@ public class CustomerAccount {
 	 * @param account The <code>BankAccount</code> to be owned by the customer.
 	 */
 	public void addBankAccount(BankAccount account) {
-		BankingLogger.addCustomerBankAccountPairing(this, account, true);
+		bankAccounts.add(account);
+		account.addOwner(this);
 	}
 	
 	/**
@@ -68,20 +84,11 @@ public class CustomerAccount {
 	 * @param account The <code>BankAccount</code> to remove ownership of
 	 */
 	public void removeBankAccount(BankAccount account) {
-		//TODO: Make sure this is not the sole account holder
-		BankingLogger.removeCustomerBankAccountPairing(getBSN(), account.getIBAN(), true);
-	}
-	
-	/**
-	 * Retrieves all <code>BankAccounts</code> paired to this <code>
-	 * CustomerAccount</code>.
-	 * @return A HashSet<BankAccount> of all <code>BankAccounts</code> 
-	 * this <code>CustomerAccount</code> can access.
-	 */
-	public HashSet<BankAccount> getBankAccounts() {
-		return BankingLogger.getBankAccountsByBSN(getBSN());
+		//TODO: Check if sole owner
+		bankAccounts.remove(account);
 	}
 
+	@Column(name = "name")
 	public String getName() {
 		return name;
 	}
@@ -90,6 +97,7 @@ public class CustomerAccount {
 		this.name = name;
 	}
 
+	@Column(name = "surname")
 	public String getSurname() {
 		return surname;
 	}
@@ -98,6 +106,8 @@ public class CustomerAccount {
 		this.surname = surname;
 	}
 
+	@Id
+	@Column(name = "customer_BSN")
 	public String getBSN() {
 		return BSN;
 	}
@@ -106,6 +116,7 @@ public class CustomerAccount {
 		BSN = bSN;
 	}
 
+	@Column(name = "street_address")
 	public String getStreetAddress() {
 		return streetAddress;
 	}
@@ -114,6 +125,7 @@ public class CustomerAccount {
 		this.streetAddress = streetAddress;
 	}
 
+	@Column(name = "phone_number")
 	public String getPhoneNumber() {
 		return phoneNumber;
 	}
@@ -122,6 +134,7 @@ public class CustomerAccount {
 		this.phoneNumber = phoneNumber;
 	}
 
+	@Column(name = "email")
 	public String getEmail() {
 		return email;
 	}
@@ -130,12 +143,51 @@ public class CustomerAccount {
 		this.email = email;
 	}
 
-	public Date getBirthdate() {
+	@Column(name = "birth_date")
+	public String getBirthdate() {
 		return birthdate;
 	}
 
-	public void setBirthdate(Date birthdate) {
+	public void setBirthdate(String birthdate) {
 		this.birthdate = birthdate;
+	}
+	
+	@Transient
+	public String getPrimaryKeyName() {
+		return "BSN";
+	}
+	
+	@Transient
+	public String getPrimaryKeyVal() {
+		return BSN;
+	}
+	
+	@Transient
+	public String getClassName() {
+		return "accounts.CustomerAccount";
+	}
+
+	@ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+	@JoinTable(name = "customerbankaccounts", joinColumns = {
+			@JoinColumn(name = "customer_BSN", nullable = false, updatable = false)}, inverseJoinColumns = {
+					@JoinColumn(name = "IBAN", nullable = false, updatable = false)})
+	public Set<BankAccount> getBankAccounts() {
+		return bankAccounts;
+	}
+
+	public void setBankAccounts(Set<BankAccount> bankAccounts) {
+		this.bankAccounts = bankAccounts;
+	}
+	
+	public void saveToDB() {
+		DataManager.save(this);
+	}
+	
+	public void deleteFromDB() {
+		for (BankAccount key : getBankAccounts()) {
+			key.deleteFromDB();
+		}
+		DataManager.removeEntryFromDB(this);
 	}
 }
 

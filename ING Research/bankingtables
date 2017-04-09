@@ -23,22 +23,15 @@ CREATE TABLE IF NOT EXISTS customerbankaccounts (
     PRIMARY KEY(customer_BSN, IBAN)
 );
 
-CREATE TABLE IF NOT EXISTS payments (
-    IBAN VARCHAR NOT NULL,
-    amount NUMERIC NOT NULL,
-    date_time DATETIME NOT NULL,
-    payment_type VARCHAR NOT NULL,
-    description VARCHAR NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS transfers (
-    source_IBAN VARCHAR NOT NULL,
+CREATE TABLE IF NOT EXISTS transactions (
+	ID INTEGER PRIMARY KEY,
+    source_IBAN VARCHAR,
     destination_IBAN VARCHAR NOT NULL,
-    date_time DATETIME NOT NULL,
+    date_time VARCHAR NOT NULL,
     amount NUMERIC NOT NULL,
+    description VARCHAR NOT NULL,
     FOREIGN KEY (source_IBAN) REFERENCES bankaccounts(IBAN),
-    FOREIGN KEY (destination_IBAN) REFERENCES bankaccounts(IBAN),
-    PRIMARY KEY (source_IBAN, destination_IBAN, date_time)
+    FOREIGN KEY (destination_IBAN) REFERENCES bankaccounts(IBAN)
 );
 
 CREATE TABLE IF NOT EXISTS debitcards (

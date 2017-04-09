@@ -2,8 +2,7 @@ package testing;
 
 import static org.junit.Assert.*;
 
-import java.sql.Date;
-import java.util.HashSet;
+import java.util.Set;
 
 import org.junit.After;
 import org.junit.Before;
@@ -11,9 +10,7 @@ import org.junit.Test;
 
 import accounts.BankAccount;
 import accounts.CustomerAccount;
-import database.BankingLogger;
 import exceptions.IllegalAmountException;
-import exceptions.IllegalAccountDeletionException;
 import exceptions.IllegalTransferException;
 
 public class AccountTest {
@@ -23,9 +20,9 @@ public class AccountTest {
 	
 	@Before
 	public void init() throws Exception {
-		customerAccount = new CustomerAccount("John", "Test", customerBSN, "103 Testings Ave.", "000-TEST", "johntest@testing.test", new Date(0), true);
+		customerAccount = new CustomerAccount("John", "Test", customerBSN, "103 Testings Ave.", "000-TEST", "johntest@testing.test", "TESTDATE");
 		customerAccount.openBankAccount();
-		HashSet<BankAccount> bankAccounts = BankingLogger.getBankAccountsByBSN(customerBSN);
+		Set<BankAccount> bankAccounts = customerAccount.getBankAccounts();
 		for (BankAccount key : bankAccounts) {
 			bankAccount = key;
 			break;
@@ -34,7 +31,7 @@ public class AccountTest {
 	
 	@After
 	public void end() throws Exception {
-		BankingLogger.removeCustomerAccount(customerBSN, true);
+		customerAccount.deleteFromDB();
 		customerAccount = null;
 		bankAccount = null;
 	}
@@ -56,51 +53,6 @@ public class AccountTest {
 		}
 		
 		assertTrue(bankAccount.getBalance() == 100);
-	}
-	
-	//Test whether illegal attempts to close a BankAccount are correctly handled
-	@Test
-	public void illegalClosingExceptionTest() {
-		try {
-			bankAccount.deposit(100);
-		} catch (IllegalAmountException e) {
-			
-		}
-		
-		try {
-			bankAccount.deleteAccount();
-		} catch (IllegalAccountDeletionException e) {
-			
-		}
-		
-		assertTrue(customerAccount.getBankAccounts().size() == 1);
-	}
-	
-	//Test whether BankAccounts are correctly removed from the originating CustomerAccount on closing them 
-	@Test
-	public void accountClosingTest() {
-		try {
-			bankAccount.deleteAccount();
-		} catch (IllegalAccountDeletionException e) {
-			
-		}
-		
-		assertTrue(customerAccount.getBankAccounts().size() == 0);
-	}
-	
-	//Test whether the correct BankAccount is removed from the originating CustomerAccount on closing
-	@Test
-	public void multipleAccountClosingTest() {
-		customerAccount.openBankAccount();
-		
-		try {
-			bankAccount.deleteAccount();
-		} catch (IllegalAccountDeletionException e) {
-			
-		}
-		
-		assertTrue(customerAccount.getBankAccounts().size() == 1);
-		assertFalse(customerAccount.getBankAccounts().contains(bankAccount));
 	}
 
 	//Test whether invalid amounts in deposits are handled correctly
@@ -134,7 +86,7 @@ public class AccountTest {
 		}
 		assertTrue(bankAccount.getBalance() == 100);
 		assertTrue(bankAccount2.getBalance() == 0);
-		BankingLogger.removeBankAccount(bankAccount2.getIBAN(), true);
+		bankAccount2.deleteFromDB();
 	}
 	
 	
@@ -143,7 +95,7 @@ public class AccountTest {
 	@Test
 	public void illegalDebitTest() {
 		try {
-			bankAccount.debit(-2000, "Test");
+			bankAccount.debit(-2000);
 		} catch (IllegalAmountException e) {
 			
 		}
@@ -155,7 +107,7 @@ public class AccountTest {
 	@Test
 	public void illegalCreditTest() {
 		try {
-			bankAccount.credit(-2000, "Test");
+			bankAccount.credit(-2000);
 		} catch (IllegalAmountException e) {
 			
 		}
@@ -167,7 +119,7 @@ public class AccountTest {
 	@Test
 	public void creditTest() {
 		try {
-			bankAccount.credit(1000, "Test");
+			bankAccount.credit(1000);
 		} catch (IllegalAmountException e) {
 			
 		}
@@ -179,7 +131,7 @@ public class AccountTest {
 	@Test
 	public void debitTest() {
 		try {
-			bankAccount.debit(1000, "Test");
+			bankAccount.debit(1000);
 		} catch (IllegalAmountException e) {
 			
 		}
@@ -207,7 +159,7 @@ public class AccountTest {
 		
 		assertTrue(bankAccount2.getBalance() == 100);
 		assertTrue(bankAccount.getBalance() == 0);
-		BankingLogger.removeBankAccount(bankAccount2.getIBAN(), true);
+		bankAccount2.deleteFromDB();
 	}
 	
 	//Test whether attempting to transfer without having enough money is handled correctly
@@ -230,6 +182,6 @@ public class AccountTest {
 		
 		assertTrue(bankAccount2.getBalance() == 100);
 		assertTrue(bankAccount.getBalance() == 0);
-		BankingLogger.removeBankAccount(bankAccount2.getIBAN(), true);
+		bankAccount2.deleteFromDB();
 	}
 }

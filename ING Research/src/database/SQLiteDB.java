@@ -10,32 +10,23 @@ import java.sql.Statement;
 import java.util.List;
 
 /**
- * A "static" class used to interface with the banking database.
- * Note: Due to the nature of the project, hashing and security will not
- * be implemented until specifically requested.
+ * A class for dynamic DB generation.
  * @author Andrei Cojocaru
  */
 public class SQLiteDB {
 	public static final String DBName = "banking";
 	public static final String schema = "bankingtables";
-	private static Connection conn = null;
 	
 	/**
-	 * Opens a connection to the database, creates a .db file if it does not already exist.
+	 * Creates a .db file if it does not already exist.
 	 */
 	public static void initializeDB() {
 		try {
 			Class.forName("org.sqlite.JDBC");
-			conn = DriverManager.getConnection("jdbc:sqlite:" + DBName + ".db");
-			conn.setAutoCommit(false);
 			SQLiteDB.initializeTableStructure();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-	}
-	
-	public static Connection getConn() {
-		return conn;
 	}
 	
 	/**
@@ -61,9 +52,13 @@ public class SQLiteDB {
 	
 	private static void initializeTableStructure() {
 		String tableStructure = getSchemaStatements();
+		Connection conn;
 		try {
+			conn = DriverManager.getConnection("jdbc:sqlite:" + DBName + ".db");
 			Statement statement = conn.createStatement();
 			statement.executeUpdate(tableStructure);
+			statement.close();
+			conn.close();
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
