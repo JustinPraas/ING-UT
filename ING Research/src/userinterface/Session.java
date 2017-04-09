@@ -6,7 +6,6 @@ import java.util.List;
 
 import accounts.BankAccount;
 import accounts.CustomerAccount;
-import database.BankingLogger;
 
 /**
  * A simple class which purpose is storing a UI session.
@@ -24,7 +23,6 @@ public class Session {
 		BANK_LOGGED_IN;
 	}
 
-	public static final BankingLogger BANKING_LOGGER = new BankingLogger();	
 	public CustomerAccount customerAccount;
 	public BankAccount bankAccount;
 	public State state;	

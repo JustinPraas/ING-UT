@@ -1,13 +1,10 @@
 package userinterface;
 
-import java.sql.Date;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.Scanner;
 
 import accounts.BankAccount;
 import accounts.CustomerAccount;
-import database.BankingLogger;
+import database.DataManager;
 import exceptions.IllegalAmountException;
 import exceptions.IllegalTransferException;
 import userinterface.Session.State;
@@ -141,11 +138,8 @@ public class TUI {
 			}
 		} else if (session.state == State.BANK_LOGGED_IN) {
 			switch (command) {
-			case "DEBIT":
-				debit(parameters);
-				break;
-			case "CREDIT":
-				credit(parameters);
+			case "DEPOSIT":
+				deposit(parameters);
 				break;
 			case "TRANSFER":
 				transfer(parameters);
@@ -168,9 +162,12 @@ public class TUI {
 		
 		// Check if the parameter is a valid BSN.
 		if (InputChecker.isValidBSN(BSN)) {
+			CustomerAccount custAcc = new CustomerAccount();
 			// Check if the user exists.
-			if (BankingLogger.customerAccountExists(BSN)) {				
-				session.loginCustomer(BankingLogger.getCustomerAccountByBSN(BSN));			
+			if (!DataManager.isPrimaryKeyUnique(custAcc.getClassName(), custAcc.getPrimaryKeyName(), BSN)) {
+				// Get object by primary key
+				custAcc = (CustomerAccount) DataManager.getObjectByPrimaryKey(new CustomerAccount().getClassName(), BSN); 
+				session.loginCustomer(custAcc);			
 				System.out.println("Logged in to customer (BSN): " + BSN);
 			} else {
 				System.err.println("Customer with BSN: " + BSN + " does not exist.");
@@ -234,8 +231,9 @@ public class TUI {
 		
 		// Check if the IBAN is valid. If the IBAN is valid then proceed to make the actual transfer.
 		if (InputChecker.isValidIBAN(toIBAN)) {
-			if (BankingLogger.bankAccountExists(toIBAN)) {
-				BankAccount toBankAccount = BankingLogger.getBankAccountByIBAN(toIBAN);
+			BankAccount toBankAccount = new BankAccount();
+			if (!DataManager.isPrimaryKeyUnique(toBankAccount.getClassName(), toBankAccount.getPrimaryKeyName(), toIBAN)) {
+				toBankAccount = (BankAccount) DataManager.getObjectByPrimaryKey(toBankAccount.getClassName(), toIBAN);
 				session.bankAccount.transfer(toBankAccount, amount);
 				System.out.println("Transfer done: " + amount + ", to: " + toIBAN + ".");
 			} else {
@@ -245,34 +243,22 @@ public class TUI {
 			System.err.println("Please enter a valid IBAN. Example: NL10INGB0002352362");
 		}		
 	}
-
-	/**
-	 * Handler-method for crediting a <code>BankAccout</code>. Takes the amount and
-	 * (optional) description to credit the session's <code>BankAccount</code>.
-	 * @param parameters consists of the amount (and optional description)
-	 * @throws IllegalAmountException thrown when an illegal amount is given.
-	 */
-	private void credit(String parameters) throws IllegalAmountException {
+	
+	private void deposit(String parameters) throws IllegalAmountException {
 		String[] parameterArray = parameters.split(":");
 		String strAmount = parameters.split(":")[0];
-		String description = "No description";
 		
-		if (parameterArray.length != 1 && parameterArray.length != 2) {
+		if (parameterArray.length != 1) {
 			System.err.println("Invalid credit input. Exapmle: 30.50:Cash for groceries");
 			return;
-		}
-		
-		// Set the description if it's provided.
-		if (parameterArray.length > 1) {
-			description = parameters.substring(strAmount.length() + 1);
 		}
 		
 		// Parse the amount. Perform the credit if it's a valid and legal amount.
 		float amount = 0;
 		try {
 			amount = Float.parseFloat(strAmount);
-			session.bankAccount.credit(amount, description);
-			System.out.println("Credit done: " + amount + ", description: " + description + ".");
+			session.bankAccount.deposit(amount);
+			System.out.println("Deposited: " + amount + ".");
 		} catch (NumberFormatException e) {
 			System.err.println("Please enter a valid amount. Example: 30.10");
 			return;
@@ -285,32 +271,65 @@ public class TUI {
 	 * @param parameters consists of the amount (and optional description)
 	 * @throws IllegalAmountException thrown when an illegal amount is given.
 	 */
-	private void debit(String parameters) throws IllegalAmountException {		
-		String[] parameterArray = parameters.split(":");
-		String strAmount = parameters.split(":")[0];
-		String description = "No description";
-		
-		if (parameterArray.length != 1 && parameterArray.length != 2) {
-			System.err.println("Invalid debit input. Exapmle: 30.50:Cash for groceries");
-			return;
-		}
-
-		// Set the description if it's provided.
-		if (parameterArray.length > 1) {
-			description = parameters.substring(strAmount.length() + 1);
-		}
-		
-		// Parse the amount. Perform the debit if it's a valid and legal amount.
-		float amount = 0;
-		try {
-			amount = Float.parseFloat(parameters.split(":")[0]);
-			session.bankAccount.debit(amount, description);
-			System.out.println("Debit done: " + amount + ", description: " + description + ".");
-		} catch (NumberFormatException e) {
-			System.err.println("Please enter a valid amount.");
-			return;
-		}		
-	}
+//	private void credit(String parameters) throws IllegalAmountException {
+//		String[] parameterArray = parameters.split(":");
+//		String strAmount = parameters.split(":")[0];
+//		String description = "No description";
+//		
+//		if (parameterArray.length != 1 && parameterArray.length != 2) {
+//			System.err.println("Invalid credit input. Exapmle: 30.50:Cash for groceries");
+//			return;
+//		}
+//		
+//		// Set the description if it's provided.
+//		if (parameterArray.length > 1) {
+//			description = parameters.substring(strAmount.length() + 1);
+//		}
+//		
+//		// Parse the amount. Perform the credit if it's a valid and legal amount.
+//		float amount = 0;
+//		try {
+//			amount = Float.parseFloat(strAmount);
+//			session.bankAccount.credit(amount, description);
+//			System.out.println("Credit done: " + amount + ", description: " + description + ".");
+//		} catch (NumberFormatException e) {
+//			System.err.println("Please enter a valid amount. Example: 30.10");
+//			return;
+//		}
+//	}
+//
+//	/**
+//	 * Handler-method for crediting a <code>BankAccout</code>. Takes the amount and
+//	 * (optional) description to credit the session's <code>BankAccount</code>.
+//	 * @param parameters consists of the amount (and optional description)
+//	 * @throws IllegalAmountException thrown when an illegal amount is given.
+//	 */
+//	private void debit(String parameters) throws IllegalAmountException {		
+//		String[] parameterArray = parameters.split(":");
+//		String strAmount = parameters.split(":")[0];
+//		String description = "No description";
+//		
+//		if (parameterArray.length != 1 && parameterArray.length != 2) {
+//			System.err.println("Invalid debit input. Example: 30.50:Cash for groceries");
+//			return;
+//		}
+//
+//		// Set the description if it's provided.
+//		if (parameterArray.length > 1) {
+//			description = parameters.substring(strAmount.length() + 1);
+//		}
+//		
+//		// Parse the amount. Perform the debit if it's a valid and legal amount.
+//		float amount = 0;
+//		try {
+//			amount = Float.parseFloat(parameters.split(":")[0]);
+//			session.bankAccount.debit(amount, description);
+//			System.out.println("Debit done: " + amount + ", description: " + description + ".");
+//		} catch (NumberFormatException e) {
+//			System.err.println("Please enter a valid amount.");
+//			return;
+//		}		
+//	}
 
 	/**
 	 * Prints the list of <code>BankAccount</code> objects currently owned 
@@ -334,7 +353,9 @@ public class TUI {
 		CustomerAccount customer = session.customerAccount;
 		if (customer != null) {
 			BankAccount newBankAccount = new BankAccount(customer.getBSN());
+			session.customerAccount.addBankAccount(newBankAccount);
 			session.bankAccountList.add(newBankAccount);
+			session.customerAccount.saveToDB();
 			System.out.println("Bankaccount created for: " + customer.getName() + " (BSN: "+ customer.getBSN() + ")");
 		} else {
 			System.err.println("Session does not have a customer assigned.");
@@ -365,16 +386,11 @@ public class TUI {
 		String email = parameterArray[4];
 		String phoneNumber = parameterArray[5];
 		String birthDate = parameterArray[6];
-		
+		CustomerAccount custAcc = new CustomerAccount(firstName, surname, BSN, streetAddress, phoneNumber, email, birthDate);
 		// Create the account if all is fine.
 		if (InputChecker.isValidCustomer(BSN, firstName, surname, streetAddress, email, phoneNumber, birthDate) && 
-				!BankingLogger.customerAccountExists(BSN)) {
-			
-			// Format the time.
-			DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-			Date dateOfBirth = Date.valueOf(LocalDate.parse(birthDate, dtf));
-			
-			new CustomerAccount(firstName, surname, BSN, streetAddress, phoneNumber, email, dateOfBirth, true);			
+				!DataManager.objectExists(custAcc)) {
+			custAcc.saveToDB();
 			System.out.println("Account created for: " + firstName + " " + surname + "(" + BSN + ")");
 		} else {
 			System.err.println("Something went wrong.");

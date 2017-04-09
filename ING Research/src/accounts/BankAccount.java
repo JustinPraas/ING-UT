@@ -1,27 +1,47 @@
 package accounts;
 
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
-import database.BankingLogger;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.Id;
+import javax.persistence.ManyToMany;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+
+import org.hibernate.criterion.Criterion;
+import org.hibernate.criterion.Restrictions;
+
+import database.DataManager;
 
 import java.math.BigInteger;
-import java.sql.Timestamp;
 
 import exceptions.IllegalAmountException;
-import exceptions.IllegalAccountDeletionException;
 import exceptions.IllegalTransferException;
 
 /**
  * A simple model of a bank account in an abstract currency.
  * @author Andrei Cojocaru
  */
-public class BankAccount {
+@Entity
+@Table(name = "bankaccounts")
+public class BankAccount implements database.DBObject {
 	private final static String COUNTRY_CODE = "NL";
 	private final static String BANK_CODE = "INGB";
 	
 	private float balance;
 	private String IBAN;
 	private String mainHolderBSN;
+	private Set<CustomerAccount> owners = new HashSet<CustomerAccount>();
+	
+	public BankAccount() {
+		
+	}
 	
 	/**
 	 * Create a new <code>BankAccount</code> with a specific account holder and an initial balance of 0.
@@ -32,7 +52,7 @@ public class BankAccount {
 		this.balance = 0;
 		this.IBAN = generateIBAN(COUNTRY_CODE, BANK_CODE, randomPAN());
 		this.mainHolderBSN = mainHolderBSN;
-		BankingLogger.addBankAccountEntry(this, true);
+		//BankingLogger.addBankAccountEntry(this, true);
 	}
 	
 	/**
@@ -47,6 +67,10 @@ public class BankAccount {
 		this.mainHolderBSN = mainHolderBSN;
 		this.balance = balance;
 		this.IBAN = IBAN;
+	}
+	
+	public void addOwner(CustomerAccount owner) {
+		owners.add(owner);
 	}
 	
 	/**
@@ -85,7 +109,7 @@ public class BankAccount {
 			resultIBAN = countryCode + controlNumberString + bankCode + pan;
 			
 			// If the IBAN isn't already in use, we can continue
-			if (BankingLogger.getBankAccountByIBAN(resultIBAN) == null) {
+			if (DataManager.isPrimaryKeyUnique(new BankAccount().getClassName(), new BankAccount().getPrimaryKeyName(), resultIBAN)) {
 				unique = true;
 			}
 		}
@@ -144,7 +168,18 @@ public class BankAccount {
 		if (amount <= 0) {
 			throw new IllegalAmountException(amount);
 		}
-		this.debit(amount, "Physical deposit.");
+		this.debit(amount);
+		
+		Calendar c = Calendar.getInstance();
+		String date = c.getTime().toString();
+		Transaction t = new Transaction();
+		t.setDateTime(date);
+		t.setDestinationIBAN(this.getIBAN());
+		t.setAmount(amount);
+		t.setDescription("Physical deposit.");
+		//TODO: Only commit once all operations have succeeded
+		t.saveToDB();
+		this.saveToDB();
 	}
 	
 	/**
@@ -159,34 +194,24 @@ public class BankAccount {
 			throw new IllegalTransferException(balance, IBAN, amount);
 		}
 		
-		this.credit(amount, "Transfer to " + destination.getIBAN());
-		destination.debit(amount, "Transfer from " + this.getIBAN());
+		this.credit(amount);
+		destination.debit(amount);
 		Calendar c = Calendar.getInstance();
-		BankingLogger.logTransfer(this, destination, amount, new Timestamp(c.getTimeInMillis()), true);
-		//TODO: Add transfer description
+		String date = c.getTime().toString();
+		Transaction t = new Transaction();
+		t.setDateTime(date);
+		t.setSourceIBAN(this.getIBAN());
+		t.setDestinationIBAN(destination.getIBAN());
+		t.setAmount(amount);
+		t.setDescription("Transfer to " + destination.getIBAN() + ".");
+		//TODO: Only commit once all operations have succeeded
+		t.saveToDB();
+		this.saveToDB();
 	}
 	
-	/**
-	 * Closes the <code>BankAccount</code>, removing its corresponding entry
-	 * from the database.
-	 */
-	public void deleteAccount() throws IllegalAccountDeletionException {
-		if (balance != 0) {
-			throw new IllegalAccountDeletionException(IBAN, balance);
-		}
-		
-		BankingLogger.removeBankAccount(this.getIBAN(), true);
-	}
-	
+	@Column(name = "balance")
 	public float getBalance() {
 		return balance;
-	}
-	
-	/**
-	 * Displays the <code>BankAccount</code>'s balance to the TUI.
-	 */
-	public void viewBalance() {
-		System.out.println("Current balance for account " + IBAN + ": " + balance);
 	}
 	
 	/**
@@ -194,13 +219,11 @@ public class BankAccount {
 	 * @param amount The amount of money to credit the <code>BankAccount</code> with
 	 * @throws IllegalAmountException Thrown when the specified amount is 0 or negative
 	 */
-	public void credit (float amount, String description) throws IllegalAmountException {
+	public void credit(float amount) throws IllegalAmountException {
 		if (amount <= 0) {
 			throw new IllegalAmountException(amount);
 		}
 		balance -= amount;
-		Calendar c = Calendar.getInstance();
-		BankingLogger.logPayment(this, amount, "credit", new Timestamp(c.getTimeInMillis()), description, true);
 	}
 	
 	/**
@@ -208,20 +231,78 @@ public class BankAccount {
 	 * @param amount The amount of money to debit the <code>BankAccount</code> with
 	 * @throws Thrown when the specified amount is 0 or negative
 	 */
-	public void debit (float amount, String description) throws IllegalAmountException {
+	public void debit(float amount) throws IllegalAmountException {
 		if (amount <= 0) {
 			throw new IllegalAmountException(amount);
 		}
 		balance += amount;
-		Calendar c = Calendar.getInstance();
-		BankingLogger.logPayment(this, amount, "debit", new Timestamp(c.getTimeInMillis()), description, true);
 	}
 	
+	public void setIBAN(String IBAN) {
+		this.IBAN = IBAN; 
+	}
+	
+	public void setBalance(float balance) {
+		this.balance = balance; 
+	}
+	
+	public void setMainHolderBSN(String BSN) {
+		mainHolderBSN = BSN;
+	}
+	
+	@Id
+	@Column(name = "IBAN")
 	public String getIBAN() {
 		return IBAN;
 	}
 	
-	public String getMainHolder() {
+	@Column(name = "customer_BSN")
+	public String getMainHolderBSN() {
 		return mainHolderBSN;
+	}
+	
+	@Transient
+	public String getPrimaryKeyName() {
+		return "IBAN";
+	}
+	
+	@Transient
+	public String getPrimaryKeyVal() {
+		return IBAN;
+	}
+	
+	@Transient
+	public String getClassName() {
+		return "accounts.BankAccount";
+	}
+
+	@ManyToMany(fetch = FetchType.EAGER, mappedBy = "bankAccounts")
+	public Set<CustomerAccount> getOwners() {
+		return owners;
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Transient
+	public List<DebitCard> getDebitCards() {
+		List<DebitCard> result = new ArrayList<>();
+		ArrayList<Criterion> criteria = new ArrayList<>();
+		criteria.add(Restrictions.eq("bankAccountIBAN", getPrimaryKeyVal()));
+		result = DataManager.getObjectsFromDB(new DebitCard().getClassName(), criteria);
+		return result;
+	}
+
+	public void setOwners(Set<CustomerAccount> owners) {
+		this.owners = owners;
+	}
+	
+	public void saveToDB() {
+		DataManager.save(this);
+	}
+	
+	public void deleteFromDB() {
+		for (DebitCard key : getDebitCards()) {
+			key.deleteFromDB();
+		}
+		DataManager.removeEntryFromDB(this);
 	}
 }
