@@ -38,6 +38,7 @@ public class Transaction implements DBObject{
 	public String getSourceIBAN() {
 		return sourceIBAN;
 	}
+	
 	public void setSourceIBAN(String sourceIBAN) {
 		this.sourceIBAN = sourceIBAN;
 	}
@@ -80,7 +81,7 @@ public class Transaction implements DBObject{
 	
 	@Id
 	@Column(name = "ID")
-	@GeneratedValue(strategy=GenerationType.AUTO)
+	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	public int getId() {
 		return id;
 	}
