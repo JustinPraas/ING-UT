@@ -74,8 +74,7 @@ public class TUI {
 			break;
 		case BANK_LOGGED_IN:
 			System.out.println("\nUse one of the following commands: "
-					+ "\nDEBIT <amount> [description]"
-					+ "\nCREDIT <amount> [description]"
+					+ "\nDEPOSIT <amount>"
 					+ "\nTRANSFER <destination IBAN> <amount>"
 					+ "\nBANK_LOGOUT"
 					+ "\nEXIT");
@@ -146,6 +145,7 @@ public class TUI {
 				break;
 			case "BANK_LOGOUT":
 				session.logoutBank();
+				break;
 			default: 
 				System.err.println("Invalid command.");
 				break;
