@@ -2,3 +2,4 @@
 banking.db
 /banking.db-journal
 /target/
+/Log.txt
