@@ -27,6 +27,9 @@ public class DataManager {
 	private static SessionFactory factory;
 	private static boolean initialized = false;
 
+	/**
+	 * Initializes hibernate configuration and database connection.
+	 */
     public static void init() {
     	SQLiteDB.initializeDB();
     	cfg = new Configuration();
@@ -45,6 +48,10 @@ public class DataManager {
     	}
 	}
     
+	/**
+	 * Add a new instance of a DBObject to the database.
+	 * @param o The object to be added
+	 */
     private static void addEntryToDB(DBObject o) {
     	initIfRequired();
     	
@@ -55,6 +62,10 @@ public class DataManager {
     	session.close();
     }
 
+    /**
+     * Remove a persistent object from the database.
+     * @param o The object to be removed
+     */
     public static void removeEntryFromDB(DBObject o) {
     	initIfRequired();
     	
@@ -67,6 +78,11 @@ public class DataManager {
     	session.close();
     }
     
+    /**
+     * Determines whether or not a given object already exists in the database.
+     * @param o Object to be looked up
+     * @return True or false, depending on whether or not the object is found
+     */
     public static boolean objectExists(DBObject o) {
     	initIfRequired();
     	
@@ -81,6 +97,11 @@ public class DataManager {
     	return false;
     }
     
+    /**
+     * Saves a given object to database. If the object exists in the DB, its entry
+     * is updated. If the object does not exist in the DB, it is added.
+     * @param o The object to save
+     */
 	public static void save(DBObject o) {
 		initIfRequired();
 		
@@ -97,6 +118,12 @@ public class DataManager {
 		session.close();
 	}
     
+	/**
+	 * Locates all objects of the specified kind that meet the given criteria in the DB.
+	 * @param className The name of the type of object being queried
+	 * @param criteria The query criteria
+	 * @return A List of all objects meeting the given criteria
+	 */
     public static List getObjectsFromDB(String className, ArrayList<Criterion> criteria) {
     	initIfRequired();
     	
@@ -110,6 +137,11 @@ public class DataManager {
     	return results;
     }
     
+    /**
+     * Returns a List of all objects of the specified type that exist in the DB.
+     * @param className The name of the type of object being queried
+     * @return A List of all objects of the given type
+     */
     public static List getObjectsFromDB(String className) {
     	initIfRequired();
     	
@@ -120,6 +152,12 @@ public class DataManager {
     	return results;
     }
     
+    /**
+     * Finds a persistent object in the database by primary key.
+     * @param className The name of the type of object being queried
+     * @param primaryKey The primary key of the desired object
+     * @return The object with the given primary key, if found
+     */
     public static Object getObjectByPrimaryKey(String className, Object primaryKey) {
     	initIfRequired();
     	
@@ -132,6 +170,14 @@ public class DataManager {
     	return results.get(0);
     }
     
+    /**
+     * Determines whether or not a specified primary key is already in use for 
+     * a given object type.
+     * @param className The name corresponding to the object's class
+     * @param primaryKeyName The name of the object's primary key field
+     * @param primaryKey The value of the object's primary key
+     * @return True or false, depending on whether or not the primary key is in use
+     */
     public static boolean isPrimaryKeyUnique(String className, String primaryKeyName, String primaryKey) {
     	initIfRequired();
     	
@@ -145,9 +191,5 @@ public class DataManager {
     	}
     	session.close();
     	return true;
-    }
-    
-    public static Session getSession() {
-    	return factory.openSession();
     }
 }
