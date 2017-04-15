@@ -43,5 +43,10 @@
   		<artifactId>commons-validator</artifactId>
   		<version>1.6</version>
   	</dependency>
+  	<dependency>
+  		<groupId>com.thetransactioncompany</groupId>
+  		<artifactId>jsonrpc2-base</artifactId>
+  		<version>1.38</version>
+  	</dependency>
   </dependencies>
 </project>
