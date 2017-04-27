@@ -31,6 +31,8 @@ public class CustomerAccount implements database.DBObject {
 	private String email;
 	private String birthdate;
 	private Set<BankAccount> bankAccounts = new HashSet<BankAccount>();
+	public static final String CLASSNAME = "accounts.CustomerAccount";
+	public static final String PRIMARYKEYNAME = "BSN";
 	
 	/**
 	 * Create a new <code>CustomerAccount</code> with the given customer information.
@@ -154,7 +156,7 @@ public class CustomerAccount implements database.DBObject {
 	
 	@Transient
 	public String getPrimaryKeyName() {
-		return "BSN";
+		return PRIMARYKEYNAME;
 	}
 	
 	@Transient
@@ -164,7 +166,7 @@ public class CustomerAccount implements database.DBObject {
 	
 	@Transient
 	public String getClassName() {
-		return "accounts.CustomerAccount";
+		return CLASSNAME;
 	}
 
 	@ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)

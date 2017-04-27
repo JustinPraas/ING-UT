@@ -1,5 +1,9 @@
 package database;
 
+/**
+ * A common interface for all persistent objects.
+ * @author Andrei Cojocaru
+ */
 public interface DBObject {
 	public String getPrimaryKeyName();
 	public Object getPrimaryKeyVal();

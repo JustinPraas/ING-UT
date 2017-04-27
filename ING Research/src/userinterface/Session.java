@@ -60,7 +60,9 @@ public class Session {
 		Iterator<BankAccount> it = customerAccount.getBankAccounts().iterator();
 		while (it.hasNext()) {
 			BankAccount bankAccount = it.next();
-			bankAccountList.add(bankAccount);
+			if (!bankAccount.getClosed()) {
+				bankAccountList.add(bankAccount);
+			}
 		}
 	}
 	
