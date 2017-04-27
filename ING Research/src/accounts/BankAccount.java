@@ -39,6 +39,8 @@ public class BankAccount implements database.DBObject {
 	private String mainHolderBSN;
 	private Set<CustomerAccount> owners = new HashSet<CustomerAccount>();
 	boolean closed;
+	public static final String CLASSNAME = "accounts.BankAccount";
+	public static final String PRIMARYKEYNAME = "IBAN";
 	
 	public String toString() {
 		String output = "";
@@ -203,9 +205,10 @@ public class BankAccount implements database.DBObject {
 	 * @param amount The amount of money to be transferred from this <code>BankAccount</code> to the destination
 	 */
 	public void transfer(BankAccount destination, float amount) throws IllegalAmountException, IllegalTransferException {
+		//TODO: Only commit once all operations have succeeded
 		if (amount <= 0) {
 			throw new IllegalAmountException(amount);
-		} else if (balance < amount) {
+		} else if (balance < amount || destination.getClosed()) {
 			throw new IllegalTransferException(balance, IBAN, amount);
 		}
 		
@@ -219,9 +222,9 @@ public class BankAccount implements database.DBObject {
 		t.setDestinationIBAN(destination.getIBAN());
 		t.setAmount(amount);
 		t.setDescription("Transfer to " + destination.getIBAN() + ".");
-		//TODO: Only commit once all operations have succeeded
 		t.saveToDB();
 		this.saveToDB();
+		destination.saveToDB();
 	}
 	
 	@Column(name = "balance")
@@ -265,6 +268,10 @@ public class BankAccount implements database.DBObject {
 		mainHolderBSN = BSN;
 	}
 	
+	public void setClosed(boolean closed) {
+		this.closed = closed;
+	}
+	
 	@Id
 	@Column(name = "IBAN")
 	public String getIBAN() {
@@ -283,7 +290,7 @@ public class BankAccount implements database.DBObject {
 	
 	@Transient
 	public String getPrimaryKeyName() {
-		return "IBAN";
+		return PRIMARYKEYNAME;
 	}
 	
 	@Transient
@@ -293,7 +300,7 @@ public class BankAccount implements database.DBObject {
 	
 	@Transient
 	public String getClassName() {
-		return "accounts.BankAccount";
+		return CLASSNAME;
 	}
 
 	@ManyToMany(fetch = FetchType.EAGER, mappedBy = "bankAccounts")
