@@ -38,6 +38,7 @@ public class BankAccount implements database.DBObject {
 	private String IBAN;
 	private String mainHolderBSN;
 	private Set<CustomerAccount> owners = new HashSet<CustomerAccount>();
+	boolean closed;
 	
 	public String toString() {
 		String output = "";
@@ -273,6 +274,11 @@ public class BankAccount implements database.DBObject {
 	@Column(name = "customer_BSN")
 	public String getMainHolderBSN() {
 		return mainHolderBSN;
+	}
+	
+	@Column(name = "closed")
+	public boolean getClosed() {
+		return closed;
 	}
 	
 	@Transient
