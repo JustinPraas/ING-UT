@@ -229,6 +229,31 @@ public class BankAccount implements database.DBObject {
 		destination.saveToDB();
 	}
 	
+	public void transfer(BankAccount destination, float amount, String description) throws IllegalAmountException, IllegalTransferException {
+		//TODO: Only commit once all operations have succeeded
+		if (amount <= 0) {
+			throw new IllegalAmountException(amount);
+		} else if (balance < amount || destination.getClosed()) {
+			throw new IllegalTransferException(balance, IBAN, amount);
+		} else if (destination.getIBAN().equals(this.getIBAN())) {
+			throw new IllegalTransferException(balance, IBAN, amount);
+		}
+		
+		this.credit(amount);
+		destination.debit(amount);
+		Calendar c = Calendar.getInstance();
+		String date = c.getTime().toString();
+		Transaction t = new Transaction();
+		t.setDateTime(date);
+		t.setSourceIBAN(this.getIBAN());
+		t.setDestinationIBAN(destination.getIBAN());
+		t.setAmount(amount);
+		t.setDescription(description);
+		t.saveToDB();
+		this.saveToDB();
+		destination.saveToDB();
+	}
+	
 	@Column(name = "balance")
 	public float getBalance() {
 		return balance;
