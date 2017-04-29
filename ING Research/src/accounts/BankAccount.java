@@ -210,6 +210,8 @@ public class BankAccount implements database.DBObject {
 			throw new IllegalAmountException(amount);
 		} else if (balance < amount || destination.getClosed()) {
 			throw new IllegalTransferException(balance, IBAN, amount);
+		} else if (destination.getIBAN().equals(this.getIBAN())) {
+			throw new IllegalTransferException(balance, IBAN, amount);
 		}
 		
 		this.credit(amount);
