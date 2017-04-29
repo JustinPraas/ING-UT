@@ -4,8 +4,13 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.hibernate.criterion.Criterion;
+import org.hibernate.criterion.Restrictions;
+
 import accounts.BankAccount;
 import accounts.CustomerAccount;
+import accounts.DebitCard;
+import database.DataManager;
 
 /**
  * A simple class which purpose is storing a UI session.
@@ -27,6 +32,7 @@ public class Session {
 	public BankAccount bankAccount;
 	public State state;	
 	public List<BankAccount> bankAccountList;
+	public List<DebitCard> debitCardList;
 
 	/**
 	 * Creates a session object, storing session details for the UI.
@@ -34,6 +40,7 @@ public class Session {
 	public Session() {
 		state = State.LOGGED_OUT;
 		bankAccountList = new ArrayList<>();
+		debitCardList = new ArrayList<>();
 		bankAccount = null;
 		customerAccount = null;
 	}
@@ -44,6 +51,7 @@ public class Session {
 	public void reset() {
 		state = State.LOGGED_OUT;
 		bankAccountList = new ArrayList<>();
+		debitCardList = new ArrayList<>();
 		bankAccount = null;
 		customerAccount = null;
 	}
@@ -73,6 +81,10 @@ public class Session {
 	public void loginBank(BankAccount bankAccount) {
 		this.bankAccount = bankAccount;
 		this.state = State.BANK_LOGGED_IN;
+		ArrayList<Criterion> criteria = new ArrayList<>();
+		criteria.add(Restrictions.eq("bankAccountIBAN", bankAccount.getIBAN()));
+		criteria.add(Restrictions.eq("holderBSN", customerAccount.getBSN()));
+		debitCardList = DataManager.getObjectsFromDB(DebitCard.CLASSNAME, criteria);
 	}
 	
 	/**
@@ -87,10 +99,6 @@ public class Session {
 	 */
 	public void logoutBank() {
 		this.bankAccount = null;
-		// Why do we need the commented code below? We're still
-		// logged into the same customer account, so the list
-		// of bank accounts should stay the same.
-		//this.bankAccountList = new ArrayList<>();
 		this.state = State.CUST_LOGGED_IN;
 	}
 
