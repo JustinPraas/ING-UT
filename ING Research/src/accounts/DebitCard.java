@@ -162,6 +162,12 @@ public class DebitCard implements database.DBObject {
 		return result.toString();
 	}
 	
+	/**
+	 * Simulates a PIN machine transfer attempt.
+	 * @param amount The amount to be charged
+	 * @param PIN The PIN entered
+	 * @param destination The destination IBAN
+	 */
 	public void pinMachineCharge(float amount, String PIN, BankAccount destination) {
 		BankAccount ownAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, bankAccountIBAN);
 		if (!PIN.equals(this.PIN)) {

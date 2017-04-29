@@ -17,7 +17,7 @@ import org.hibernate.criterion.Restrictions;
 import accounts.BankAccount;
 
 /**
- * Manages request/response messages.
+ * Manages TUI input, request/response.
  * @author Andrei Cojocaru
  */
 public class BankingServer {
@@ -116,18 +116,30 @@ public class BankingServer {
 		}
 	}
 	
+	/**
+	 * Lists all of the DebitCards belonging to the currently active BankAccount.
+	 */
 	private void listCards() {
 		for (DebitCard card : session.debitCardList) {
 			System.out.println(card.toString());
 		}
 	}
-
+	
+	/**
+	 * Generates a new DebitCard for the currently active BankAccount.
+	 */
 	private void createCard() {
 		DebitCard card = new DebitCard(session.customerAccount.getBSN(), session.bankAccount.getIBAN());
 		card.saveToDB();
 		session.debitCardList.add(card);
+		System.out.println("Created new debit card for account " + session.bankAccount.getIBAN());
 	}
 
+	/**
+	 * Splits parameter String from TUI into the necessary variables
+	 * and attempts a PIN machine payment with them if they are valid.
+	 * @param parameters The provided parameter String
+	 */
 	private void payByCard(String parameters) {
 		String[] parameterArray = parameters.split(":");
 		
@@ -162,6 +174,9 @@ public class BankingServer {
 		card.pinMachineCharge(amount, PIN, destination);
 	}
 
+	/**
+	 * Closes the currently active BankAccount.
+	 */
 	private void close() {
 		String closedIBAN = session.bankAccount.getIBAN();
 		
@@ -176,6 +191,10 @@ public class BankingServer {
 		System.out.println("Bank account " + closedIBAN + " closed successfully.");
 	}
 
+	/**
+	 * Fetches the transaction history for the currently active BankAccount and
+	 * outputs it to console.
+	 */
 	private void getTransactionHistory() {
 		ArrayList<Criterion> criteria = new ArrayList<>();
 		Criterion cr = Restrictions.eq("sourceIBAN", session.bankAccount.getIBAN());
@@ -302,6 +321,11 @@ public class BankingServer {
 		session.bankAccountList.add(session.bankAccount);
 	}
 	
+	/**
+	 * Deposits a given amount of money into the currently active account.
+	 * @param parameters Parameters given with the DEPOSIT command
+	 * @throws IllegalAmountException Thrown if the given amount is not a number, or negative
+	 */
 	private void deposit(String parameters) throws IllegalAmountException {
 		String[] parameterArray = parameters.split(":");
 		String strAmount = parameters.split(":")[0];

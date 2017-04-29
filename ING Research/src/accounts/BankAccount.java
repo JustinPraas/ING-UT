@@ -229,6 +229,12 @@ public class BankAccount implements database.DBObject {
 		destination.saveToDB();
 	}
 	
+	/**
+	 * Transfers a specific amount of money from this <code>BankAccount</code> to another.
+	 * @param destination The <code>BankAccount</code> to which the transferred money should go
+	 * @param amount The amount of money to be transferred from this <code>BankAccount</code> to the destination
+	 * @param description Description of the transfer
+	 */
 	public void transfer(BankAccount destination, float amount, String description) throws IllegalAmountException, IllegalTransferException {
 		//TODO: Only commit once all operations have succeeded
 		if (amount <= 0) {

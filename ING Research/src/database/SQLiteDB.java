@@ -50,6 +50,9 @@ public class SQLiteDB {
 		return statements;
 	}
 	
+	/**
+	 * Creates the DB tables as instructed in the DBName.db file.
+	 */
 	private static void initializeTableStructure() {
 		String tableStructure = getSchemaStatements();
 		Connection conn;
