@@ -3,11 +3,10 @@ package server;
 import database.DataManager;
 import exceptions.IllegalAmountException;
 import exceptions.IllegalTransferException;
-import userinterface.InputChecker;
-import userinterface.Session;
-import userinterface.Session.State;
+import server.Session.State;
 import accounts.CustomerAccount;
 import accounts.Transaction;
+import client.InputChecker;
 
 import java.util.ArrayList;
 
@@ -225,7 +224,7 @@ public class BankingServer {
 		}
 		
 		// Check if the IBAN is valid. If the IBAN is valid then proceed to make the actual transfer.
-		if (InputChecker.isValidIBAN(toIBAN)) {
+		if (InputChecker.isValidIBAN(toIBAN) && toIBAN != session.bankAccount.getIBAN()) {
 			BankAccount toBankAccount = new BankAccount();
 			if (!DataManager.isPrimaryKeyUnique(toBankAccount.getClassName(), toBankAccount.getPrimaryKeyName(), toIBAN)) {
 				toBankAccount = (BankAccount) DataManager.getObjectByPrimaryKey(toBankAccount.getClassName(), toIBAN);
@@ -236,7 +235,15 @@ public class BankingServer {
 			}
 		} else {
 			System.err.println("Please enter a valid IBAN. Example: NL10INGB0002352362");
-		}		
+		}
+		
+		// "Refresh" all bank accounts in memory
+		session.bankAccountList.remove(session.bankAccount);
+		for (BankAccount bAcc : session.bankAccountList) {
+			bAcc = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, bAcc.getIBAN());
+		}
+		session.bankAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, session.bankAccount.getIBAN());
+		session.bankAccountList.add(session.bankAccount);
 	}
 	
 	private void deposit(String parameters) throws IllegalAmountException {
