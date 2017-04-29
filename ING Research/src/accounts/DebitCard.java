@@ -8,6 +8,8 @@ import javax.persistence.Table;
 import javax.persistence.Transient;
 
 import database.DataManager;
+import exceptions.IllegalAmountException;
+import exceptions.IllegalTransferException;
 
 import java.sql.Date;
 
@@ -23,6 +25,8 @@ public class DebitCard implements database.DBObject {
 	private String expirationDate;
 	private String bankAccountIBAN;
 	private String holderBSN;
+	public static final String CLASSNAME = "accounts.DebitCard";
+	public static final String PRIMARYKEYNAME = "cardNumber";
 	
 	public DebitCard() {
 		
@@ -154,7 +158,25 @@ public class DebitCard implements database.DBObject {
 		result.append(String.format(format, "Debit Card number:", cardNumber));
 		result.append(String.format(format, "Bank Account IBAN:", bankAccountIBAN));
 		result.append(String.format(format, "Expiration date:", expirationDate));
+		result.append(String.format(format, "PIN: ", PIN));
 		return result.toString();
+	}
+	
+	public void pinMachineCharge(float amount, String PIN, BankAccount destination) {
+		BankAccount ownAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, bankAccountIBAN);
+		if (!PIN.equals(this.PIN)) {
+			System.err.println("Invalid PIN.");
+			return;
+		}
+		try {
+			ownAccount.transfer(destination, amount, "PIN machine payment.");
+		} catch (IllegalAmountException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalTransferException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	@Column(name = "PIN")
@@ -205,7 +227,7 @@ public class DebitCard implements database.DBObject {
 	
 	@Transient
 	public String getPrimaryKeyName() {
-		return "cardNumber";
+		return PRIMARYKEYNAME;
 	}
 	
 	@Transient
@@ -215,7 +237,7 @@ public class DebitCard implements database.DBObject {
 	
 	@Transient
 	public String getClassName() {
-		return "accounts.DebitCard";
+		return CLASSNAME;
 	}
 	
 	public void saveToDB() {
