@@ -46,7 +46,6 @@ public class InputChecker {
 	public static boolean isValidName(String name) {
 		// Only allow names that are longer than 1 character and shorter than 31
 		if (name.length() < 2 || name.length() > 30) {
-			// TODO: Throw exception
 			System.err.println("Invalid name. Name can only have a length of 2 to 30 characters.");
 			return false;
 		}
@@ -54,7 +53,6 @@ public class InputChecker {
 		for (int i = 0; i < name.length(); i++) {
 			String character = "" + name.charAt(i);
 			if (!VALID_NAME_CHARACTERS.contains(character)) {
-				// TODO: Throw exception
 				System.err.println("Invalid name. Name contains invalid characters.");
 				return false;
 			}
@@ -81,13 +79,11 @@ public class InputChecker {
 		for (int i = 0; i < street.length(); i++) {
 			String character = "" + street.charAt(i);
 			if (!(VALID_NAME_CHARACTERS + ".").contains(character)) {
-				// TODO: Throw exception
 				System.err.println("Invalid street address. Street address contains invalid characters.");
 				return false;
 			}
 		}
 		
-		// TODO: For now assume that the number is valid
 		return true;
 	}
 	
@@ -113,13 +109,11 @@ public class InputChecker {
 	public static boolean isValidPhoneNumber(String phoneNumber) {
 		if (phoneNumber.length() != 10) {
 			System.err.println("Invalid phone number. Phone number is not 10 digits long.");
-			// TODO: Throw exception
 			return false;
 		}
 		
 		if (!isNumericalOnly(phoneNumber)) {
 			System.err.println("Invalid phone number. Phone number is not numerical only.");
-			// TODO: Throw exception
 			return false;
 		}
 		return true;
@@ -145,7 +139,6 @@ public class InputChecker {
 			LocalDate now = LocalDate.now();
 			
 			if (now.minusYears(15).isBefore(dateOfBirth)) {
-				// TODO: Throw 'too young' exception
 				System.err.println("Invalid birth date. You're too young to create an account. ");
 				return false;
 			}
@@ -154,11 +147,9 @@ public class InputChecker {
 			LocalDate.of(year, month, day); // http://stackoverflow.com/a/34718859/7133329
 			
 		} catch (NumberFormatException e) {
-			// TODO: Throw exception (input is incorrect)
 			System.err.println("Invalid birth date. The date is not numerical. The date format is dd-MM-yyyy.");
 			isValid = false;
 		} catch (DateTimeException e) {
-			// TODO: Throw an invalid date exception
 			System.err.println("Invalid birth date. The date format is dd-MM-yyyy.");
 			return false;
 		}	

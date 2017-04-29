@@ -86,7 +86,6 @@ public class CustomerAccount implements database.DBObject {
 	 * @param account The <code>BankAccount</code> to remove ownership of
 	 */
 	public void removeBankAccount(BankAccount account) {
-		//TODO: Check if sole owner
 		bankAccounts.remove(account);
 	}
 

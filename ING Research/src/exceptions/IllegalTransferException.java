@@ -7,17 +7,12 @@ package exceptions;
  */
 public class IllegalTransferException extends Exception {
 	private static final long serialVersionUID = -8284837193637155915L;
-	float balance;
-	String IBAN;
-	float amount;
 	
-	public IllegalTransferException(float balance, String IBAN, float amount) {
-		this.balance = balance;
-		this.IBAN = IBAN;
-		this.amount = amount;
+	public IllegalTransferException() {
+		
 	}
 	
 	public String toString() {
-		return "Attempted to transfer sum of " + amount + " from account " + IBAN + " which has a balance of " + balance;
+		return "Attempted illegal transfer.";
 	}
 }

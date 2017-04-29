@@ -34,12 +34,10 @@ public class SQLiteDB {
 	 * @return A String containing table creation statements
 	 */
 	private static String getSchemaStatements() {
-		//TODO: Make this more robust
 		List<String> lines = null;
 		try {
 			lines = Files.readAllLines(Paths.get(schema));
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		String statements = "";
@@ -63,7 +61,6 @@ public class SQLiteDB {
 			statement.close();
 			conn.close();
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}

@@ -23,11 +23,9 @@ public class TUI {
 		try {
 			listen();
 		} catch (IllegalAmountException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			System.err.println(e.toString());
 		} catch (IllegalTransferException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			System.err.println(e.toString());
 		}
 	}
 
