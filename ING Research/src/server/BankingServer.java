@@ -5,6 +5,7 @@ import exceptions.IllegalAmountException;
 import exceptions.IllegalTransferException;
 import server.Session.State;
 import accounts.CustomerAccount;
+import accounts.DebitCard;
 import accounts.Transaction;
 import client.InputChecker;
 
@@ -57,6 +58,9 @@ public class BankingServer {
 			case "CUST_LOGIN":
 				customerLogin(parameters);
 				break;
+			case "PAY_BY_CARD":
+				payByCard(parameters);
+				break;
 			default: 
 				System.err.println("Invalid command.");
 				break;
@@ -87,6 +91,12 @@ public class BankingServer {
 			case "TRANSACTIONS":
 				getTransactionHistory();
 				break;
+			case "CREATE_CARD":
+				createCard();
+				break;
+			case "LIST_CARDS":
+				listCards();
+				break;
 			case "DEPOSIT":
 				deposit(parameters);
 				break;
@@ -106,6 +116,52 @@ public class BankingServer {
 		}
 	}
 	
+	private void listCards() {
+		for (DebitCard card : session.debitCardList) {
+			System.out.println(card.toString());
+		}
+	}
+
+	private void createCard() {
+		DebitCard card = new DebitCard(session.customerAccount.getBSN(), session.bankAccount.getIBAN());
+		card.saveToDB();
+		session.debitCardList.add(card);
+	}
+
+	private void payByCard(String parameters) {
+		String[] parameterArray = parameters.split(":");
+		
+		if (!InputChecker.isValidAmount(parameterArray[0]) || parameterArray.length != 4) {
+			return;
+		}
+		float amount = Float.parseFloat(parameterArray[0]);
+		
+		if (!InputChecker.isValidCardNumber(parameterArray[1])) {
+			return;
+		}
+		String cardNumber = parameterArray[1];
+		
+		if (!InputChecker.isValidPIN(parameterArray[2])) {
+			return;
+		}
+		String PIN = parameterArray[2];
+		
+		if (!InputChecker.isValidIBAN(parameterArray[3])) {
+			return;
+		}
+		String IBAN = parameterArray[3];
+		
+		DebitCard card = (DebitCard) DataManager.getObjectByPrimaryKey(DebitCard.CLASSNAME, cardNumber);
+		
+		if (DataManager.isPrimaryKeyUnique(BankAccount.CLASSNAME, BankAccount.PRIMARYKEYNAME, IBAN)) {
+			System.err.println("Destination account not found.");
+			return;
+		}
+		BankAccount destination = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, IBAN);
+		
+		card.pinMachineCharge(amount, PIN, destination);
+	}
+
 	private void close() {
 		String closedIBAN = session.bankAccount.getIBAN();
 		
