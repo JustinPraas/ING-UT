@@ -2,7 +2,7 @@ package exceptions;
 
 /**
  * Thrown when a transfer, deposit or other amount-dependent operation is attempted with
- * an amount <= 0 is chosen.
+ * an amount <= 0.
  * @author Andrei Cojocaru
  */
 public class IllegalAmountException extends Exception {

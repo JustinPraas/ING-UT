@@ -1,9 +1,7 @@
 package client;
 
-import userinterface.TUI;
-
 /**
- * TUI-based client for sending RPC requests to the Server object.
+ * TUI-based client.
  * @author Andrei Cojocaru
  */
 public class Client {

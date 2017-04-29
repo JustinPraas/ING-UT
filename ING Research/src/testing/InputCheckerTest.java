@@ -2,7 +2,8 @@ package testing;
 
 import static org.junit.Assert.*;
 import org.junit.Test;
-import userinterface.InputChecker;
+
+import client.InputChecker;
 
 /**
  * A simple test class for the InputChecker.

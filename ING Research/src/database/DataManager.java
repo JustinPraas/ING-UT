@@ -41,6 +41,10 @@ public class DataManager {
     	factory = cfg.buildSessionFactory();
     }
     
+    /**
+     * Initializes hibernate configuration and DB connection if
+     * they are not already initialized.
+     */
 	private static void initIfRequired() {
 		if (!initialized) {
     		init();

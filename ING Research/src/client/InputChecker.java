@@ -1,4 +1,4 @@
-package userinterface;
+package client;
 
 import java.time.DateTimeException;
 import java.time.LocalDate;
@@ -258,5 +258,47 @@ public class InputChecker {
 			}
 		}
 		return true;
+	}
+	
+	/**
+	 * Checks whether a given String is a number.
+	 * @param input The String to be checked
+	 * @return true if the input is a valid number, false otherwise
+	 */
+	public static boolean isValidAmount(String input) {
+		if (input.matches("^\\d+.?\\d+$")) {
+			return true;
+		} else {
+			System.err.println("Amount " + input + " invalid.");
+			return false;
+		}
+	}
+	
+	/**
+	 * Checks whether a given String is a valid debit card number.
+	 * @param input The String to be checked
+	 * @return true if the input is a valid debit card number, false otherwise
+	 */
+	public static boolean isValidCardNumber(String input) {
+		if (input.matches("^\\d{3}+[a-zA-Z]\\d{3}$")) {
+			return true;
+		} else {
+			System.err.print("Card number " + input + " is invalid.");
+			return false;
+		}
+	}
+	
+	/**
+	 * Checks whether a given String is a valid PIN.
+	 * @param input The String to be checked
+	 * @return true if the input is a 4-digit number, false otherwise
+	 */
+	public static boolean isValidPIN(String input) {
+		if (input.matches("^\\d{4}$")) {
+			return true;
+		} else {
+			System.err.println("PIN invalid.");
+			return false;
+		}
 	}
 }

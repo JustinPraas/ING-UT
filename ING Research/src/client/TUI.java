@@ -1,4 +1,4 @@
-package userinterface;
+package client;
 
 import java.util.Scanner;
 
@@ -57,8 +57,9 @@ public class TUI {
 		switch (server.session.state) {
 		case LOGGED_OUT: 
 			System.out.println("\nUse one of the following commands:"
-					+ "\nCUST_LOGIN <BSN>, "
-					+ "\nCREATE_CUSTOMER_ACCOUNT <BSN> <firstname> <surname> <streetaddress> <email> <phonenumber> <birthdate>"
+					+ "\nCUST_LOGIN <BSN>"
+					+ "\nCREATE_CUSTOMER_ACCOUNT <BSN>:<firstname>:<surname>:<streetaddress>:<email>:<phonenumber>:<birthdate>"
+					+ "\nPAY_BY_CARD <amount>:<cardnumber>:<PIN>:<destinationIBAN>"
 					+ "\nEXIT");
 			break;
 		case CUST_LOGGED_IN:
@@ -74,7 +75,9 @@ public class TUI {
 					+ "\nTRANSACTIONS"
 					+ "\nINFO"
 					+ "\nDEPOSIT <amount>"
-					+ "\nTRANSFER <destination IBAN> <amount>"
+					+ "\nCREATE_CARD"
+					+ "\nLIST_CARDS"
+					+ "\nTRANSFER <destination IBAN>:<amount>"
 					+ "\nCLOSE"
 					+ "\nBANK_LOGOUT"
 					+ "\nEXIT");

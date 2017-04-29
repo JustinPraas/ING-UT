@@ -12,7 +12,7 @@ import database.DBObject;
 import database.DataManager;
 
 /**
- * Provides transaction logging. Used to compute standing balance for a given BankAccount.
+ * A transaction model for logging purposes.
  * @author Andrei Cojocaru
  */
 @Entity

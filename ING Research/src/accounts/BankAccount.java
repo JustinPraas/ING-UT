@@ -210,6 +210,8 @@ public class BankAccount implements database.DBObject {
 			throw new IllegalAmountException(amount);
 		} else if (balance < amount || destination.getClosed()) {
 			throw new IllegalTransferException(balance, IBAN, amount);
+		} else if (destination.getIBAN().equals(this.getIBAN())) {
+			throw new IllegalTransferException(balance, IBAN, amount);
 		}
 		
 		this.credit(amount);
@@ -222,6 +224,37 @@ public class BankAccount implements database.DBObject {
 		t.setDestinationIBAN(destination.getIBAN());
 		t.setAmount(amount);
 		t.setDescription("Transfer to " + destination.getIBAN() + ".");
+		t.saveToDB();
+		this.saveToDB();
+		destination.saveToDB();
+	}
+	
+	/**
+	 * Transfers a specific amount of money from this <code>BankAccount</code> to another.
+	 * @param destination The <code>BankAccount</code> to which the transferred money should go
+	 * @param amount The amount of money to be transferred from this <code>BankAccount</code> to the destination
+	 * @param description Description of the transfer
+	 */
+	public void transfer(BankAccount destination, float amount, String description) throws IllegalAmountException, IllegalTransferException {
+		//TODO: Only commit once all operations have succeeded
+		if (amount <= 0) {
+			throw new IllegalAmountException(amount);
+		} else if (balance < amount || destination.getClosed()) {
+			throw new IllegalTransferException(balance, IBAN, amount);
+		} else if (destination.getIBAN().equals(this.getIBAN())) {
+			throw new IllegalTransferException(balance, IBAN, amount);
+		}
+		
+		this.credit(amount);
+		destination.debit(amount);
+		Calendar c = Calendar.getInstance();
+		String date = c.getTime().toString();
+		Transaction t = new Transaction();
+		t.setDateTime(date);
+		t.setSourceIBAN(this.getIBAN());
+		t.setDestinationIBAN(destination.getIBAN());
+		t.setAmount(amount);
+		t.setDescription(description);
 		t.saveToDB();
 		this.saveToDB();
 		destination.saveToDB();

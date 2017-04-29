@@ -3,11 +3,11 @@ package server;
 import database.DataManager;
 import exceptions.IllegalAmountException;
 import exceptions.IllegalTransferException;
-import userinterface.InputChecker;
-import userinterface.Session;
-import userinterface.Session.State;
+import server.Session.State;
 import accounts.CustomerAccount;
+import accounts.DebitCard;
 import accounts.Transaction;
+import client.InputChecker;
 
 import java.util.ArrayList;
 
@@ -17,7 +17,7 @@ import org.hibernate.criterion.Restrictions;
 import accounts.BankAccount;
 
 /**
- * Manages request/response messages.
+ * Manages TUI input, request/response.
  * @author Andrei Cojocaru
  */
 public class BankingServer {
@@ -58,6 +58,9 @@ public class BankingServer {
 			case "CUST_LOGIN":
 				customerLogin(parameters);
 				break;
+			case "PAY_BY_CARD":
+				payByCard(parameters);
+				break;
 			default: 
 				System.err.println("Invalid command.");
 				break;
@@ -88,6 +91,12 @@ public class BankingServer {
 			case "TRANSACTIONS":
 				getTransactionHistory();
 				break;
+			case "CREATE_CARD":
+				createCard();
+				break;
+			case "LIST_CARDS":
+				listCards();
+				break;
 			case "DEPOSIT":
 				deposit(parameters);
 				break;
@@ -107,6 +116,67 @@ public class BankingServer {
 		}
 	}
 	
+	/**
+	 * Lists all of the DebitCards belonging to the currently active BankAccount.
+	 */
+	private void listCards() {
+		for (DebitCard card : session.debitCardList) {
+			System.out.println(card.toString());
+		}
+	}
+	
+	/**
+	 * Generates a new DebitCard for the currently active BankAccount.
+	 */
+	private void createCard() {
+		DebitCard card = new DebitCard(session.customerAccount.getBSN(), session.bankAccount.getIBAN());
+		card.saveToDB();
+		session.debitCardList.add(card);
+		System.out.println("Created new debit card for account " + session.bankAccount.getIBAN());
+	}
+
+	/**
+	 * Splits parameter String from TUI into the necessary variables
+	 * and attempts a PIN machine payment with them if they are valid.
+	 * @param parameters The provided parameter String
+	 */
+	private void payByCard(String parameters) {
+		String[] parameterArray = parameters.split(":");
+		
+		if (!InputChecker.isValidAmount(parameterArray[0]) || parameterArray.length != 4) {
+			return;
+		}
+		float amount = Float.parseFloat(parameterArray[0]);
+		
+		if (!InputChecker.isValidCardNumber(parameterArray[1])) {
+			return;
+		}
+		String cardNumber = parameterArray[1];
+		
+		if (!InputChecker.isValidPIN(parameterArray[2])) {
+			return;
+		}
+		String PIN = parameterArray[2];
+		
+		if (!InputChecker.isValidIBAN(parameterArray[3])) {
+			return;
+		}
+		String IBAN = parameterArray[3];
+		
+		DebitCard card = (DebitCard) DataManager.getObjectByPrimaryKey(DebitCard.CLASSNAME, cardNumber);
+		
+		if (DataManager.isPrimaryKeyUnique(BankAccount.CLASSNAME, BankAccount.PRIMARYKEYNAME, IBAN)) {
+			System.err.println("Destination account not found.");
+			return;
+		}
+		BankAccount destination = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, IBAN);
+		
+		card.pinMachineCharge(amount, PIN, destination);
+	}
+
+	/**
+	 * Closes the currently active BankAccount.
+	 */
 	private void close() {
 		String closedIBAN = session.bankAccount.getIBAN();
 		
@@ -121,6 +191,10 @@ public class BankingServer {
 		System.out.println("Bank account " + closedIBAN + " closed successfully.");
 	}
 
+	/**
+	 * Fetches the transaction history for the currently active BankAccount and
+	 * outputs it to console.
+	 */
 	private void getTransactionHistory() {
 		ArrayList<Criterion> criteria = new ArrayList<>();
 		Criterion cr = Restrictions.eq("sourceIBAN", session.bankAccount.getIBAN());
@@ -225,7 +299,7 @@ public class BankingServer {
 		}
 		
 		// Check if the IBAN is valid. If the IBAN is valid then proceed to make the actual transfer.
-		if (InputChecker.isValidIBAN(toIBAN)) {
+		if (InputChecker.isValidIBAN(toIBAN) && toIBAN != session.bankAccount.getIBAN()) {
 			BankAccount toBankAccount = new BankAccount();
 			if (!DataManager.isPrimaryKeyUnique(toBankAccount.getClassName(), toBankAccount.getPrimaryKeyName(), toIBAN)) {
 				toBankAccount = (BankAccount) DataManager.getObjectByPrimaryKey(toBankAccount.getClassName(), toIBAN);
@@ -236,9 +310,22 @@ public class BankingServer {
 			}
 		} else {
 			System.err.println("Please enter a valid IBAN. Example: NL10INGB0002352362");
-		}		
+		}
+		
+		// "Refresh" all bank accounts in memory
+		session.bankAccountList.remove(session.bankAccount);
+		for (BankAccount bAcc : session.bankAccountList) {
+			bAcc = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, bAcc.getIBAN());
+		}
+		session.bankAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, session.bankAccount.getIBAN());
+		session.bankAccountList.add(session.bankAccount);
 	}
 	
+	/**
+	 * Deposits a given amount of money into the currently active account.
+	 * @param parameters Parameters given with the DEPOSIT command
+	 * @throws IllegalAmountException Thrown if the given amount is not a number, or negative
+	 */
 	private void deposit(String parameters) throws IllegalAmountException {
 		String[] parameterArray = parameters.split(":");
 		String strAmount = parameters.split(":")[0];
