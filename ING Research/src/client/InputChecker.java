@@ -259,4 +259,31 @@ public class InputChecker {
 		}
 		return true;
 	}
+	
+	public static boolean isValidAmount(String input) {
+		if (input.matches("^\\d+.?\\d+$")) {
+			return true;
+		} else {
+			System.err.println("Amount " + input + " invalid.");
+			return false;
+		}
+	}
+	
+	public static boolean isValidCardNumber(String input) {
+		if (input.matches("^\\d{3}+[a-zA-Z]\\d{3}$")) {
+			return true;
+		} else {
+			System.err.print("Card number " + input + " is invalid.");
+			return false;
+		}
+	}
+	
+	public static boolean isValidPIN(String input) {
+		if (input.matches("^\\d{4}$")) {
+			return true;
+		} else {
+			System.err.println("PIN invalid.");
+			return false;
+		}
+	}
 }
