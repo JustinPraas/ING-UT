@@ -24,6 +24,8 @@ public class Transaction implements DBObject{
 	private float amount;
 	private String description;
 	private int id;
+	public static final String CLASSNAME = "accounts.Transaction";
+	public static final String PRIMARYKEYNAME = "id";
 	
 	public Transaction() {
 		
@@ -100,7 +102,7 @@ public class Transaction implements DBObject{
 	@Override
 	@Transient
 	public String getPrimaryKeyName() {
-		return "id";
+		return PRIMARYKEYNAME;
 	}
 
 	@Override
@@ -112,7 +114,7 @@ public class Transaction implements DBObject{
 	@Override
 	@Transient
 	public String getClassName() {
-		return "accounts.Transaction";
+		return CLASSNAME;
 	}
 
 	@Override
