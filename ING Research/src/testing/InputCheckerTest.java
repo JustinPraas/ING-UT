@@ -226,4 +226,43 @@ public class InputCheckerTest {
 				validSurname, validStreetAddress, validEmailAddress, validPhoneNumber, 
 				invalidBirthDate));
 	}
+	
+	@Test
+	public void isValidAmountTest() {
+		String nonAmount1 = "342T2";
+		String nonAmount2 = "10.5.3";
+		String nonAmount3 = "0214";
+		String amount1 = "0.5";
+		String amount2 = "135";
+		String amount3 = "30204.05";
+		
+		assert(InputChecker.isValidAmount(amount1));
+		assert(InputChecker.isValidAmount(amount2));
+		assert(InputChecker.isValidAmount(amount3));
+		assert(!InputChecker.isValidAmount(nonAmount1));
+		assert(!InputChecker.isValidAmount(nonAmount2));
+		assert(!InputChecker.isValidAmount(nonAmount3));
+	}
+	
+	@Test
+	public void testIsValidCardNumber() {
+		String cardNum = "342T244";
+		String nonNum1 = "34T3453";
+		String nonNum2 = "3453453";
+		
+		assert(InputChecker.isValidCardNumber(cardNum));
+		assert(!InputChecker.isValidCardNumber(nonNum1));
+		assert(!InputChecker.isValidCardNumber(nonNum2));
+	}
+	
+	@Test
+	public void testIsValidPIN() {
+		String PIN = "4444";
+		String nonPIN1 = "4A44";
+		String nonPIN2 = "ABCD";
+		
+		assert(InputChecker.isValidPIN(PIN));
+		assert(!InputChecker.isValidPIN(nonPIN1));
+		assert(!InputChecker.isValidPIN(nonPIN2));
+	}
 }
