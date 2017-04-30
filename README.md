@@ -6,6 +6,18 @@ The purpose of this project is to create a software testbed of various implement
 
 ## Implementation
 
+### Functionality
+All required object models (customer accounts, bank accounts, debit cards) are annotated and made persistent via JPA/Hibernate. The implementation thus far provides functionality for creating new customer accounts, bank accounts and debit cards, making physical deposits of money to bank accounts, transferring money between bank accounts, viewing transaction history and paying via debit cards at PIN machines. Debit cards can expire and bank accounts can be closed.
+
+### General Architecture
+All relevant data is contained in the CustomerAccount, BankAccount, DebitCard and Transaction objects. Each CustomerAccount can have multiple BankAccounts, each BankAccount can have multiple DebitCards and Transactions. 
+
+A DataManager object handles the saving/updating/removal of the aforementioned objects, using the SQLiteDB object to initialize/connect to the local SQLite database.
+
+The BankingServer, InputChecker and Session objects in the server package are used to keep track of the user's actions and process their input.
+
+The TUI object is used for prompts/display to the user, and the Client object is the point of entry for the program.
+
 ## Dependencies
 
 * Hibernate ORM -- For easy storage of Java objects in a relational database
@@ -17,7 +29,12 @@ The purpose of this project is to create a software testbed of various implement
 
 All of the aforementioned dependencies are automatically managed via Maven.
 
-## Assumptions
+## Significant Assumptions
+
+* That a proper server-client messaging protocol is not yet necessary.
+* That the application will not be network-based in the near future.
+* That it is not yet necessary for a customer to manage the privileges of other customers over his/her bank account, despite the fact that the functionality exists.
+* That administrative database management/modification can be handled outside of the program, and that there is no need for such functionality within the program.
 
 ## Instructions
 
