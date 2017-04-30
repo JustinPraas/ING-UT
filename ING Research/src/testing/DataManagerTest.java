@@ -77,19 +77,4 @@ public class DataManagerTest {
 		assertFalse(DataManager.objectExists(card1));
 		assertFalse(DataManager.objectExists(card2));
 	}
-	
-	// TODO Below test works only with an empty database. Fix later
-//	@Test
-//	public void getObjectsFromDBTest() {
-//		assertTrue(DataManager.getObjectsFromDB(cust1.getClassName()).size() == 2);
-//		Criterion c = Restrictions.idEq(cust1.getPrimaryKeyVal());
-//		ArrayList<Criterion> criteria = new ArrayList<>();
-//		criteria.add(c);
-//		assertTrue(DataManager.getObjectsFromDB(cust1.getClassName(), criteria).size() == 1);
-//		cust1.deleteFromDB();
-//		assertTrue(DataManager.getObjectsFromDB(cust1.getClassName()).size() == 1);
-//		assertTrue(DataManager.getObjectsFromDB(cust1.getClassName(), criteria).size() == 0);
-//		cust2.deleteFromDB();
-//		assertTrue(DataManager.getObjectsFromDB(cust1.getClassName()).size() == 0);
-//	}
 }
