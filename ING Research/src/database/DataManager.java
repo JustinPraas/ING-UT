@@ -76,7 +76,7 @@ public class DataManager {
     	Session session = factory.openSession();
     	Transaction t = session.beginTransaction();
     	String HQL = "delete " + o.getClassName() + " where " + o.getPrimaryKeyName() + " = '" + o.getPrimaryKeyVal() + "'";
-    	Query query = session.createQuery(HQL);
+    	Query<?> query = session.createQuery(HQL);
     	query.executeUpdate();
     	t.commit();
     	session.close();
@@ -87,7 +87,8 @@ public class DataManager {
      * @param o Object to be looked up
      * @return True or false, depending on whether or not the object is found
      */
-    public static boolean objectExists(DBObject o) {
+    @SuppressWarnings("deprecation")
+	public static boolean objectExists(DBObject o) {
     	initIfRequired();
     	
     	Session session = factory.openSession();
@@ -128,7 +129,8 @@ public class DataManager {
 	 * @param criteria The query criteria
 	 * @return A List of all objects meeting the given criteria
 	 */
-    public static List getObjectsFromDB(String className, ArrayList<Criterion> criteria) {
+    @SuppressWarnings("deprecation")
+	public static List<?> getObjectsFromDB(String className, ArrayList<Criterion> criteria) {
     	initIfRequired();
     	
     	Session session = factory.openSession();
@@ -136,7 +138,7 @@ public class DataManager {
     	for (Criterion c : criteria) {
     		cr.add(c);
     	}
-    	List results = cr.list();
+    	List<?> results = cr.list();
     	session.close();
     	return results;
     }
@@ -146,12 +148,13 @@ public class DataManager {
      * @param className The name of the type of object being queried
      * @return A List of all objects of the given type
      */
-    public static List getObjectsFromDB(String className) {
+    @SuppressWarnings("deprecation")
+	public static List<?> getObjectsFromDB(String className) {
     	initIfRequired();
     	
     	Session session = factory.openSession();
     	Criteria cr = session.createCriteria(className);
-    	List results = cr.list();
+    	List<?> results = cr.list();
     	session.close();
     	return results;
     }
@@ -162,14 +165,15 @@ public class DataManager {
      * @param primaryKey The primary key of the desired object
      * @return The object with the given primary key, if found
      */
-    public static Object getObjectByPrimaryKey(String className, Object primaryKey) {
+    @SuppressWarnings("deprecation")
+	public static Object getObjectByPrimaryKey(String className, Object primaryKey) {
     	initIfRequired();
     	
     	Session session = factory.openSession();
     	Criteria cr = session.createCriteria(className);
     	Criterion c = Restrictions.idEq(primaryKey);
     	cr.add(c);
-    	List results = cr.list();
+    	List<?> results = cr.list();
     	session.close();
     	return results.get(0);
     }
@@ -182,13 +186,14 @@ public class DataManager {
      * @param primaryKey The value of the object's primary key
      * @return True or false, depending on whether or not the primary key is in use
      */
-    public static boolean isPrimaryKeyUnique(String className, String primaryKeyName, String primaryKey) {
+    @SuppressWarnings("deprecation")
+	public static boolean isPrimaryKeyUnique(String className, String primaryKeyName, String primaryKey) {
     	initIfRequired();
     	
     	Session session = factory.openSession();
     	Criteria cr = session.createCriteria(className);
     	cr.add(Restrictions.eq(primaryKeyName, primaryKey));
-    	List results = cr.list();
+    	List<?> results = cr.list();
     	if (results.size() != 0) {
     		session.close();
     		return false;

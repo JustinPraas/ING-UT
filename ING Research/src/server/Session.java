@@ -78,13 +78,14 @@ public class Session {
 	 * Signs in to the given <code>BankAccount</code>.
 	 * @param bankAccount the <code>BankAccount</code> to be signed in
 	 */
+	@SuppressWarnings("unchecked")
 	public void loginBank(BankAccount bankAccount) {
 		this.bankAccount = bankAccount;
 		this.state = State.BANK_LOGGED_IN;
 		ArrayList<Criterion> criteria = new ArrayList<>();
 		criteria.add(Restrictions.eq("bankAccountIBAN", bankAccount.getIBAN()));
 		criteria.add(Restrictions.eq("holderBSN", customerAccount.getBSN()));
-		debitCardList = DataManager.getObjectsFromDB(DebitCard.CLASSNAME, criteria);
+		debitCardList = (List<DebitCard>) DataManager.getObjectsFromDB(DebitCard.CLASSNAME, criteria);
 	}
 	
 	/**
