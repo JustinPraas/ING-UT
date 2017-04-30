@@ -142,13 +142,13 @@ public class DebitCard implements database.DBObject {
 	@Transient
 	public boolean isExpired() {
 		Calendar c = Calendar.getInstance();
-		SimpleDateFormat format = new SimpleDateFormat();
+		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
 		Date today = new Date(c.getTime().getTime());
 		try {
 			if (format.parse(expirationDate).before(today)) {
-				return false;
-			} else {
 				return true;
+			} else {
+				return false;
 			}
 		} catch (ParseException e) {
 			e.printStackTrace();

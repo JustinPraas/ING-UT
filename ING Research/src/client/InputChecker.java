@@ -257,7 +257,7 @@ public class InputChecker {
 	 * @return true if the input is a valid number, false otherwise
 	 */
 	public static boolean isValidAmount(String input) {
-		if (input.matches("^\\d+.?\\d+$")) {
+		if (input.matches("(\\d+\\.\\d+|[1-9]\\d+|\\d)")) {
 			return true;
 		} else {
 			System.err.println("Amount " + input + " invalid.");
