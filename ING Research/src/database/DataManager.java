@@ -98,14 +98,7 @@ public class DataManager {
 		
 		Session session = factory.openSession();
 		Transaction t = session.beginTransaction();
-		
-//		if (objectExists(o)) {
-//			updateObject(o);
-//		} else {
-//			addEntryToDB(o);
-//		}
 		session.saveOrUpdate(o);
-		
 		t.commit();
 		session.close();
 	}
