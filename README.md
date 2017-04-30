@@ -20,3 +20,5 @@ All of the aforementioned dependencies are automatically managed via Maven.
 ## Assumptions
 
 ## Instructions
+
+Locate the Client class in the client package and run it as a Java application. All input/output is currently console-based. Current command syntax is INSTRUCTION [parameter1]:[parameter2]:[parameter...].
