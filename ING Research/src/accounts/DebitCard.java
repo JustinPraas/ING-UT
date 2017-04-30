@@ -31,9 +31,6 @@ public class DebitCard implements database.DBObject {
 	public DebitCard() {
 		
 	}
-	
-	/*TODO implement 'follownumbers'? (follownumbers are basically the total number of passes 
-	that have been associated with a BankAccount during the BankAccount's lifespan) */
 
 	/**
 	 * Create a new <code>DebitCard</code> associated with a BankAccount
@@ -174,15 +171,16 @@ public class DebitCard implements database.DBObject {
 			System.err.println("Invalid PIN.");
 			return;
 		}
-		try {
-			ownAccount.transfer(destination, amount, "PIN machine payment.");
-		} catch (IllegalAmountException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IllegalTransferException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+			try {
+				ownAccount.transfer(destination, amount, "PIN machine payment.");
+			} catch (IllegalAmountException e) {
+				System.err.println(e.toString());
+				return;
+			} catch (IllegalTransferException e) {
+				System.err.println(e.toString());
+				return;
+			}
+
 	}
 	
 	@Column(name = "PIN")

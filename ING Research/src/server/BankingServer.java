@@ -359,7 +359,6 @@ public class BankingServer {
 				if(!session.bankAccountList.get(i).getClosed()) {
 					System.out.println(i + ": " + session.bankAccountList.get(i).getIBAN());
 				}
-				// TODO: Better text formatting? Show more info per bankaccount?
 			}
 		}		
 	}
@@ -390,8 +389,6 @@ public class BankingServer {
 		
 		// Check if the required parameters are given.
 		if (parameterArray.length != 7) { 
-			// TODO: Change the indexes and numbers when postal-code and city fields are added.
-			// TODO: Throw exception
 			System.err.println("Please enter the required parameters");
 			return;
 		}
