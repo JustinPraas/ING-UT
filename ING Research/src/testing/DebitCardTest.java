@@ -1,10 +1,14 @@
 package testing;
 
+import java.util.ArrayList;
+
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 
 import accounts.BankAccount;
 import accounts.DebitCard;
+import accounts.Transaction;
 import database.DataManager;
 
 public class DebitCardTest {
@@ -48,5 +52,15 @@ public class DebitCardTest {
 		assert(bAcc.getBalance() == 9000 && bAcc2.getBalance() == 1000);
 		bAcc.deleteFromDB();
 		bAcc2.deleteFromDB();
+	}
+	
+	@AfterClass
+	public static void cleanup() {
+		@SuppressWarnings("unchecked")
+		ArrayList<Transaction> ts = (ArrayList<Transaction>) DataManager.getObjectsFromDB(Transaction.CLASSNAME);
+		
+		for (Transaction t : ts) {
+			t.deleteFromDB();
+		}
 	}
 }

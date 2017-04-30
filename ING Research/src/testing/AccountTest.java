@@ -2,14 +2,18 @@ package testing;
 
 import static org.junit.Assert.*;
 
+import java.util.ArrayList;
 import java.util.Set;
 
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 
 import accounts.BankAccount;
 import accounts.CustomerAccount;
+import accounts.Transaction;
+import database.DataManager;
 import exceptions.IllegalAmountException;
 import exceptions.IllegalTransferException;
 
@@ -183,5 +187,15 @@ public class AccountTest {
 		assertTrue(bankAccount2.getBalance() == 100);
 		assertTrue(bankAccount.getBalance() == 0);
 		bankAccount2.deleteFromDB();
+	}
+	
+	@AfterClass
+	public static void cleanup() {
+		@SuppressWarnings("unchecked")
+		ArrayList<Transaction> ts = (ArrayList<Transaction>) DataManager.getObjectsFromDB(Transaction.CLASSNAME);
+		
+		for (Transaction t : ts) {
+			t.deleteFromDB();
+		}
 	}
 }
