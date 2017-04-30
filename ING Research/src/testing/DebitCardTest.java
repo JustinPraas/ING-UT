@@ -37,7 +37,7 @@ public class DebitCardTest {
 		BankAccount bAcc2 = new BankAccount("TEST3", 0, "TEST4");
 		bAcc.saveToDB();
 		bAcc2.saveToDB();
-		DebitCard card2 = new DebitCard("TEST1", "TEST2", "17-02-1995", "999", "4444");
+		DebitCard card2 = new DebitCard("TEST1", "TEST2", "2022-04-30", "999", "4444");
 		card2.pinMachineCharge(1000, "3444", bAcc2);
 		bAcc = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, bAcc.getIBAN());
 		bAcc2 = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, bAcc2.getIBAN());
