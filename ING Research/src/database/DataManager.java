@@ -52,20 +52,6 @@ public class DataManager {
     	}
 	}
     
-	/**
-	 * Add a new instance of a DBObject to the database.
-	 * @param o The object to be added
-	 */
-    private static void addEntryToDB(DBObject o) {
-    	initIfRequired();
-    	
-    	Session session = factory.openSession();
-    	Transaction t = session.beginTransaction();
-    	session.persist(o);
-    	t.commit();
-    	session.close();
-    }
-
     /**
      * Remove a persistent object from the database.
      * @param o The object to be removed
@@ -112,13 +98,7 @@ public class DataManager {
 		
 		Session session = factory.openSession();
 		Transaction t = session.beginTransaction();
-		
-		if (objectExists(o)) {
-			session.merge(o);
-		} else {
-			addEntryToDB(o);
-		}
-		
+		session.saveOrUpdate(o);
 		t.commit();
 		session.close();
 	}
