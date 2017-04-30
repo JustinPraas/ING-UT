@@ -144,11 +144,13 @@ public class BankingServer {
 		String[] parameterArray = parameters.split(":");
 		
 		if (!InputChecker.isValidAmount(parameterArray[0]) || parameterArray.length != 4) {
+			System.err.println("Invalid amount.");
 			return;
 		}
 		float amount = Float.parseFloat(parameterArray[0]);
 		
 		if (!InputChecker.isValidCardNumber(parameterArray[1])) {
+			System.err.println("Invalid card number.");
 			return;
 		}
 		String cardNumber = parameterArray[1];
@@ -159,11 +161,16 @@ public class BankingServer {
 		String PIN = parameterArray[2];
 		
 		if (!InputChecker.isValidIBAN(parameterArray[3])) {
+			System.err.println("Invalid IBAN.");
 			return;
 		}
 		String IBAN = parameterArray[3];
 		
 		DebitCard card = (DebitCard) DataManager.getObjectByPrimaryKey(DebitCard.CLASSNAME, cardNumber);
+		
+		if (card.isExpired()) {
+			return;
+		}
 		
 		if (DataManager.isPrimaryKeyUnique(BankAccount.CLASSNAME, BankAccount.PRIMARYKEYNAME, IBAN)) {
 			System.err.println("Destination account not found.");

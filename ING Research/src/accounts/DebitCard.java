@@ -179,6 +179,9 @@ public class DebitCard implements database.DBObject {
 		if (!isValidPIN(PIN)) {
 			System.err.println("Invalid PIN.");
 			return;
+		} else if (isExpired()) {
+			System.err.println("Card " + cardNumber + " is expired.");
+			return;
 		}
 			try {
 				ownAccount.transfer(destination, amount, "PIN machine payment.");
