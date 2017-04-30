@@ -195,6 +195,7 @@ public class BankingServer {
 	 * Fetches the transaction history for the currently active BankAccount and
 	 * outputs it to console.
 	 */
+	@SuppressWarnings("unchecked")
 	private void getTransactionHistory() {
 		ArrayList<Criterion> criteria = new ArrayList<>();
 		Criterion cr = Restrictions.eq("sourceIBAN", session.bankAccount.getIBAN());

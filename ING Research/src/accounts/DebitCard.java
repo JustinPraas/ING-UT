@@ -12,6 +12,8 @@ import exceptions.IllegalAmountException;
 import exceptions.IllegalTransferException;
 
 import java.sql.Date;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 
 /**
  * A debit card that is associated with a combination of customer account and bank account.
@@ -140,12 +142,19 @@ public class DebitCard implements database.DBObject {
 	@Transient
 	public boolean isExpired() {
 		Calendar c = Calendar.getInstance();
+		SimpleDateFormat format = new SimpleDateFormat();
 		Date today = new Date(c.getTime().getTime());
-		if (new Date(today.parse(expirationDate)).before(today)) {
-			return false;
-		} else {
-			return true;
+		try {
+			if (format.parse(expirationDate).before(today)) {
+				return false;
+			} else {
+				return true;
+			}
+		} catch (ParseException e) {
+			e.printStackTrace();
 		}
+		
+		return false;
 	}
 	
 	public String toString() {
@@ -167,7 +176,7 @@ public class DebitCard implements database.DBObject {
 	 */
 	public void pinMachineCharge(float amount, String PIN, BankAccount destination) {
 		BankAccount ownAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, bankAccountIBAN);
-		if (!PIN.equals(this.PIN)) {
+		if (!isValidPIN(PIN)) {
 			System.err.println("Invalid PIN.");
 			return;
 		}

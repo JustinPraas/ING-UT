@@ -351,7 +351,7 @@ public class BankAccount implements database.DBObject {
 		List<DebitCard> result = new ArrayList<>();
 		ArrayList<Criterion> criteria = new ArrayList<>();
 		criteria.add(Restrictions.eq("bankAccountIBAN", getPrimaryKeyVal()));
-		result = DataManager.getObjectsFromDB(new DebitCard().getClassName(), criteria);
+		result = (List<DebitCard>) DataManager.getObjectsFromDB(new DebitCard().getClassName(), criteria);
 		return result;
 	}
 
