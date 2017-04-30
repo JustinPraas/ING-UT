@@ -176,7 +176,7 @@ public class DebitCard implements database.DBObject {
 	 */
 	public void pinMachineCharge(float amount, String PIN, BankAccount destination) {
 		BankAccount ownAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, bankAccountIBAN);
-		if (!PIN.equals(this.PIN)) {
+		if (!isValidPIN(PIN)) {
 			System.err.println("Invalid PIN.");
 			return;
 		}
