@@ -61,8 +61,10 @@ public class TUI {
 					+ "\nEXIT");
 			break;
 		case AUTHENTICATED:
-			System.out.println("\nUse one of the following commands: "
+			System.out.println("\nUse one of the following commands:"
 					+ "\nOPEN_ADDITIONAL_ACCOUNT"
+					+ "\nPAY_BY_CARD <sourceIBAN>:<targetIBAN>:<cardnumber>:<PIN>:<amount>"
+					+ "\nDEPOSIT <IBAN>:<cardnumber>:<PIN>:<amount>"
 					+ "\nTRANSACTION_OVERVIEW <IBAN>:<nrOfTransactions>"
 					+ "\nGET_BALANCE <IBAN>"
 					+ "\nTRANSFER <sourceIBAN>:<destinationIBAN>:<targetName>:<amount>:<description>"

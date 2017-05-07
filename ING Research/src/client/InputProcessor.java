@@ -62,6 +62,12 @@ public class InputProcessor {
 			case "OPEN_ADDITIONAL_ACCOUNT":
 				openAdditionalAccount();
 				break;
+			case "PAY_BY_CARD":
+				payFromAccount(parameters);
+				break;
+			case "DEPOSIT":
+				depositIntoAccount(parameters);
+				break;
 			case "CLOSE":
 				close(parameters);
 				break;
@@ -81,7 +87,7 @@ public class InputProcessor {
 				transfer(parameters);
 				break;
 			default: 
-				System.err.println("Invalid command");
+				System.err.println("Invalid command.");
 				break;
 			}
 		}
@@ -91,6 +97,11 @@ public class InputProcessor {
 		String[] parameterArray = parameters.split(":");
 		String method = "revokeAccess";
 		HashMap<String, Object> params = new HashMap<>();
+		
+		if (parameterArray.length != 2) {
+			System.err.println("Please enter the requested parameters.");
+			return;
+		}
 		
 		params.put("authToken", MessageManager.AUTHTOKEN);
 		params.put("iBAN", parameterArray[0]);
@@ -104,6 +115,11 @@ public class InputProcessor {
 		String[] parameterArray = parameters.split(":");
 		String method = "provideAccess";
 		HashMap<String, Object> params = new HashMap<>();
+		
+		if (parameterArray.length != 2) {
+			System.err.println("Please enter the requested parameters.");
+			return;
+		}
 		
 		params.put("authToken", MessageManager.AUTHTOKEN);
 		params.put("iBAN", parameterArray[0]);
@@ -120,6 +136,11 @@ public class InputProcessor {
 	 */
 	private void payFromAccount(String parameters) {
 		String[] parameterArray = parameters.split(":");
+		
+		if (parameterArray.length != 5) {
+			System.err.println("Please enter the requested parameters.");
+			return;
+		}
 		
 		String sourceIBAN = parameterArray[0];
 		String targetIBAN = parameterArray[1];
@@ -146,6 +167,11 @@ public class InputProcessor {
 	private void close(String parameters) {
 		String[] parameterArray = parameters.split(":");
 		
+		if (parameterArray.length != 1) {
+			System.err.println("Please enter the requested parameters.");
+			return;
+		}
+		
 		String method = "closeAccount";
 		HashMap<String, Object> params = new HashMap<>();
 		params.put("authToken", MessageManager.AUTHTOKEN);
@@ -161,6 +187,11 @@ public class InputProcessor {
 	 */
 	private void getTransactionsOverview(String parameters) {
 		String[] parameterArray = parameters.split(":");
+		
+		if (parameterArray.length != 2) {
+			System.err.println("Please enter the requested parameters.");
+			return;
+		}
 		
 		String IBAN = parameterArray[0];
 		String numTransactions = parameterArray[1];
@@ -192,6 +223,11 @@ public class InputProcessor {
 	private void getAuthToken(String parameters) {
 		String[] parameterArray = parameters.split(":");
 		
+		if (parameterArray.length != 2) {
+			System.err.println("Please enter the requested parameters.");
+			return;
+		}
+		
 		String username = parameterArray[0];
 		String password = parameterArray[1];
 		
@@ -214,6 +250,11 @@ public class InputProcessor {
 	 */
 	private void transfer(String parameters) {
 		String[] parameterArray = parameters.split(":");
+		
+		if (parameterArray.length != 5) {
+			System.err.println("Please enter the requested parameters.");
+			return;
+		}
 		
 		String sourceIBAN = parameterArray[0];
 		String targetIBAN = parameterArray[1];
@@ -243,7 +284,7 @@ public class InputProcessor {
 		String[] parameterArray = parameters.split(":");
 		
 		if (parameterArray.length != 4) {
-			System.err.println("Please provide the requested parameters.");
+			System.err.println("Please enter the requested parameters.");
 			return;
 		}
 		
@@ -284,7 +325,7 @@ public class InputProcessor {
 		
 		// Check if the required parameters are given.
 		if (parameterArray.length != 10) { 
-			System.err.println("Please enter the required parameters");
+			System.err.println("Please enter the requested parameters.");
 			return;
 		}
 		
