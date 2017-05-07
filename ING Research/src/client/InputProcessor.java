@@ -175,7 +175,7 @@ public class InputProcessor {
 		String method = "closeAccount";
 		HashMap<String, Object> params = new HashMap<>();
 		params.put("authToken", MessageManager.AUTHTOKEN);
-		params.put("bankAccountNumber", parameterArray[0]);
+		params.put("iBAN", parameterArray[0]);
 		
 		JSONRPC2Request request = new JSONRPC2Request(method, params, "request-" + java.lang.System.currentTimeMillis());
 		MessageManager.sendToServer(request);
