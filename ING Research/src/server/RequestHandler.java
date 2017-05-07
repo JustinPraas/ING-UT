@@ -18,41 +18,97 @@ public class RequestHandler {
 		
 		switch(method) {
 		case "openAccount":
-			//TODO: Do
+			openAccount(jReq);
 			break;
 		case "openAdditionalAccount":
-			//TODO: Do
+			openAdditionalAccount(jReq);
 			break;
 		case "closeAccount":
-			//TODO: Do
+			closeAccount(jReq);
 			break;
 		case "provideAccess":
-			//TODO: Do
+			provideAccess(jReq);
 			break;
 		case "revokeAccess":
-			//TODO: Do
+			revokeAccess(jReq);
 			break;
 		case "depositIntoAccount":
-			//TODO: Do
+			depositIntoAccount(jReq);
 			break;
 		case "payFromAccount":
-			//TODO: Do
+			payFromAccount(jReq);
 			break;
 		case "transferMoney":
-			//TODO: Do
+			transferMoney(jReq);
 			break;
 		case "getAuthToken":
-			//TODO: Do
+			getAuthToken(jReq);
 			break;
 		case "getBalance":
-			//TODO: Do
+			getBalance(jReq);
 			break;
 		case "getTransactionsOverview":
-			//TODO: Do
+			getTransactionsOverview(jReq);
 			break;
 		default:
+			//TODO: Maybe return error to client?
 			System.out.println("Discarded invalid JSON-RPC method call.");
 			break;
 		}
+	}
+
+	private void openAccount(JSONRPC2Request jReq) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	private void openAdditionalAccount(JSONRPC2Request jReq) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	private void closeAccount(JSONRPC2Request jReq) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	private void provideAccess(JSONRPC2Request jReq) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	private void revokeAccess(JSONRPC2Request jReq) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	private void depositIntoAccount(JSONRPC2Request jReq) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	private void payFromAccount(JSONRPC2Request jReq) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	private void transferMoney(JSONRPC2Request jReq) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	private void getAuthToken(JSONRPC2Request jReq) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	private void getBalance(JSONRPC2Request jReq) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	private void getTransactionsOverview(JSONRPC2Request jReq) {
+		// TODO Auto-generated method stub
+		
 	}
 }
