@@ -102,5 +102,4 @@ public class Session {
 		this.bankAccount = null;
 		this.state = State.CUST_LOGGED_IN;
 	}
-
 }

@@ -1,4 +1,4 @@
-package client;
+package server;
 
 import java.time.DateTimeException;
 import java.time.LocalDate;
@@ -10,7 +10,7 @@ import org.apache.commons.validator.routines.EmailValidator;
  * @author Justin Praas
  * @version 3rd of April, 2017
  */
-public class InputChecker {
+public class InputValidator {
 	
 	public static final String VALID_NAME_CHARACTERS = "abcdefghijklmnopqrstuvwxyzÎˆÙÈËABCDEFGHIJKLMNOPQRSTUVWXYZ÷‘…»-' ";
 	public static final String UPPER_CASE_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZÀ÷‘…»";

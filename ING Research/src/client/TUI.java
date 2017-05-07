@@ -4,7 +4,6 @@ import java.util.Scanner;
 
 import exceptions.IllegalAmountException;
 import exceptions.IllegalTransferException;
-import server.BankingServer;
 
 /**
  * A class that handles local textual display
@@ -13,13 +12,13 @@ import server.BankingServer;
  */
 public class TUI {
 	
-	BankingServer server;
+	InputProcessor server;
 
 	/**
 	 * Binds a <code>Session</code> object to this TUI. Start listening to input.
 	 */
 	public TUI() {
-		server = new BankingServer();
+		server = new InputProcessor();
 		try {
 			listen();
 		} catch (IllegalAmountException e) {
@@ -52,32 +51,24 @@ public class TUI {
 	 * Prints the available commands to the output.
 	 */
 	private void printCommands() {
-		switch (server.session.state) {
-		case LOGGED_OUT: 
+		switch (MessageManager.state) {
+		case NOT_AUTHENTICATED: 
 			System.out.println("\nUse one of the following commands:"
-					+ "\nCUST_LOGIN <BSN>"
-					+ "\nCREATE_CUSTOMER_ACCOUNT <BSN>:<firstname>:<surname>:<streetaddress>:<email>:<phonenumber>:<birthdate>"
-					+ "\nPAY_BY_CARD <amount>:<cardnumber>:<PIN>:<destinationIBAN>"
+					+ "\nLOGIN <username>:<password>"
+					+ "\nOPEN_BANK_ACCOUNT <firstname>:<lastname>:<initials>:<dateofbirth>:<SSN>:<address>:<phonenumber>:<email>:<username>:<password>"
+					+ "\nPAY_BY_CARD <sourceIBAN>:<targetIBAN>:<cardnumber>:<PIN>:<amount>"
+					+ "\nDEPOSIT <IBAN>:<cardnumber>:<PIN>:<amount>"
 					+ "\nEXIT");
 			break;
-		case CUST_LOGGED_IN:
+		case AUTHENTICATED:
 			System.out.println("\nUse one of the following commands: "
-					+ "\nBANK_LOGIN <number_from_list>"
-					+ "\nCREATE_BANK_ACCOUNT"
-					+ "\nLIST_BANK_ACCOUNTS"
-					+ "\nCUST_LOGOUT"
-					+ "\nEXIT");
-			break;
-		case BANK_LOGGED_IN:
-			System.out.println("\nUse one of the following commands: "
-					+ "\nTRANSACTIONS"
-					+ "\nINFO"
-					+ "\nDEPOSIT <amount>"
-					+ "\nCREATE_CARD"
-					+ "\nLIST_CARDS"
-					+ "\nTRANSFER <destination IBAN>:<amount>"
-					+ "\nCLOSE"
-					+ "\nBANK_LOGOUT"
+					+ "\nOPEN_ADDITIONAL_ACCOUNT"
+					+ "\nTRANSACTION_OVERVIEW <IBAN>:<nrOfTransactions>"
+					+ "\nGET_BALANCE <IBAN>"
+					+ "\nTRANSFER <sourceIBAN>:<destinationIBAN>:<targetName>:<amount>:<description>"
+					+ "\nADD_OWNER <IBAN>:<username>"
+					+ "\nREMOVE_OWNER <IBAN>:<username>"
+					+ "\nCLOSE <IBAN>"
 					+ "\nEXIT");
 			break;			
 		}
