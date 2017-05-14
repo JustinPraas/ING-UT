@@ -30,6 +30,9 @@ public class CustomerAccount implements database.DBObject {
 	private String phoneNumber;
 	private String email;
 	private String birthdate;
+	private String initials;
+	private String username;
+	private String password;
 	private Set<BankAccount> bankAccounts = new HashSet<BankAccount>();
 	public static final String CLASSNAME = "accounts.CustomerAccount";
 	public static final String PRIMARYKEYNAME = "BSN";
@@ -45,8 +48,8 @@ public class CustomerAccount implements database.DBObject {
 	 * @param birthdate The customer's date of birth
 	 * @param addToDB Whether or not to add the newly-created customer account to the database
 	 */
-	public CustomerAccount(String name, String surname, String BSN, String streetAddress, String phoneNumber, 
-			String email, String birthdate) {
+	public CustomerAccount(String name, String surname, String initials, String BSN, String streetAddress, String phoneNumber, 
+			String email, String birthdate, String username, String password) {
 		this.setName(name);
 		this.setSurname(surname);
 		this.setBSN(BSN);
@@ -54,6 +57,9 @@ public class CustomerAccount implements database.DBObject {
 		this.setPhoneNumber(phoneNumber);
 		this.setEmail(email);
 		this.setBirthdate(birthdate);
+		this.setInitials(initials);
+		this.setUsername(username);
+		this.setPassword(password);
 	}
 	
 	public CustomerAccount() {
@@ -64,9 +70,10 @@ public class CustomerAccount implements database.DBObject {
 	 * Open a new <code>BankAccount</code> in this holder's name.
 	 * Adds this and the respective association to the database.
 	 */
-	public void openBankAccount() {
+	public BankAccount openBankAccount() {
 		BankAccount newAccount = new BankAccount(getBSN());
 		addBankAccount(newAccount);
+		return newAccount;
 	}
 	
 	/**
@@ -89,6 +96,15 @@ public class CustomerAccount implements database.DBObject {
 		bankAccounts.remove(account);
 	}
 
+	@Column(name = "initials")
+	public String getInitials() {
+		return initials;
+	}
+	
+	public void setInitials(String initials) {
+		this.initials = initials;
+	}
+	
 	@Column(name = "name")
 	public String getName() {
 		return name;
@@ -189,5 +205,23 @@ public class CustomerAccount implements database.DBObject {
 			key.deleteFromDB();
 		}
 		DataManager.removeEntryFromDB(this);
+	}
+
+	@Column (name = "username")
+	public String getUsername() {
+		return username;
+	}
+
+	public void setUsername(String username) {
+		this.username = username;
+	}
+
+	@Column (name = "password")
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
 	}
 }
