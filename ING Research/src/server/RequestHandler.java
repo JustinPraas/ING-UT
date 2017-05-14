@@ -1,7 +1,15 @@
 package server;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import com.thetransactioncompany.jsonrpc2.JSONRPC2ParseException;
 import com.thetransactioncompany.jsonrpc2.JSONRPC2Request;
+import com.thetransactioncompany.jsonrpc2.JSONRPC2Response;
+
+import accounts.BankAccount;
+import accounts.CustomerAccount;
+import accounts.DebitCard;
 
 public class RequestHandler {
 	public void parseJSONRequest (String request) {
@@ -74,8 +82,40 @@ public class RequestHandler {
 	}
 
 	private void openAccount(JSONRPC2Request jReq) {
-		// TODO Auto-generated method stub
+		// TODO Error handling
+		CustomerAccount newAcc = new CustomerAccount();
+		Map<String, Object> params = jReq.getNamedParams();
 		
+		newAcc.setName((String)params.get("name"));
+		newAcc.setSurname((String)params.get("surname"));
+		newAcc.setInitials((String)params.get("initials"));
+		newAcc.setBirthdate((String)params.get("dob"));
+		newAcc.setBSN((String)params.get("ssn"));
+		newAcc.setStreetAddress((String)params.get("address"));
+		newAcc.setPhoneNumber((String)params.get("telephoneNumber"));
+		newAcc.setEmail((String)params.get("email"));
+		newAcc.setUsername((String)params.get("username"));
+		newAcc.setPassword((String)params.get("password"));
+		
+		BankAccount bankAcc = newAcc.openBankAccount();
+		DebitCard card = new DebitCard(newAcc.getBSN(), bankAcc.getIBAN());
+		newAcc.saveToDB();
+		card.saveToDB();
+		
+		String IBAN = bankAcc.getIBAN();
+		String pinCard = card.getCardNumber();
+		String pinCode = card.getPIN();
+		
+		
+		// TODO Verify that the below code works
+		HashMap<String, String> resp = new HashMap<>();
+		
+		resp.put("iBAN", IBAN);
+		resp.put("pinCard", pinCard);
+		resp.put("pinCode", pinCode);
+		
+		JSONRPC2Response response = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
+		sendToClient(response);
 	}
 
 	private void openAdditionalAccount(JSONRPC2Request jReq) {
@@ -126,5 +166,9 @@ public class RequestHandler {
 	private void getTransactionsOverview(JSONRPC2Request jReq) {
 		// TODO Auto-generated method stub
 		
+	}
+	
+	private void sendToClient(JSONRPC2Response jResp) {
+		// TODO Implement
 	}
 }
