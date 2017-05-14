@@ -12,13 +12,13 @@ import exceptions.IllegalTransferException;
  */
 public class TUI {
 	
-	InputProcessor server;
+	InputProcessor inputProcessor;
 
 	/**
 	 * Binds a <code>Session</code> object to this TUI. Start listening to input.
 	 */
 	public TUI() {
-		server = new InputProcessor();
+		inputProcessor = new InputProcessor();
 		try {
 			listen();
 		} catch (IllegalAmountException e) {
@@ -41,7 +41,7 @@ public class TUI {
 		while (continues) {
 			printCommands();
 			input = inputScanner.nextLine();
-			server.processInput(input);
+			inputProcessor.processInput(input);
 		}	
 		
 		inputScanner.close();
