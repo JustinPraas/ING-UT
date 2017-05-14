@@ -50,11 +50,27 @@ public class RequestHandler {
 		case "getTransactionsOverview":
 			getTransactionsOverview(jReq);
 			break;
+		case "getUserAccess":
+			getUserAccess(jReq);
+			break;
+		case "getBankAccountAccess":
+			getBankAccountAccess(jReq);
+			break;
 		default:
 			//TODO: Maybe return error to client?
 			System.out.println("Discarded invalid JSON-RPC method call.");
 			break;
 		}
+	}
+
+	private void getBankAccountAccess(JSONRPC2Request jReq) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	private void getUserAccess(JSONRPC2Request jReq) {
+		// TODO Auto-generated method stub
+		
 	}
 
 	private void openAccount(JSONRPC2Request jReq) {

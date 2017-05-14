@@ -86,6 +86,12 @@ public class InputProcessor {
 			case "TRANSFER":
 				transfer(parameters);
 				break;
+			case "GET_USER_ACCESS":
+				getUserAccess(parameters);
+				break;
+			case "GET_BANK_ACCOUNT_ACCESS":
+				getBankAccountAccess(parameters);
+				break;
 			default: 
 				System.err.println("Invalid command.");
 				break;
@@ -93,6 +99,30 @@ public class InputProcessor {
 		}
 	}
 	
+	private void getBankAccountAccess(String parameters) {
+		String parameterArray[] = parameters.split(":");
+		String method = "getBankAccountAccess";
+		HashMap<String, Object> params = new HashMap<>();
+		
+		params.put("authToken", MessageManager.AUTHTOKEN);
+		params.put("iBAN", parameterArray[0]);
+		
+		JSONRPC2Request request = new JSONRPC2Request(method, params, "request-" + java.lang.System.currentTimeMillis());
+		MessageManager.sendToServer(request);
+	}
+
+	private void getUserAccess(String parameters) {
+		String parameterArray[] = parameters.split(":");
+		String method = "getUserAccess";
+		HashMap<String, Object> params = new HashMap<>();
+		
+		params.put("authToken", MessageManager.AUTHTOKEN);
+		params.put("username", parameterArray[0]);
+		
+		JSONRPC2Request request = new JSONRPC2Request(method, params, "request-" + java.lang.System.currentTimeMillis());
+		MessageManager.sendToServer(request);
+	}
+
 	private void revokeAccess(String parameters) {
 		String[] parameterArray = parameters.split(":");
 		String method = "revokeAccess";
