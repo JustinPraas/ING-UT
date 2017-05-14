@@ -55,7 +55,7 @@ public class SQLiteDB {
 		String tableStructure = getSchemaStatements();
 		Connection conn;
 		try {
-			conn = DriverManager.getConnection("jdbc:sqlite:" + DBName + ".db");
+			conn = DriverManager.getConnection("jdbc:sqlite:${catalina.base}/" + DBName + ".db");
 			Statement statement = conn.createStatement();
 			statement.executeUpdate(tableStructure);
 			statement.close();

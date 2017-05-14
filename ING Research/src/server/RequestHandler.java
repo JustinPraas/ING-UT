@@ -12,76 +12,64 @@ import accounts.CustomerAccount;
 import accounts.DebitCard;
 
 public class RequestHandler {
-	public void parseJSONRequest (String request) {
+	
+	public static String parseJSONRequest (String request) {
 		JSONRPC2Request jReq = null;
+		String method;
 		
 		try {
 			jReq = JSONRPC2Request.parse(request);
 		} catch (JSONRPC2ParseException e) {
 			System.out.println("Discarded unparseable JSON request.");
-			return;
 		}
 		
-		String method = jReq.getMethod();
+		method = jReq.getMethod();
 		
 		switch(method) {
 		case "openAccount":
-			openAccount(jReq);
-			break;
+			return openAccount(jReq);
 		case "openAdditionalAccount":
-			openAdditionalAccount(jReq);
-			break;
+			return openAdditionalAccount(jReq);
 		case "closeAccount":
-			closeAccount(jReq);
-			break;
+			return closeAccount(jReq);
 		case "provideAccess":
-			provideAccess(jReq);
-			break;
+			return provideAccess(jReq);
 		case "revokeAccess":
-			revokeAccess(jReq);
-			break;
+			return revokeAccess(jReq);
 		case "depositIntoAccount":
-			depositIntoAccount(jReq);
-			break;
+			return depositIntoAccount(jReq);
 		case "payFromAccount":
-			payFromAccount(jReq);
-			break;
+			return payFromAccount(jReq);
 		case "transferMoney":
-			transferMoney(jReq);
-			break;
+			return transferMoney(jReq);
 		case "getAuthToken":
-			getAuthToken(jReq);
-			break;
+			return getAuthToken(jReq);
 		case "getBalance":
-			getBalance(jReq);
-			break;
+			return getBalance(jReq);
 		case "getTransactionsOverview":
-			getTransactionsOverview(jReq);
-			break;
+			return getTransactionsOverview(jReq);
 		case "getUserAccess":
-			getUserAccess(jReq);
-			break;
+			return getUserAccess(jReq);
 		case "getBankAccountAccess":
-			getBankAccountAccess(jReq);
-			break;
+			return getBankAccountAccess(jReq);
 		default:
 			//TODO: Maybe return error to client?
 			System.out.println("Discarded invalid JSON-RPC method call.");
-			break;
+			return "";
 		}
 	}
 
-	private void getBankAccountAccess(JSONRPC2Request jReq) {
+	private static String getBankAccountAccess(JSONRPC2Request jReq) {
 		// TODO Auto-generated method stub
-		
+		return "";
 	}
 
-	private void getUserAccess(JSONRPC2Request jReq) {
+	private static String getUserAccess(JSONRPC2Request jReq) {
 		// TODO Auto-generated method stub
-		
+		return "";
 	}
 
-	private void openAccount(JSONRPC2Request jReq) {
+	private static String openAccount(JSONRPC2Request jReq) {
 		// TODO Error handling
 		CustomerAccount newAcc = new CustomerAccount();
 		Map<String, Object> params = jReq.getNamedParams();
@@ -115,60 +103,56 @@ public class RequestHandler {
 		resp.put("pinCode", pinCode);
 		
 		JSONRPC2Response response = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
-		sendToClient(response);
+		return response.toJSONString();
 	}
 
-	private void openAdditionalAccount(JSONRPC2Request jReq) {
+	private static String openAdditionalAccount(JSONRPC2Request jReq) {
 		// TODO Auto-generated method stub
-		
+		return "";
 	}
 
-	private void closeAccount(JSONRPC2Request jReq) {
+	private static String closeAccount(JSONRPC2Request jReq) {
 		// TODO Auto-generated method stub
-		
+		return "";
 	}
 
-	private void provideAccess(JSONRPC2Request jReq) {
+	private static String provideAccess(JSONRPC2Request jReq) {
 		// TODO Auto-generated method stub
-		
+		return "";
 	}
 
-	private void revokeAccess(JSONRPC2Request jReq) {
+	private static String revokeAccess(JSONRPC2Request jReq) {
 		// TODO Auto-generated method stub
-		
+		return "";
 	}
 
-	private void depositIntoAccount(JSONRPC2Request jReq) {
+	private static String depositIntoAccount(JSONRPC2Request jReq) {
 		// TODO Auto-generated method stub
-		
+		return "";
 	}
 
-	private void payFromAccount(JSONRPC2Request jReq) {
+	private static String payFromAccount(JSONRPC2Request jReq) {
 		// TODO Auto-generated method stub
-		
+		return "";
 	}
 
-	private void transferMoney(JSONRPC2Request jReq) {
+	private static String transferMoney(JSONRPC2Request jReq) {
 		// TODO Auto-generated method stub
-		
+		return "";
 	}
 
-	private void getAuthToken(JSONRPC2Request jReq) {
+	private static String getAuthToken(JSONRPC2Request jReq) {
 		// TODO Auto-generated method stub
-		
+		return "";
 	}
 
-	private void getBalance(JSONRPC2Request jReq) {
+	private static String getBalance(JSONRPC2Request jReq) {
 		// TODO Auto-generated method stub
-		
+		return "";
 	}
 
-	private void getTransactionsOverview(JSONRPC2Request jReq) {
+	private static String getTransactionsOverview(JSONRPC2Request jReq) {
 		// TODO Auto-generated method stub
-		
-	}
-	
-	private void sendToClient(JSONRPC2Response jResp) {
-		// TODO Implement
+		return "";
 	}
 }

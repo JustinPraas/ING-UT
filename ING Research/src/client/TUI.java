@@ -51,7 +51,7 @@ public class TUI {
 	 * Prints the available commands to the output.
 	 */
 	private void printCommands() {
-		switch (MessageManager.state) {
+		switch (InputProcessor.state) {
 		case NOT_AUTHENTICATED: 
 			System.out.println("\nUse one of the following commands:"
 					+ "\nLOGIN <username>:<password>"
