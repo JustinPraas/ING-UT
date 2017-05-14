@@ -24,7 +24,7 @@ public class AccountTest {
 	
 	@Before
 	public void init() throws Exception {
-		customerAccount = new CustomerAccount("John", "Test", customerBSN, "103 Testings Ave.", "000-TEST", "johntest@testing.test", "TESTDATE");
+		customerAccount = new CustomerAccount("John", "Test", "JT", customerBSN, "103 Testings Ave.", "000-TEST", "johntest@testing.test", "TESTDATE", "blah", "blah");
 		customerAccount.openBankAccount();
 		Set<BankAccount> bankAccounts = customerAccount.getBankAccounts();
 		for (BankAccount key : bankAccounts) {

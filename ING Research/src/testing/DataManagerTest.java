@@ -24,8 +24,8 @@ public class DataManagerTest {
 	
 	@Before
 	public void setUp() throws Exception {
-		cust1 = new CustomerAccount("John", "Test", customer1BSN, "103 Testings Ave.", "000-TEST", "johntest@testing.test", "TESTDATE");
-		cust2 = new CustomerAccount("Jane", "Test", customer2BSN, "104 Testings Ave.", "001-TEST", "janetest@testing.test", "TESTDATE2");
+		cust1 = new CustomerAccount("John", "Test", "JT", customer1BSN, "103 Testings Ave.", "000-TEST", "johntest@testing.test", "TESTDATE", "johntest", "cake");
+		cust2 = new CustomerAccount("Jane", "Test", "JT", customer2BSN, "104 Testings Ave.", "001-TEST", "janetest@testing.test", "TESTDATE2", "janetest", "pie");
 		bAcc1 = new BankAccount(customer1BSN);
 		bAcc2 = new BankAccount(customer2BSN);
 		card1 = new DebitCard(customer1BSN, bAcc2.getIBAN());
