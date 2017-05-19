@@ -1,4 +1,4 @@
-package server;
+package server.core;
 
 import java.util.HashSet;
 import java.util.Iterator;

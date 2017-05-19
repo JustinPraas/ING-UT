@@ -418,14 +418,15 @@ public class InputProcessor {
 	}
 	
 	public void sendToServer(JSONRPC2Request request) {
+		System.out.println(request.toJSONString());
 		String message = request.toJSONString();
 		System.out.println("Sending to server: " + message);
 		System.out.println();
 		//System.out.println(message);
 		//TODO: Send HTTP POST message to server
 	
-		HttpPost httpPost = new HttpPost("http://localhost:8080/ING-UT/");
-		StringEntity msg = new StringEntity(message, ContentType.create("text/plain", "UTF-8"));
+		HttpPost httpPost = new HttpPost("http://localhost:8080/ING-UT/rest/banking/postRequest");
+		StringEntity msg = new StringEntity(message, ContentType.create("application/json", "UTF-8"));
 		httpPost.setEntity(msg);
 		
 		try {

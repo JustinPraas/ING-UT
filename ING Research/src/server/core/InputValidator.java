@@ -1,4 +1,4 @@
-package server;
+package server.core;
 
 import java.time.DateTimeException;
 import java.time.LocalDate;

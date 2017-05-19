@@ -3,7 +3,7 @@ package testing;
 import static org.junit.Assert.*;
 import org.junit.Test;
 
-import server.InputValidator;
+import server.core.InputValidator;
 
 /**
  * A simple test class for the InputChecker.

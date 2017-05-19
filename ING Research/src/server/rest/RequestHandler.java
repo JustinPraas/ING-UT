@@ -1,7 +1,13 @@
-package server;
+package server.rest;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 import com.thetransactioncompany.jsonrpc2.JSONRPC2ParseException;
 import com.thetransactioncompany.jsonrpc2.JSONRPC2Request;
@@ -11,9 +17,13 @@ import accounts.BankAccount;
 import accounts.CustomerAccount;
 import accounts.DebitCard;
 
+@Path("/banking")
 public class RequestHandler {
 	
-	public static String parseJSONRequest (String request) {
+	@POST
+	@Path("/postRequest")
+	@Consumes(MediaType.APPLICATION_JSON)
+	public static Response parseJSONRequest (String request) {
 		JSONRPC2Request jReq = null;
 		String method;
 		
@@ -53,23 +63,27 @@ public class RequestHandler {
 		case "getBankAccountAccess":
 			return getBankAccountAccess(jReq);
 		default:
-			//TODO: Maybe return error to client?
 			System.out.println("Discarded invalid JSON-RPC method call.");
-			return "";
+			return null;
+			//TODO: Respond with error.
 		}
 	}
 
-	private static String getBankAccountAccess(JSONRPC2Request jReq) {
-		// TODO Auto-generated method stub
-		return "";
+	private static Response respond(String jResp) {
+			return Response.status(200).entity(jResp).build();
 	}
 
-	private static String getUserAccess(JSONRPC2Request jReq) {
+	private static Response getBankAccountAccess(JSONRPC2Request jReq) {
 		// TODO Auto-generated method stub
-		return "";
+		return null;
 	}
 
-	private static String openAccount(JSONRPC2Request jReq) {
+	private static Response getUserAccess(JSONRPC2Request jReq) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	private static Response openAccount(JSONRPC2Request jReq) {
 		// TODO Error handling
 		CustomerAccount newAcc = new CustomerAccount();
 		Map<String, Object> params = jReq.getNamedParams();
@@ -103,56 +117,56 @@ public class RequestHandler {
 		resp.put("pinCode", pinCode);
 		
 		JSONRPC2Response response = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
-		return response.toJSONString();
+		return respond(response.toJSONString());
 	}
 
-	private static String openAdditionalAccount(JSONRPC2Request jReq) {
+	private static Response openAdditionalAccount(JSONRPC2Request jReq) {
 		// TODO Auto-generated method stub
-		return "";
+		return null;
 	}
 
-	private static String closeAccount(JSONRPC2Request jReq) {
+	private static Response closeAccount(JSONRPC2Request jReq) {
 		// TODO Auto-generated method stub
-		return "";
+		return null;
 	}
 
-	private static String provideAccess(JSONRPC2Request jReq) {
+	private static Response provideAccess(JSONRPC2Request jReq) {
 		// TODO Auto-generated method stub
-		return "";
+		return null;
 	}
 
-	private static String revokeAccess(JSONRPC2Request jReq) {
+	private static Response revokeAccess(JSONRPC2Request jReq) {
 		// TODO Auto-generated method stub
-		return "";
+		return null;
 	}
 
-	private static String depositIntoAccount(JSONRPC2Request jReq) {
+	private static Response depositIntoAccount(JSONRPC2Request jReq) {
 		// TODO Auto-generated method stub
-		return "";
+		return null;
 	}
 
-	private static String payFromAccount(JSONRPC2Request jReq) {
+	private static Response payFromAccount(JSONRPC2Request jReq) {
 		// TODO Auto-generated method stub
-		return "";
+		return null;
 	}
 
-	private static String transferMoney(JSONRPC2Request jReq) {
+	private static Response transferMoney(JSONRPC2Request jReq) {
 		// TODO Auto-generated method stub
-		return "";
+		return null;
 	}
 
-	private static String getAuthToken(JSONRPC2Request jReq) {
+	private static Response getAuthToken(JSONRPC2Request jReq) {
 		// TODO Auto-generated method stub
-		return "";
+		return null;
 	}
 
-	private static String getBalance(JSONRPC2Request jReq) {
+	private static Response getBalance(JSONRPC2Request jReq) {
 		// TODO Auto-generated method stub
-		return "";
+		return null;
 	}
 
-	private static String getTransactionsOverview(JSONRPC2Request jReq) {
+	private static Response getTransactionsOverview(JSONRPC2Request jReq) {
 		// TODO Auto-generated method stub
-		return "";
+		return null;
 	}
 }
