@@ -16,6 +16,7 @@ import com.thetransactioncompany.jsonrpc2.JSONRPC2Response;
 import accounts.BankAccount;
 import accounts.CustomerAccount;
 import accounts.DebitCard;
+import database.DataManager;
 
 @Path("/banking")
 public class RequestHandler {
@@ -70,7 +71,11 @@ public class RequestHandler {
 	}
 
 	private static Response respond(String jResp) {
-			return Response.status(200).entity(jResp).build();
+		return Response.status(200).entity(jResp).build();
+	}
+	
+	private static Response respondError(String jResp, int code) {
+		return Response.status(500).entity(jResp).build();	
 	}
 
 	private static Response getBankAccountAccess(JSONRPC2Request jReq) {
@@ -88,6 +93,7 @@ public class RequestHandler {
 		CustomerAccount newAcc = new CustomerAccount();
 		Map<String, Object> params = jReq.getNamedParams();
 		
+		// Create a CustomerAccount instance with the given details
 		newAcc.setName((String)params.get("name"));
 		newAcc.setSurname((String)params.get("surname"));
 		newAcc.setInitials((String)params.get("initials"));
@@ -99,6 +105,17 @@ public class RequestHandler {
 		newAcc.setUsername((String)params.get("username"));
 		newAcc.setPassword((String)params.get("password"));
 		
+		// If this is a duplicate account, respond with an appropriate error
+		if (DataManager.objectExists(newAcc)) {
+			HashMap<String, String> resp = new HashMap<>();
+			resp.put("code", "500");
+			resp.put("message", "Error: User attempted to create duplicate customer account with SSN " + newAcc.getBSN());
+			
+			JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
+			return respondError(jResp.toJSONString(), 500);
+		}
+		
+		// If this is not a duplicate account, open a bank account for it and save it to DB
 		BankAccount bankAcc = newAcc.openBankAccount();
 		DebitCard card = new DebitCard(newAcc.getBSN(), bankAcc.getIBAN());
 		newAcc.saveToDB();
@@ -109,7 +126,7 @@ public class RequestHandler {
 		String pinCode = card.getPIN();
 		
 		
-		// TODO Verify that the below code works
+		// Create the JSON response and send it to the client
 		HashMap<String, String> resp = new HashMap<>();
 		
 		resp.put("iBAN", IBAN);
