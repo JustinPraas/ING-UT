@@ -155,6 +155,9 @@ public class DataManager {
     	cr.add(c);
     	List<?> results = cr.list();
     	session.close();
+    	if (results.size() == 0) {
+    		return null;
+    	}
     	return results.get(0);
     }
     
