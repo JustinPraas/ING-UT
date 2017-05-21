@@ -198,11 +198,8 @@ public class ClientHandler {
 		CustomerAccount acc = accounts.get(token);
 		boolean found = false;
 		
-		System.out.println(IBAN);
-		
 		// Look for the bank account
 		for (BankAccount b : acc.getBankAccounts()) {
-			System.out.println(b.getIBAN());
 			if (b.getIBAN().equals(IBAN)) {
 				b.setClosed(true);
 				b.saveToDB();
@@ -224,8 +221,68 @@ public class ClientHandler {
 	}
 
 	private static Response provideAccess(JSONRPC2Request jReq) {
-		// TODO Auto-generated method stub
-		return null;
+		HashMap<String, Object> params = (HashMap<String, Object>) jReq.getNamedParams();
+		
+		String token = (String) params.get("authToken");
+		String IBAN = (String) params.get("iBAN");
+		String username = (String) params.get("username");
+		
+		// If the token is bogus, slap the client
+		if (!accounts.keySet().contains(token)) {
+			String err = buildError(419, "The authenticated user is not authorized to perform this action.");
+			return respondError(err, 500);
+		}
+		
+		CustomerAccount cAcc = accounts.get(token);
+		BankAccount bAcc = null;
+		boolean found = false;
+		
+		for (BankAccount b : cAcc.getBankAccounts()) {
+			if (b.getIBAN().equals(IBAN)) {
+				found = true;
+				bAcc = b;
+			}
+		}
+		
+		// If we couldn't find the bank account, tell the client
+		if (!found) {
+			String err = buildError(500, "Could not find the specified bank account with IBAN " + IBAN + " under user account " + cAcc.getUsername() + ".");
+			return respondError(err, 500);
+		}
+		
+		ArrayList<Criterion> cr = new ArrayList<>();
+		cr.add(Restrictions.eq("username", username));
+		@SuppressWarnings("unchecked")
+		ArrayList<CustomerAccount> target = (ArrayList<CustomerAccount>) DataManager.getObjectsFromDB(CustomerAccount.CLASSNAME, cr);
+		
+		// If we couldn't find the target user, tell the client
+		if (target.size() == 0) {
+			String err = buildError(500, "Could not find user " + username + ".");
+			return respondError(err, 500);
+		}
+		
+		CustomerAccount targetAcc = null;;
+		
+		for (CustomerAccount acc : target) {
+			targetAcc = acc;
+			break;
+		}
+		
+		// If everything is fine, create the new card for the target user, tell the client the details
+		targetAcc.addBankAccount(bAcc);
+		DebitCard card = new DebitCard(targetAcc.getBSN(), bAcc.getIBAN());
+		card.saveToDB();
+		targetAcc.saveToDB();
+		String pinCard = card.getCardNumber();
+		String pinCode = card.getPIN();
+		
+		HashMap<String, Object> resp = new HashMap<>();
+		
+		resp.put("pinCard", pinCard);
+		resp.put("pinCode", pinCode);
+		
+		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
+		return respond(jResp.toJSONString());
 	}
 
 	private static Response revokeAccess(JSONRPC2Request jReq) {

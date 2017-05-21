@@ -186,7 +186,27 @@ public class MessageHandler {
 		
 		JSONRPC2Request request = new JSONRPC2Request(method, params, "request-" + java.lang.System.currentTimeMillis());
 		String resp = sendToServer(request);
-		// TODO Stuff with resp
+		
+		try {
+			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
+			if (!jResp.indicatesSuccess()) {
+				System.out.println("Error: " + jResp.getError().getMessage());
+				return;
+			}
+			
+			@SuppressWarnings("unchecked")
+			HashMap<String, Object> results = (HashMap<String, Object>) jResp.getResult();
+			
+			String pinCard = (String) results.get("pinCard");
+			String pinCode = (String) results.get("pinCode");
+			System.out.println("Successfully linked accounts.");
+			System.out.println("Card number: " + pinCard);
+			System.out.println("PIN: " + pinCode);
+			
+			System.out.println();
+		} catch (JSONRPC2ParseException e) {
+			e.printStackTrace();
+		}
 	}
 
 	/**
@@ -240,7 +260,17 @@ public class MessageHandler {
 		
 		JSONRPC2Request request = new JSONRPC2Request(method, params, "request-" + java.lang.System.currentTimeMillis());
 		String resp = sendToServer(request);
-		// TODO Stuff with resp
+		
+		try {
+			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
+			if (!jResp.indicatesSuccess()) {
+				System.out.println("Error: " + jResp.getError().getMessage());
+				return;
+			}
+			System.out.println("Account closed successfully.");
+		} catch (JSONRPC2ParseException e) {
+			e.printStackTrace();
+		}
 	}
 
 	/**
@@ -395,7 +425,25 @@ public class MessageHandler {
 		params.put("authToken", AUTHTOKEN);
 		JSONRPC2Request request = new JSONRPC2Request(method, params, "request-" + java.lang.System.currentTimeMillis());
 		String resp = sendToServer(request);
-		// TODO Stuff with resp
+		
+		try {
+			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
+			if (!jResp.indicatesSuccess()) {
+				System.out.println("Error: " + jResp.getError().getMessage());
+				return;
+			}
+			
+			HashMap<String, Object> results = (HashMap<String, Object>) jResp.getResult();
+			
+			String iBAN = (String) results.get("iBAN");
+			String pinCard = (String) results.get("pinCard");
+			String pinCode = (String) results.get("pinCode");
+			System.out.println("Your new IBAN is: " + iBAN);
+			System.out.println("Your new card number is: " + pinCard);
+			System.out.println("Your new PIN is: " + pinCode);
+		} catch (JSONRPC2ParseException e) {
+			e.printStackTrace();
+		}
 	}
 
 	/**
