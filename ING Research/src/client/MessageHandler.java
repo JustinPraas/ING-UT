@@ -167,7 +167,18 @@ public class MessageHandler {
 		
 		JSONRPC2Request request = new JSONRPC2Request(method, params, "request-" + java.lang.System.currentTimeMillis());
 		String resp = sendToServer(request);
-		// TODO Stuff with resp
+		
+		try {
+			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
+			if (!jResp.indicatesSuccess()) {
+				System.out.println("Error: " + jResp.getError().getMessage());
+				return;
+			}
+			
+			System.out.println("Successfully revoked privileges of user " + parameterArray[1]);
+		} catch (JSONRPC2ParseException e) {
+			e.printStackTrace();
+		}
 	}
 
 	private void provideAccess(String parameters) {

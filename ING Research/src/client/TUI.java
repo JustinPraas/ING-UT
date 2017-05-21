@@ -69,7 +69,7 @@ public class TUI {
 					+ "\nGET_BALANCE <IBAN>"
 					+ "\nTRANSFER <sourceIBAN>:<destinationIBAN>:<targetName>:<amount>:<description>"
 					+ "\nADD_OWNER <IBAN>:<username>"
-					+ "\nREMOVE_OWNER <IBAN>:<username>"
+					+ "\nREMOVE_OWNER <IBAN>[:username]"
 					+ "\nGET_USER_ACCESS <username>"
 					+ "\nGET_BANK_ACCOUNT_ACCESS <IBAN>"
 					+ "\nCLOSE <IBAN>"

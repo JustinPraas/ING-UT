@@ -23,6 +23,7 @@ import accounts.BankAccount;
 import accounts.CustomerAccount;
 import accounts.DebitCard;
 import database.DataManager;
+import database.SQLiteDB;
 
 @Path("/banking")
 public class ClientHandler {
@@ -286,8 +287,78 @@ public class ClientHandler {
 	}
 
 	private static Response revokeAccess(JSONRPC2Request jReq) {
-		// TODO Auto-generated method stub
-		return null;
+		// TODO Add missing error cases
+		HashMap<String, Object> params = (HashMap<String, Object>) jReq.getNamedParams();
+		
+		boolean usernameSpecified = false;
+		String username = null;
+		String token = (String) params.get("authToken");
+		String IBAN = (String) params.get("iBAN");
+		if (params.containsKey("username")) {
+			username = (String) params.get("username");
+			usernameSpecified = true;
+		}
+		
+		// If the token is bogus, slap the client
+		if (!accounts.keySet().contains(token)) {
+			String err = buildError(419, "The authenticated user is not authorized to perform this action.");
+			return respondError(err, 500);
+		}
+		
+		CustomerAccount cAcc = accounts.get(token);
+		BankAccount bAcc = null;
+		boolean found = false;
+		
+		for (BankAccount b : cAcc.getBankAccounts()) {
+			if (b.getIBAN().equals(IBAN)) {
+				found = true;
+				bAcc = b;
+			}
+		}
+		
+		// If we couldn't find the bank account, tell the client
+		if (!found) {
+			String err = buildError(500, "Could not find the specified bank account with IBAN " + IBAN + ".");
+			return respondError(err, 500);
+		}
+		
+		CustomerAccount targetAcc = null;
+		
+		if (usernameSpecified) {
+			ArrayList<Criterion> cr = new ArrayList<>();
+			cr.add(Restrictions.eq("username", username));
+			@SuppressWarnings("unchecked")
+			ArrayList<CustomerAccount> target = (ArrayList<CustomerAccount>) DataManager.getObjectsFromDB(CustomerAccount.CLASSNAME, cr);
+			
+			// If we couldn't find the target user, tell the client
+			if (target.size() == 0) {
+				String err = buildError(500, "Could not find user " + username + ".");
+				return respondError(err, 500);
+			}
+			
+			for (CustomerAccount acc : target) {
+				targetAcc = acc;
+				break;
+			}
+		} else {
+			targetAcc = accounts.get(token);
+		}
+		
+		// If everything is fine, delete all cards creating an association between the target user and bank account, notify the client
+		for (DebitCard dc : bAcc.getDebitCards()) {
+			if (dc.getHolderBSN().equals(targetAcc.getBSN())) {
+				dc.deleteFromDB();
+				bAcc.getDebitCards().remove(dc);
+			}
+		}
+		
+		bAcc.saveToDB();
+		targetAcc.saveToDB();
+		
+		SQLiteDB.executeStatement("DELETE FROM customerbankaccounts WHERE customer_BSN='" + targetAcc.getBSN() + "' AND IBAN='" + bAcc.getIBAN() + "'");
+		
+		JSONRPC2Response jResp = new JSONRPC2Response(true, "response-" + java.lang.System.currentTimeMillis());
+		return respond(jResp.toJSONString());
 	}
 
 	private static Response depositIntoAccount(JSONRPC2Request jReq) {
