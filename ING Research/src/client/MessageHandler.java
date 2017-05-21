@@ -7,7 +7,6 @@ import com.thetransactioncompany.jsonrpc2.*;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.util.*;
 
 import org.apache.hc.client5.http.impl.sync.CloseableHttpClient;
@@ -21,10 +20,8 @@ import org.apache.hc.core5.http.entity.StringEntity;
  * Manages TUI input, sends HTTP POST request to server after input validation.
  * @author Andrei Cojocaru
  */
-public class InputProcessor {
+public class MessageHandler {
 	
-	private BufferedReader in;
-	private PrintWriter out;
 	private static String AUTHTOKEN;
 	public static State state = State.NOT_AUTHENTICATED;
 	public static final String HTTPPOST = "POST / HTTP/1.1\nHost: 127.0.0.1";
@@ -35,7 +32,7 @@ public class InputProcessor {
 		AUTHENTICATED;
 	}
 	
-	public InputProcessor() {
+	public MessageHandler() {
 		//try {
 //			in = new BufferedReader(new InputStreamReader(Client.s.getInputStream()));
 //			out = new PrintWriter(Client.s.getOutputStream());
@@ -133,11 +130,12 @@ public class InputProcessor {
 		String method = "getBankAccountAccess";
 		HashMap<String, Object> params = new HashMap<>();
 		
-		params.put("authToken", MessageManager.AUTHTOKEN);
+		params.put("authToken", AUTHTOKEN);
 		params.put("iBAN", parameterArray[0]);
 		
 		JSONRPC2Request request = new JSONRPC2Request(method, params, "request-" + java.lang.System.currentTimeMillis());
-		sendToServer(request);
+		String resp = sendToServer(request);
+		// TODO Stuff with resp
 	}
 
 	private void getUserAccess(String parameters) {
@@ -145,11 +143,12 @@ public class InputProcessor {
 		String method = "getUserAccess";
 		HashMap<String, Object> params = new HashMap<>();
 		
-		params.put("authToken", MessageManager.AUTHTOKEN);
+		params.put("authToken", AUTHTOKEN);
 		params.put("username", parameterArray[0]);
 		
 		JSONRPC2Request request = new JSONRPC2Request(method, params, "request-" + java.lang.System.currentTimeMillis());
-		sendToServer(request);
+		String resp = sendToServer(request);
+		// TODO Stuff with resp
 	}
 
 	private void revokeAccess(String parameters) {
@@ -162,12 +161,13 @@ public class InputProcessor {
 			return;
 		}
 		
-		params.put("authToken", MessageManager.AUTHTOKEN);
+		params.put("authToken", AUTHTOKEN);
 		params.put("iBAN", parameterArray[0]);
 		params.put("username", parameterArray[1]);
 		
 		JSONRPC2Request request = new JSONRPC2Request(method, params, "request-" + java.lang.System.currentTimeMillis());
-		sendToServer(request);
+		String resp = sendToServer(request);
+		// TODO Stuff with resp
 	}
 
 	private void provideAccess(String parameters) {
@@ -180,12 +180,13 @@ public class InputProcessor {
 			return;
 		}
 		
-		params.put("authToken", MessageManager.AUTHTOKEN);
+		params.put("authToken", AUTHTOKEN);
 		params.put("iBAN", parameterArray[0]);
 		params.put("username", parameterArray[1]);
 		
 		JSONRPC2Request request = new JSONRPC2Request(method, params, "request-" + java.lang.System.currentTimeMillis());
-		sendToServer(request);
+		String resp = sendToServer(request);
+		// TODO Stuff with resp
 	}
 
 	/**
@@ -217,7 +218,8 @@ public class InputProcessor {
 		
 		
 		JSONRPC2Request request = new JSONRPC2Request(method, params, "request-" + java.lang.System.currentTimeMillis());
-		sendToServer(request);
+		String resp = sendToServer(request);
+		// TODO Stuff with resp
 	}
 
 	/**
@@ -233,11 +235,12 @@ public class InputProcessor {
 		
 		String method = "closeAccount";
 		HashMap<String, Object> params = new HashMap<>();
-		params.put("authToken", MessageManager.AUTHTOKEN);
+		params.put("authToken", AUTHTOKEN);
 		params.put("iBAN", parameterArray[0]);
 		
 		JSONRPC2Request request = new JSONRPC2Request(method, params, "request-" + java.lang.System.currentTimeMillis());
-		sendToServer(request);
+		String resp = sendToServer(request);
+		// TODO Stuff with resp
 	}
 
 	/**
@@ -257,22 +260,24 @@ public class InputProcessor {
 		
 		String method = "getTransactionsOverview";
 		HashMap<String, Object> params = new HashMap<>();
-		params.put("authToken", MessageManager.AUTHTOKEN);
+		params.put("authToken", AUTHTOKEN);
 		params.put("iBAN", IBAN);
 		params.put("nrOfTransactions", numTransactions);
 		
 		JSONRPC2Request request = new JSONRPC2Request(method, params, "request-" + java.lang.System.currentTimeMillis());
-		sendToServer(request);
+		String resp = sendToServer(request);
+		// TODO Stuff with resp
 	}
 
 	private void getBalance(String parameters) {
 		String method = "getBalance";
 		HashMap<String, Object> params = new HashMap<>();
-		params.put("authToken", MessageManager.AUTHTOKEN);
+		params.put("authToken", AUTHTOKEN);
 		params.put("iBAN", parameters);
 		
 		JSONRPC2Request request = new JSONRPC2Request(method, params, "request-" + java.lang.System.currentTimeMillis());
-		sendToServer(request);
+		String resp = sendToServer(request);
+		// TODO Stuff with resp
 	}
 	
 	/**
@@ -296,7 +301,23 @@ public class InputProcessor {
 		params.put("password", password);
 		
 		JSONRPC2Request request = new JSONRPC2Request(method, params, "request-" + java.lang.System.currentTimeMillis());
-		sendToServer(request);
+		String resp = sendToServer(request);
+		
+		try {
+			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
+			
+			if (!jResp.indicatesSuccess()) {
+				System.out.println("Error: " + jResp.getError().getMessage());
+				return;
+			}
+			HashMap<String, Object> results = (HashMap<String, Object>) jResp.getResult();
+			AUTHTOKEN = (String) results.get("result");
+			state = State.AUTHENTICATED;
+			System.out.println("Authentication successful.");
+		} catch (JSONRPC2ParseException e) {
+			e.printStackTrace();
+		}
+		// TODO Stuff with resp
 	}
 
 	/**
@@ -323,7 +344,7 @@ public class InputProcessor {
 		
 		String method = "transferMoney";
 		HashMap<String, Object> params = new HashMap<>();
-		params.put("authToken", MessageManager.AUTHTOKEN);
+		params.put("authToken", AUTHTOKEN);
 		params.put("sourceIBAN", sourceIBAN);
 		params.put("targetIBAN", targetIBAN);
 		params.put("targetName", targetName);
@@ -331,7 +352,8 @@ public class InputProcessor {
 		params.put("description", description);
 		
 		JSONRPC2Request request = new JSONRPC2Request(method, params, "request-" + java.lang.System.currentTimeMillis());
-		sendToServer(request);
+		String resp = sendToServer(request);
+		// TODO Stuff with resp
 	}
 	
 	/**
@@ -360,7 +382,8 @@ public class InputProcessor {
 		params.put("amount", amount);
 		
 		JSONRPC2Request request = new JSONRPC2Request(method, params, "request-" + java.lang.System.currentTimeMillis());
-		sendToServer(request);
+		String resp = sendToServer(request);
+		// TODO Stuff with resp
 	}
 
 	/**
@@ -369,9 +392,10 @@ public class InputProcessor {
 	private void openAdditionalAccount() {
 		String method = "openAdditionalAccount";
 		HashMap<String, Object> params = new HashMap<>();
-		params.put("authToken", MessageManager.AUTHTOKEN);
+		params.put("authToken", AUTHTOKEN);
 		JSONRPC2Request request = new JSONRPC2Request(method, params, "request-" + java.lang.System.currentTimeMillis());
-		sendToServer(request);
+		String resp = sendToServer(request);
+		// TODO Stuff with resp
 	}
 
 	/**
@@ -413,11 +437,30 @@ public class InputProcessor {
 		params.put("username", username);
 		params.put("password", password);
 		
-		JSONRPC2Request openAccountRequest = new JSONRPC2Request(method, params, "request-" + java.lang.System.currentTimeMillis());
-		sendToServer(openAccountRequest);
+		JSONRPC2Request request = new JSONRPC2Request(method, params, "request-" + java.lang.System.currentTimeMillis());
+		String resp = sendToServer(request);
+		
+		try {
+			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
+			if (!jResp.indicatesSuccess()) {
+				System.out.println("Error: " + jResp.getError().getMessage());
+				return;
+			}
+			
+			HashMap<String, Object> results = (HashMap<String, Object>) jResp.getResult();
+			
+			String iBAN = (String) results.get("iBAN");
+			String pinCard = (String) results.get("pinCard");
+			String pinCode = (String) results.get("pinCode");
+			System.out.println("Your new IBAN is: " + iBAN);
+			System.out.println("Your new card number is: " + pinCard);
+			System.out.println("Your new PIN is: " + pinCode);
+		} catch (JSONRPC2ParseException e) {
+			e.printStackTrace();
+		}
 	}
 	
-	public void sendToServer(JSONRPC2Request request) {
+	public String sendToServer(JSONRPC2Request request) {
 		System.out.println(request.toJSONString());
 		String message = request.toJSONString();
 		System.out.println("Sending to server: " + message);
@@ -433,14 +476,19 @@ public class InputProcessor {
 			HttpResponse x = httpclient.execute(httpPost);
 			System.out.println(x.toString());
 			System.out.println(x.getEntity().getContent().toString());
+			System.out.println("\n");
+			BufferedReader reader = new BufferedReader(new InputStreamReader(
+					(x.getEntity().getContent())));
+			String out, output = "";
+			while ((out = reader.readLine()) != null) {
+				output += out;
+			}
+			System.out.println(output);
+			return output;
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		
-		if (request.getMethod().equals("getAuthToken")) {
-			//TODO: Dummy authentication -- ditch soon
-			AUTHTOKEN = "TOTALLY.AUTHORIZED.YES";
-			state = State.AUTHENTICATED;
-		}
+		return null;
 	}
 }

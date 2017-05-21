@@ -11,6 +11,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.thetransactioncompany.jsonrpc2.JSONRPC2Error;
 import com.thetransactioncompany.jsonrpc2.JSONRPC2ParseException;
 import com.thetransactioncompany.jsonrpc2.JSONRPC2Request;
 import com.thetransactioncompany.jsonrpc2.JSONRPC2Response;
@@ -24,7 +25,7 @@ import accounts.DebitCard;
 import database.DataManager;
 
 @Path("/banking")
-public class RequestHandler {
+public class ClientHandler {
 	private static HashMap<String, CustomerAccount> accounts = new HashMap<>();
 	
 	@POST
@@ -76,6 +77,12 @@ public class RequestHandler {
 		}
 	}
 
+	public static String buildError(int code, String message) {
+		JSONRPC2Error jErr = new JSONRPC2Error(code, message);
+		JSONRPC2Response jResp = new JSONRPC2Response(jErr, "response-" + java.lang.System.currentTimeMillis());
+		return jResp.toJSONString();
+	}
+	
 	private static Response respond(String jResp) {
 		return Response.status(200).entity(jResp).build();
 	}
@@ -113,17 +120,14 @@ public class RequestHandler {
 		
 		// If this is a duplicate account, respond with an appropriate error
 		if (DataManager.objectExists(newAcc)) {
-			HashMap<String, String> resp = new HashMap<>();
-			resp.put("code", "500");
-			resp.put("message", "Error: User attempted to create duplicate customer account with SSN " + newAcc.getBSN());
-			
-			JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
-			return respondError(jResp.toJSONString(), 500);
+			String err = buildError(500, "User attempted to create duplicate customer account with SSN " + newAcc.getBSN());
+			return respondError(err, 500);
 		}
 		
 		// If this is not a duplicate account, open a bank account for it and save it to DB
 		BankAccount bankAcc = newAcc.openBankAccount();
 		DebitCard card = new DebitCard(newAcc.getBSN(), bankAcc.getIBAN());
+		newAcc.addBankAccount(bankAcc);
 		newAcc.saveToDB();
 		card.saveToDB();
 		
@@ -144,13 +148,79 @@ public class RequestHandler {
 	}
 
 	private static Response openAdditionalAccount(JSONRPC2Request jReq) {
-		// TODO Auto-generated method stub
-		return null;
+		// TODO Error-proof
+		
+		Map<String, Object> params = jReq.getNamedParams();
+		
+		String token = (String) params.get("authToken");
+		
+		// If this is a bogus token, slap the client
+		if (!accounts.keySet().contains(token)) {
+			String err = buildError(419, "The authenticated user is not authorized to perform this action.");
+			return respondError(err, 500);
+		}
+		
+		// If the user IS authorized, open a new account under his user account.
+		CustomerAccount acc = accounts.get(token);
+		BankAccount bAcc = acc.openBankAccount();
+		DebitCard card = new DebitCard(acc.getBSN(), bAcc.getIBAN());
+		String IBAN = bAcc.getIBAN();
+		String pinCard = card.getCardNumber();
+		String pinCode = card.getPIN();
+		acc.addBankAccount(bAcc);
+		acc.saveToDB();
+		card.saveToDB();
+		
+		// Send the user the details of his new account and card
+		HashMap<String, String> resp = new HashMap<>();
+		resp.put("iBAN", IBAN);
+		resp.put("pinCard", pinCard);
+		resp.put("pinCode", pinCode);
+		
+		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
+		
+		return respond(jResp.toJSONString());
 	}
 
 	private static Response closeAccount(JSONRPC2Request jReq) {
-		// TODO Auto-generated method stub
-		return null;
+		// TODO Error-proof
+		HashMap<String, Object> params = (HashMap<String, Object>) jReq.getNamedParams();
+		
+		String token = (String) params.get("authToken");
+		String IBAN = (String) params.get("iBAN");
+		
+		// If this is a bogus token, slap the client
+		if (!accounts.keySet().contains(token)) {
+			String err = buildError(419, "The authenticated user is not authorized to perform this action.");
+			return respondError(err, 500);
+		}
+		
+		CustomerAccount acc = accounts.get(token);
+		boolean found = false;
+		
+		System.out.println(IBAN);
+		
+		// Look for the bank account
+		for (BankAccount b : acc.getBankAccounts()) {
+			System.out.println(b.getIBAN());
+			if (b.getIBAN().equals(IBAN)) {
+				b.setClosed(true);
+				b.saveToDB();
+				acc.saveToDB();
+				found = true;
+				break;
+			}
+		}
+		
+		// If the bank account doesn't exist under the authenticated user account, send an error
+		if (!found) {
+			String err = buildError(500, "No account found with the specified IBAN under user account " + acc.getUsername() + ".");
+			return respondError(err, 500);
+		}
+		
+		// If all is well, respond with true.
+		JSONRPC2Response jResp = new JSONRPC2Response(true, "response-" + java.lang.System.currentTimeMillis());
+		return respond(jResp.toJSONString());
 	}
 
 	private static Response provideAccess(JSONRPC2Request jReq) {
@@ -190,6 +260,7 @@ public class RequestHandler {
 		// Get the object with the given username/password combination (always unique)
 		cr.add(Restrictions.eq("username", username));
 		cr.add(Restrictions.eq("password", password));
+		@SuppressWarnings("unchecked")
 		ArrayList<CustomerAccount> list = (ArrayList<CustomerAccount>) DataManager.getObjectsFromDB(CustomerAccount.CLASSNAME, cr);
 		
 		// Fetch the appropriate CustomerAccount
@@ -201,13 +272,8 @@ public class RequestHandler {
 		
 		// If the account is not found, return the appropriate error
 		if (list.size() == 0) {
-			HashMap<String, String> resp = new HashMap<>();
-			
-			resp.put("code", "422");
-			resp.put("message", "The user could not be authenticated: Invalid username, password or combination.");
-			
-			JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
-			return respondError(jResp.toJSONString(), 500);
+			String err = buildError(422, "The user could not be authenticated: Invalid username, password or combination.");			
+			return respondError(err, 500);
 		}
 		
 		// Generate the authentication token
@@ -216,12 +282,14 @@ public class RequestHandler {
 		// Associate the account with the authentication token
 		accounts.put(token, account);
 		
+		// Send the generated token to the client
 		HashMap<String, String> resp = new HashMap<>();
 		resp.put("result", token);
 		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
 		return respond(jResp.toJSONString());
 	}
 
+	
 	private static Response getBalance(JSONRPC2Request jReq) {
 		// TODO Auto-generated method stub
 		return null;

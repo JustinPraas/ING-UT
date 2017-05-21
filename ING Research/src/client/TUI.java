@@ -12,13 +12,13 @@ import exceptions.IllegalTransferException;
  */
 public class TUI {
 	
-	InputProcessor inputProcessor;
+	MessageHandler inputProcessor;
 
 	/**
 	 * Binds a <code>Session</code> object to this TUI. Start listening to input.
 	 */
 	public TUI() {
-		inputProcessor = new InputProcessor();
+		inputProcessor = new MessageHandler();
 		try {
 			listen();
 		} catch (IllegalAmountException e) {
@@ -51,7 +51,7 @@ public class TUI {
 	 * Prints the available commands to the output.
 	 */
 	private void printCommands() {
-		switch (InputProcessor.state) {
+		switch (MessageHandler.state) {
 		case NOT_AUTHENTICATED: 
 			System.out.println("\nUse one of the following commands:"
 					+ "\nLOGIN <username>:<password>"
