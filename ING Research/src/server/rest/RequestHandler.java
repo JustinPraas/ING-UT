@@ -1,7 +1,9 @@
 package server.rest;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
@@ -13,6 +15,9 @@ import com.thetransactioncompany.jsonrpc2.JSONRPC2ParseException;
 import com.thetransactioncompany.jsonrpc2.JSONRPC2Request;
 import com.thetransactioncompany.jsonrpc2.JSONRPC2Response;
 
+import org.hibernate.criterion.Criterion;
+import org.hibernate.criterion.Restrictions;
+
 import accounts.BankAccount;
 import accounts.CustomerAccount;
 import accounts.DebitCard;
@@ -20,6 +25,7 @@ import database.DataManager;
 
 @Path("/banking")
 public class RequestHandler {
+	private static HashMap<String, CustomerAccount> accounts = new HashMap<>();
 	
 	@POST
 	@Path("/postRequest")
@@ -173,8 +179,47 @@ public class RequestHandler {
 	}
 
 	private static Response getAuthToken(JSONRPC2Request jReq) {
-		// TODO Auto-generated method stub
-		return null;
+		// TODO Error-proofing
+		Map<String, Object> params = jReq.getNamedParams();
+		
+		ArrayList<Criterion> cr = new ArrayList<>();
+		
+		String username = (String) params.get("username");
+		String password = (String) params.get("password");
+		
+		// Get the object with the given username/password combination (always unique)
+		cr.add(Restrictions.eq("username", username));
+		cr.add(Restrictions.eq("password", password));
+		ArrayList<CustomerAccount> list = (ArrayList<CustomerAccount>) DataManager.getObjectsFromDB(CustomerAccount.CLASSNAME, cr);
+		
+		// Fetch the appropriate CustomerAccount
+		CustomerAccount account = null;
+		for (CustomerAccount cAcc : list) {
+			account = cAcc;
+			break;
+		}
+		
+		// If the account is not found, return the appropriate error
+		if (list.size() == 0) {
+			HashMap<String, String> resp = new HashMap<>();
+			
+			resp.put("code", "422");
+			resp.put("message", "The user could not be authenticated: Invalid username, password or combination.");
+			
+			JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
+			return respondError(jResp.toJSONString(), 500);
+		}
+		
+		// Generate the authentication token
+		String token = UUID.randomUUID().toString().toUpperCase() + "/" + params.get("username") + "/" + java.lang.System.currentTimeMillis();
+		
+		// Associate the account with the authentication token
+		accounts.put(token, account);
+		
+		HashMap<String, String> resp = new HashMap<>();
+		resp.put("result", token);
+		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
+		return respond(jResp.toJSONString());
 	}
 
 	private static Response getBalance(JSONRPC2Request jReq) {
