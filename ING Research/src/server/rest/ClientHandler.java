@@ -24,6 +24,7 @@ import accounts.CustomerAccount;
 import accounts.DebitCard;
 import database.DataManager;
 import database.SQLiteDB;
+import exceptions.IllegalAmountException;
 
 @Path("/banking")
 public class ClientHandler {
@@ -362,8 +363,44 @@ public class ClientHandler {
 	}
 
 	private static Response depositIntoAccount(JSONRPC2Request jReq) {
-		// TODO Auto-generated method stub
-		return null;
+		// TODO Handle all error cases
+		HashMap<String, Object> params = (HashMap<String, Object>) jReq.getNamedParams();
+		
+		String IBAN = (String) params.get("iBAN");
+		String pinCard = (String) params.get("pinCard");
+		String pinCode = (String) params.get("pinCode");
+		float amount = Float.parseFloat((String) params.get("amount"));
+		
+		DebitCard dc = (DebitCard) DataManager.getObjectByPrimaryKey(DebitCard.CLASSNAME, pinCard);
+		
+		if (dc == null) {
+			String err = buildError(500, "Could not find debit card " + pinCard);
+			return respondError(err, 500);
+		}		
+		
+		// If this is the wrong PIN, slap the client
+		if (!dc.isValidPIN(pinCode)) {
+			String err = buildError(421, "An invalid PINcard, -code or -combination was used.");
+			return respondError(err, 500);
+		}
+		
+		BankAccount bAcc = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, IBAN);
+		
+		if (bAcc == null) {
+			String err = buildError(500, "Could not find bank account with IBAN " + IBAN);
+			return respondError(err, 500);
+		}
+		
+		try {
+			bAcc.deposit(amount, pinCard);
+		} catch (IllegalAmountException e) {
+			e.printStackTrace();
+		}
+		
+		bAcc.saveToDB();
+		
+		JSONRPC2Response jResp = new JSONRPC2Response(true, "response-" + java.lang.System.currentTimeMillis());
+		return respond(jResp.toJSONString());
 	}
 
 	private static Response payFromAccount(JSONRPC2Request jReq) {
