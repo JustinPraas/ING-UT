@@ -184,7 +184,7 @@ public class BankAccount implements database.DBObject {
 	 * Deposit a specific sum of money into the <code>BankAccount</code>.
 	 * @param amount The amount of money to be deposited
 	 */
-	public void deposit(float amount) throws IllegalAmountException {
+	public void deposit(float amount, String cardNum) throws IllegalAmountException {
 		if (amount <= 0) {
 			throw new IllegalAmountException(amount);
 		}
@@ -196,7 +196,7 @@ public class BankAccount implements database.DBObject {
 		t.setDateTime(date);
 		t.setDestinationIBAN(this.getIBAN());
 		t.setAmount(amount);
-		t.setDescription("Physical deposit.");
+		t.setDescription("Deposit from card " + cardNum);
 		t.saveToDB();
 		this.saveToDB();
 	}
