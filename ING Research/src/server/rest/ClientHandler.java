@@ -29,6 +29,7 @@ import exceptions.IllegalTransferException;
 
 @Path("/banking")
 public class ClientHandler {
+	//TODO Make sure only the right users can use account features. Previously, users could transfer from others' accounts. This is not good.
 	private static HashMap<String, CustomerAccount> accounts = new HashMap<>();
 	
 	@POST
@@ -443,16 +444,37 @@ public class ClientHandler {
 		String description = (String) params.get("description");
 		float amount = Float.parseFloat(strAmount);
 		
+		CustomerAccount cAcc = null;
 		BankAccount source = null;
 		BankAccount destination = null;
+		boolean authorized = false;
 		
+		// If this is a bogus auth token, slap the client
 		if (!accounts.containsKey(authToken)) {
 			String err = buildError(419, "The authenticated user is not authorized to perform this action.");
 			return respondError(err, 500);
 		}
 		
+		cAcc = accounts.get(authToken);
+		
 		source = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, sourceIBAN);
 		destination = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, targetIBAN);
+		
+		if (cAcc.getBSN().equals(source.getMainHolderBSN())) {
+			authorized = true;
+		} else {
+			for (CustomerAccount c : source.getOwners()) {
+				if (c.getBSN().equals(cAcc.getBSN())) {
+					authorized = true;
+				}
+			}
+		}
+		
+		// If the client is trying to transfer money from someone else's account, send an error
+		if (!authorized) {
+			String err = buildError(419, "The authenticated user is not authorized to perform this action.");
+			return respondError(err, 500);
+		}
 		
 		try {
 			source.transfer(destination, amount, description);
@@ -511,8 +533,45 @@ public class ClientHandler {
 
 	
 	private static Response getBalance(JSONRPC2Request jReq) {
-		// TODO Auto-generated method stub
-		return null;
+		// TODO Error-proof
+		Map<String, Object> params = jReq.getNamedParams();
+		
+		String authToken = (String) params.get("authToken");
+		String IBAN = (String) params.get("iBAN");
+		
+		CustomerAccount cAcc = null;
+		BankAccount source = null;
+		boolean authorized = false;
+		
+		source = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, IBAN);
+		
+		// If this is a bogus token, slap the client
+		if (!accounts.containsKey(authToken)) {
+			String err = buildError(419, "The authenticated user is not authorized to perform this action.");
+			return respondError(err, 500);
+		}
+		
+		cAcc = accounts.get(authToken);
+		
+		if (cAcc.getBSN().equals(source.getMainHolderBSN())) {
+			authorized = true;
+		} else {
+			for (CustomerAccount c : source.getOwners()) {
+				if (c.getBSN().equals(cAcc.getBSN())) {
+					authorized = true;
+				}
+			}
+		}
+		
+		// If the client is trying to snoop on someone else's account, send an error
+		if (!authorized) {
+			String err = buildError(419, "The authenticated user is not authorized to perform this action.");
+			return respondError(err, 500);
+		}
+		
+		
+		JSONRPC2Response jResp = new JSONRPC2Response(new Float(source.getBalance()), "response-" + java.lang.System.currentTimeMillis());
+		return respond(jResp.toJSONString());
 	}
 
 	private static Response getTransactionsOverview(JSONRPC2Request jReq) {
