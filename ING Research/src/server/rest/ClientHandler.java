@@ -25,6 +25,7 @@ import accounts.DebitCard;
 import database.DataManager;
 import database.SQLiteDB;
 import exceptions.IllegalAmountException;
+import exceptions.IllegalTransferException;
 
 @Path("/banking")
 public class ClientHandler {
@@ -430,8 +431,41 @@ public class ClientHandler {
 	}
 
 	private static Response transferMoney(JSONRPC2Request jReq) {
-		// TODO Auto-generated method stub
-		return null;
+		// TODO Error-proofing
+		// TODO Do something with targetName?
+		Map<String, Object> params = jReq.getNamedParams();
+		
+		String authToken = (String) params.get("authToken");
+		String sourceIBAN = (String) params.get("sourceIBAN");
+		String targetIBAN = (String) params.get("targetIBAN");
+		String targetName = (String) params.get("targetName");
+		String strAmount = (String) params.get("amount");
+		String description = (String) params.get("description");
+		float amount = Float.parseFloat(strAmount);
+		
+		BankAccount source = null;
+		BankAccount destination = null;
+		
+		if (!accounts.containsKey(authToken)) {
+			String err = buildError(419, "The authenticated user is not authorized to perform this action.");
+			return respondError(err, 500);
+		}
+		
+		source = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, sourceIBAN);
+		destination = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, targetIBAN);
+		
+		try {
+			source.transfer(destination, amount, description);
+		} catch (IllegalAmountException e) {
+			// TODO Return error message to client
+			e.printStackTrace();
+		} catch (IllegalTransferException e) {
+			// TODO Return error message to client
+			e.printStackTrace();
+		}
+		
+		JSONRPC2Response jResp = new JSONRPC2Response(true, "response-" + java.lang.System.currentTimeMillis());
+		return respond(jResp.toJSONString());
 	}
 
 	private static Response getAuthToken(JSONRPC2Request jReq) {
