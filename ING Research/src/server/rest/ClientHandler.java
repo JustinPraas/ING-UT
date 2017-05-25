@@ -1,7 +1,9 @@
 package server.rest;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -22,6 +24,7 @@ import org.hibernate.criterion.Restrictions;
 import accounts.BankAccount;
 import accounts.CustomerAccount;
 import accounts.DebitCard;
+import accounts.Transaction;
 import database.DataManager;
 import database.SQLiteDB;
 import exceptions.IllegalAmountException;
@@ -433,7 +436,6 @@ public class ClientHandler {
 
 	private static Response transferMoney(JSONRPC2Request jReq) {
 		// TODO Error-proofing
-		// TODO Do something with targetName?
 		Map<String, Object> params = jReq.getNamedParams();
 		
 		String authToken = (String) params.get("authToken");
@@ -477,7 +479,7 @@ public class ClientHandler {
 		}
 		
 		try {
-			source.transfer(destination, amount, description);
+			source.transfer(destination, amount, description, targetName);
 		} catch (IllegalAmountException e) {
 			// TODO Return error message to client
 			e.printStackTrace();
@@ -575,7 +577,73 @@ public class ClientHandler {
 	}
 
 	private static Response getTransactionsOverview(JSONRPC2Request jReq) {
-		// TODO Auto-generated method stub
-		return null;
+		// TODO Error-proof
+		// TODO Implement transaction count
+		Map<String, Object> params = jReq.getNamedParams();
+				
+		String authToken = (String) params.get("authToken");
+		String IBAN = (String) params.get("iBAN");
+		int num = Integer.parseInt((String) params.get("nrOfTransactions"));
+			
+		CustomerAccount cAcc = null;
+		BankAccount source = null;
+		boolean authorized = false;
+			
+		source = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, IBAN);
+			
+		// If this is a bogus token, slap the client
+		if (!accounts.containsKey(authToken)) {
+			String err = buildError(419, "The authenticated user is not authorized to perform this action.");
+			return respondError(err, 500);
+		}
+				
+		cAcc = accounts.get(authToken);
+			
+		if (cAcc.getBSN().equals(source.getMainHolderBSN())) {
+			authorized = true;
+		} else {
+			for (CustomerAccount c : source.getOwners()) {
+				if (c.getBSN().equals(cAcc.getBSN())) {
+					authorized = true;
+				}
+			}
+		}
+			
+		// If the client is trying to snoop on someone else's account, send an error
+		if (!authorized) {
+			String err = buildError(419, "The authenticated user is not authorized to perform this action.");
+			return respondError(err, 500);
+		}
+		
+		ArrayList<Criterion> cr = new ArrayList<>();
+		cr.add(Restrictions.or(Restrictions.eq("sourceIBAN", IBAN), Restrictions.eq("destinationIBAN", IBAN)));
+		@SuppressWarnings("unchecked")
+		List<Transaction> transactions = (List<Transaction>) DataManager.getObjectsFromDB(Transaction.CLASSNAME, cr);
+		Collections.sort(transactions);
+		Collections.reverse(transactions);
+		ArrayList<HashMap> transactionMaps = new ArrayList<>();
+		int counter = num, i;
+		for (i = 0; i < transactions.size(); i++) {
+			Transaction t = transactions.get(i);
+			HashMap<String, String> tMap = new HashMap<>();
+			tMap.put("sourceIBAN", t.getSourceIBAN());
+			tMap.put("targetIBAN", t.getDestinationIBAN());
+			if (!(t.getTargetName() == null)) {
+				tMap.put("targetName", t.getTargetName());
+			} else {
+				tMap.put("targetName", "N/A");
+			}
+			tMap.put("date", t.getDateTime());
+			tMap.put("amount", Float.toString(t.getAmount()));
+			tMap.put("description", t.getDescription());
+			transactionMaps.add(tMap);
+			counter--;
+			if (counter == 0) {
+				break;
+			}
+		}
+			
+		JSONRPC2Response jResp = new JSONRPC2Response(transactionMaps, "response-" + java.lang.System.currentTimeMillis());
+		return respond(jResp.toJSONString());
 	}
 }

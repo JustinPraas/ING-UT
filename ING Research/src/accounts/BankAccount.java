@@ -223,6 +223,7 @@ public class BankAccount implements database.DBObject {
 		String date = c.getTime().toString();
 		Transaction t = new Transaction();
 		t.setDateTime(date);
+		t.setDateTimeMilis(c.getTimeInMillis());
 		t.setSourceIBAN(this.getIBAN());
 		t.setDestinationIBAN(destination.getIBAN());
 		t.setAmount(amount);
@@ -262,6 +263,7 @@ public class BankAccount implements database.DBObject {
 		String date = c.getTime().toString();
 		Transaction t = new Transaction();
 		t.setDateTime(date);
+		t.setDateTimeMilis(c.getTimeInMillis());
 		t.setSourceIBAN(this.getIBAN());
 		t.setDestinationIBAN(destinationIBAN);
 		t.setAmount(amount);
@@ -297,6 +299,35 @@ public class BankAccount implements database.DBObject {
 		String date = c.getTime().toString();
 		Transaction t = new Transaction();
 		t.setDateTime(date);
+		t.setDateTimeMilis(c.getTimeInMillis());
+		t.setSourceIBAN(this.getIBAN());
+		t.setDestinationIBAN(destination.getIBAN());
+		t.setAmount(amount);
+		t.setDescription(description);
+		t.saveToDB();
+		this.saveToDB();
+		destination.saveToDB();
+	}
+	
+	public void transfer(BankAccount destination, float amount, String description, String targetName) throws IllegalAmountException, IllegalTransferException {
+		if (amount <= 0) {
+			throw new IllegalAmountException(amount);
+		} else if (balance < amount || destination.getClosed()) {
+			throw new InsufficientFundsTransferException(balance, IBAN, amount);
+		} else if (destination.getIBAN().equals(this.getIBAN())) {
+			throw new SameAccountTransferException();
+		} else if (this.closed || destination.getClosed()) {
+			throw new ClosedAccountTransferException();
+		}
+		
+		this.credit(amount);
+		destination.debit(amount);
+		Calendar c = Calendar.getInstance();
+		String date = c.getTime().toString();
+		Transaction t = new Transaction();
+		t.setDateTime(date);
+		t.setDateTimeMilis(c.getTimeInMillis());
+		t.setTargetName(targetName);
 		t.setSourceIBAN(this.getIBAN());
 		t.setDestinationIBAN(destination.getIBAN());
 		t.setAmount(amount);

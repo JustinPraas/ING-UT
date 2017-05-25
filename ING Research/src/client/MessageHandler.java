@@ -306,7 +306,30 @@ public class MessageHandler {
 		
 		JSONRPC2Request request = new JSONRPC2Request(method, params, "request-" + java.lang.System.currentTimeMillis());
 		String resp = sendToServer(request);
-		// TODO Stuff with resp
+		try {
+			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
+			if (!jResp.indicatesSuccess()) {
+				System.out.println("Error: " + jResp.getError().getMessage());
+				return;
+			}
+			
+			System.out.println("Transaction history:");
+			ArrayList<HashMap> transactions = (ArrayList<HashMap>) jResp.getResult();
+			
+			for (HashMap hm : transactions) {
+				System.out.println("==============================");
+				System.out.println("Source IBAN: " + hm.get("sourceIBAN"));
+				System.out.println("Target IBAN: " + hm.get("targetIBAN"));
+				System.out.println("Target name: " + hm.get("targetName"));
+				System.out.println("Date: " + hm.get("date"));
+				System.out.println("Amount: " + hm.get("amount"));
+				System.out.println("Description: " + hm.get("description"));
+				System.out.println("==============================");
+				System.out.println();
+			}
+		} catch (JSONRPC2ParseException e) {
+			e.printStackTrace();
+		}
 	}
 
 	private void getBalance(String parameters) {
