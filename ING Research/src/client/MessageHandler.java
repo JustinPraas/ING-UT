@@ -115,6 +115,7 @@ public class MessageHandler {
 		}
 	}
 	
+	@SuppressWarnings("rawtypes")
 	private void getBankAccountAccess(String parameters) {
 		String parameterArray[] = parameters.split(":");
 		String method = "getBankAccountAccess";
@@ -125,7 +126,24 @@ public class MessageHandler {
 		
 		JSONRPC2Request request = new JSONRPC2Request(method, params, "request-" + java.lang.System.currentTimeMillis());
 		String resp = sendToServer(request);
-		// TODO Stuff with resp
+		try {
+			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
+			if (!jResp.indicatesSuccess()) {
+				System.out.println("Error: " + jResp.getError().getMessage());
+				return;
+			}
+			
+			System.out.println("The following users have access to the account:");
+			@SuppressWarnings("unchecked")
+			ArrayList<HashMap> users = (ArrayList<HashMap>) jResp.getResult();
+			
+			for (HashMap hm : users) {
+				System.out.println();
+				System.out.print(hm.get("username") + " ");
+			}
+		} catch (JSONRPC2ParseException e) {
+			e.printStackTrace();
+		}
 	}
 
 	@SuppressWarnings("rawtypes")

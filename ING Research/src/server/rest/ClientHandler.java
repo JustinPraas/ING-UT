@@ -103,20 +103,47 @@ public class ClientHandler {
 	}
 
 	private static Response getBankAccountAccess(JSONRPC2Request jReq) {
-		// TODO Auto-generated method stub
-		return null;
+		// TODO Error-proof
+		// TODO Make sure this account is owned by the customer linked to the provided authtoken
+		Map<String, Object> params = jReq.getNamedParams();
+		
+		String authToken = (String) params.get("authToken");
+		String IBAN = (String) params.get("iBAN");
+		
+		CustomerAccount cAcc = accounts.get(authToken);
+		
+		ArrayList<HashMap> associations = new ArrayList<>();
+		ResultSet rs = null;
+		
+		try {
+			Connection c = SQLiteDB.openConnection();
+			Statement s = c.createStatement();
+			rs = s.executeQuery("SELECT * FROM customerbankaccounts WHERE IBAN='" + IBAN + "';");
+			while (rs.next()) {
+				String BSN = rs.getString("customer_BSN");
+				HashMap<String, String> association = new HashMap<>();
+				CustomerAccount holder = (CustomerAccount) DataManager.getObjectByPrimaryKey(CustomerAccount.CLASSNAME, BSN);
+				association.put("username", holder.getUsername());
+				associations.add(association);
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		JSONRPC2Response jResp = new JSONRPC2Response(associations, "response-" + java.lang.System.currentTimeMillis());
+		return respond(jResp.toJSONString());
 	}
 
 	private static Response getUserAccess(JSONRPC2Request jReq) {
 		// TODO Error-proof
+		// TODO Prevent unauthorized snooping
 		Map<String, Object> params = jReq.getNamedParams();
 		
 		String authToken = (String) params.get("authToken");
 		
 		CustomerAccount cAcc = accounts.get(authToken);
 		
-		ArrayList<Criterion> cr = new ArrayList<>();
-		cr.add(Restrictions.eq("customer_BSN", cAcc.getBSN()));
 		ArrayList<HashMap> associations = new ArrayList<>();
 		ResultSet rs = null;
 		
