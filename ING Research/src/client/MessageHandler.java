@@ -128,6 +128,7 @@ public class MessageHandler {
 		// TODO Stuff with resp
 	}
 
+	@SuppressWarnings("rawtypes")
 	private void getUserAccess(String parameters) {
 		String parameterArray[] = parameters.split(":");
 		String method = "getUserAccess";
@@ -138,7 +139,27 @@ public class MessageHandler {
 		
 		JSONRPC2Request request = new JSONRPC2Request(method, params, "request-" + java.lang.System.currentTimeMillis());
 		String resp = sendToServer(request);
-		// TODO Stuff with resp
+		try {
+			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
+			if (!jResp.indicatesSuccess()) {
+				System.out.println("Error: " + jResp.getError().getMessage());
+				return;
+			}
+			
+			System.out.println("You have access to the following accounts:");
+			@SuppressWarnings("unchecked")
+			ArrayList<HashMap> transactions = (ArrayList<HashMap>) jResp.getResult();
+			
+			for (HashMap hm : transactions) {
+				System.out.println("==============================");
+				System.out.println("Owner: " + hm.get("owner"));
+				System.out.println("IBAN: " + hm.get("iBAN"));
+				System.out.println("==============================");
+				System.out.println();
+			}
+		} catch (JSONRPC2ParseException e) {
+			e.printStackTrace();
+		}
 	}
 
 	private void revokeAccess(String parameters) {

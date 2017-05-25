@@ -1,5 +1,9 @@
 package server.rest;
 
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -104,8 +108,41 @@ public class ClientHandler {
 	}
 
 	private static Response getUserAccess(JSONRPC2Request jReq) {
-		// TODO Auto-generated method stub
-		return null;
+		// TODO Error-proof
+		Map<String, Object> params = jReq.getNamedParams();
+		
+		String authToken = (String) params.get("authToken");
+		
+		CustomerAccount cAcc = accounts.get(authToken);
+		
+		ArrayList<Criterion> cr = new ArrayList<>();
+		cr.add(Restrictions.eq("customer_BSN", cAcc.getBSN()));
+		ArrayList<HashMap> associations = new ArrayList<>();
+		ResultSet rs = null;
+		
+		try {
+			Connection c = SQLiteDB.openConnection();
+			Statement s = c.createStatement();
+			rs = s.executeQuery("SELECT * FROM customerbankaccounts WHERE customer_BSN='" + cAcc.getBSN() + "';");
+			while (rs.next()) {
+				String BSN = rs.getString("customer_BSN");
+				if (BSN.equals(cAcc.getBSN())) {
+					HashMap<String, String> association = new HashMap<>();
+					String IBAN = rs.getString("IBAN");
+					BankAccount bAcc = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, IBAN);
+					CustomerAccount owner = (CustomerAccount) DataManager.getObjectByPrimaryKey(CustomerAccount.CLASSNAME, bAcc.getMainHolderBSN());
+					association.put("iBAN", IBAN);
+					association.put("owner", owner.getUsername());
+					associations.add(association);
+				}
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		JSONRPC2Response jResp = new JSONRPC2Response(associations, "response-" + java.lang.System.currentTimeMillis());
+		return respond(jResp.toJSONString());
 	}
 
 	private static Response openAccount(JSONRPC2Request jReq) {
@@ -576,6 +613,7 @@ public class ClientHandler {
 		return respond(jResp.toJSONString());
 	}
 
+	@SuppressWarnings("unchecked")
 	private static Response getTransactionsOverview(JSONRPC2Request jReq) {
 		// TODO Error-proof
 		// TODO Implement transaction count
@@ -617,10 +655,10 @@ public class ClientHandler {
 		
 		ArrayList<Criterion> cr = new ArrayList<>();
 		cr.add(Restrictions.or(Restrictions.eq("sourceIBAN", IBAN), Restrictions.eq("destinationIBAN", IBAN)));
-		@SuppressWarnings("unchecked")
 		List<Transaction> transactions = (List<Transaction>) DataManager.getObjectsFromDB(Transaction.CLASSNAME, cr);
 		Collections.sort(transactions);
 		Collections.reverse(transactions);
+		@SuppressWarnings("rawtypes")
 		ArrayList<HashMap> transactionMaps = new ArrayList<>();
 		int counter = num, i;
 		for (i = 0; i < transactions.size(); i++) {

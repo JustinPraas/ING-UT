@@ -77,4 +77,16 @@ public class SQLiteDB {
 			e.printStackTrace();
 		}
 	}
+	
+	public static Connection openConnection() {
+		Connection c = null;
+		try {
+			c = DriverManager.getConnection("jdbc:sqlite:" + DBName + ".db");
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return c;
+	}
 }
