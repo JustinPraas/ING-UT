@@ -209,7 +209,7 @@ public class BankAccount implements database.DBObject {
 	public void transfer(BankAccount destination, float amount) throws IllegalAmountException, IllegalTransferException {
 		if (amount <= 0) {
 			throw new IllegalAmountException(amount);
-		} else if (balance < amount || destination.getClosed()) {
+		} else if (balance < amount) {
 			throw new InsufficientFundsTransferException(balance, IBAN, amount);
 		} else if (destination.getIBAN().equals(this.getIBAN())) {
 			throw new SameAccountTransferException();
@@ -230,6 +230,48 @@ public class BankAccount implements database.DBObject {
 		t.saveToDB();
 		this.saveToDB();
 		destination.saveToDB();
+	}
+	
+	public void transfer(String destinationIBAN, float amount, String description) throws IllegalAmountException, IllegalTransferException {
+		if (amount <= 0) {
+			throw new IllegalAmountException(amount);
+		} else if (balance < amount) {
+			throw new InsufficientFundsTransferException(balance, IBAN, amount);
+		} else if (this.closed) {
+			throw new ClosedAccountTransferException();
+		}
+		
+		boolean knownAccount = false;
+		BankAccount destination = null;
+		
+		if (!DataManager.isPrimaryKeyUnique(BankAccount.CLASSNAME, BankAccount.PRIMARYKEYNAME, destinationIBAN)) {
+			knownAccount = true;
+			destination = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, destinationIBAN);
+		}
+		
+		if (knownAccount) {
+			if (destination.getClosed()) {
+				throw new ClosedAccountTransferException();
+			} else if (destination.getIBAN().equals(this.getIBAN())) {
+				throw new SameAccountTransferException();
+			}
+		}
+		
+		this.credit(amount);
+		Calendar c = Calendar.getInstance();
+		String date = c.getTime().toString();
+		Transaction t = new Transaction();
+		t.setDateTime(date);
+		t.setSourceIBAN(this.getIBAN());
+		t.setDestinationIBAN(destinationIBAN);
+		t.setAmount(amount);
+		t.setDescription(description);
+		t.saveToDB();
+		this.saveToDB();
+		if (knownAccount) {
+			destination.debit(amount);
+			destination.saveToDB();
+		}
 	}
 	
 	/**

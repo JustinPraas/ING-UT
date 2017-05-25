@@ -174,7 +174,8 @@ public class DebitCard implements database.DBObject {
 	 * @param PIN The PIN entered
 	 * @param destination The destination IBAN
 	 */
-	public void pinMachineCharge(float amount, String PIN, BankAccount destination) {
+	public void pinPayment(float amount, String PIN, BankAccount destination) {
+		//TODO Throw exceptions for expired card, invalid PIN
 		BankAccount ownAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, bankAccountIBAN);
 		if (!isValidPIN(PIN)) {
 			System.err.println("Invalid PIN.");
@@ -183,16 +184,38 @@ public class DebitCard implements database.DBObject {
 			System.err.println("Card " + cardNumber + " is expired.");
 			return;
 		}
-			try {
-				ownAccount.transfer(destination, amount, "PIN machine payment.");
-			} catch (IllegalAmountException e) {
-				System.err.println(e.toString());
+		
+		try {
+			ownAccount.transfer(destination, amount, "Debit card payment.");
+		} catch (IllegalAmountException e) {
+			System.err.println(e.toString());
+			return;
+		} catch (IllegalTransferException e) {
+			System.err.println(e.toString());
 				return;
-			} catch (IllegalTransferException e) {
-				System.err.println(e.toString());
+		}
+	}
+	
+	public void pinPayment(float amount, String PIN, String destinationIBAN) {
+		//TODO Throw exceptions for expired card, invalid PIN
+		BankAccount ownAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, bankAccountIBAN);
+		if (!isValidPIN(PIN)) {
+			System.err.println("Invalid PIN.");
+			return;
+		} else if (isExpired()) {
+			System.err.println("Card " + cardNumber + " is expired.");
+			return;
+		}
+		
+		try {
+			ownAccount.transfer(destinationIBAN, amount, "Debit card payment from " + ownAccount.getIBAN() + " to " + destinationIBAN + ".");
+		} catch (IllegalAmountException e) {
+			System.err.println(e.toString());
+			return;
+		} catch (IllegalTransferException e) {
+			System.err.println(e.toString());
 				return;
-			}
-
+		}
 	}
 	
 	@Column(name = "PIN")

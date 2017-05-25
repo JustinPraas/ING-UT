@@ -404,8 +404,29 @@ public class ClientHandler {
 	}
 
 	private static Response payFromAccount(JSONRPC2Request jReq) {
-		// TODO Auto-generated method stub
-		return null;
+		//TODO Error-proofing
+		//TODO check for invalid parameters, bank accounts, card or PIN
+		Map<String, Object> params = jReq.getNamedParams();
+		
+		String sourceIBAN = (String) params.get("sourceIBAN");
+		String targetIBAN = (String) params.get("targetIBAN");
+		String pinCard = (String) params.get("pinCard");
+		String pinCode = (String) params.get("pinCode");
+		String strAmount = (String) params.get("amount");
+		float amount = Float.parseFloat(strAmount);
+		
+		//if (!params.keySet().contains("sourceIBAN"))
+		
+		if (DataManager.isPrimaryKeyUnique(BankAccount.CLASSNAME, BankAccount.PRIMARYKEYNAME, sourceIBAN)) {
+			//TODO Error stuff
+		}
+		
+		DebitCard card = (DebitCard) DataManager.getObjectByPrimaryKey(DebitCard.CLASSNAME, pinCard);
+		
+		card.pinPayment(amount, pinCode, targetIBAN);
+		
+		JSONRPC2Response jResp = new JSONRPC2Response(true, "response-" + java.lang.System.currentTimeMillis());
+		return respond(jResp.toJSONString());
 	}
 
 	private static Response transferMoney(JSONRPC2Request jReq) {
