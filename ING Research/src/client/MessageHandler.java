@@ -192,14 +192,17 @@ public class MessageHandler {
 		String method = "revokeAccess";
 		HashMap<String, Object> params = new HashMap<>();
 		
-		if (parameterArray.length != 2) {
+		if (parameterArray.length != 2 && parameterArray.length != 1) {
 			System.err.println("Please enter the requested parameters.");
 			return;
 		}
 		
 		params.put("authToken", AUTHTOKEN);
 		params.put("iBAN", parameterArray[0]);
-		params.put("username", parameterArray[1]);
+		
+		if (parameterArray.length == 2) {
+			params.put("username", parameterArray[1]);
+		}
 		
 		JSONRPC2Request request = new JSONRPC2Request(method, params, "request-" + java.lang.System.currentTimeMillis());
 		String resp = sendToServer(request);
@@ -214,7 +217,7 @@ public class MessageHandler {
 				return;
 			}
 			
-			System.out.println("Successfully revoked privileges of user " + parameterArray[1]);
+			System.out.println("Successfully revoked privileges.");
 		} catch (JSONRPC2ParseException e) {
 			System.out.println("Discarded invalid JSON-RPC response from server.");
 		}
