@@ -12,7 +12,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 
 import javax.ws.rs.Consumes;
@@ -502,7 +501,6 @@ public class ClientHandler {
 	}
 
 	private static Response revokeAccess(JSONRPC2Request jReq) {
-		//TODO: Stop user removing own privileges from account while being owner
 		HashMap<String, Object> params = (HashMap<String, Object>) jReq.getNamedParams();
 		
 		// If the request is missing required parameters, stop and notify the client
@@ -550,8 +548,13 @@ public class ClientHandler {
 		}
 		
 		// If the user doesn't own the account he wants to revoke someone's access from, stop and notify the client
+		// Alternatively, if the user is trying to revoke his own privileges from an account he owns, stop and notify.
 		if (usernameSpecified && !bAcc.getMainHolderBSN().equals(cAcc.getBSN())) {
 			String err = buildError(419, "The authenticated user is not authorized to perform this action.");
+			return respondError(err, 500);
+		} else if (!usernameSpecified && bAcc.getMainHolderBSN().equals(cAcc.getBSN())) {
+			String err = buildError(500, "An unexpected error occured, see error details.", "You are the owner of account " + IBAN 
+					+ ", so you cannot revoke your own privileges.");
 			return respondError(err, 500);
 		}
 		
@@ -587,7 +590,7 @@ public class ClientHandler {
 		
 		// If the target user does not have access, the method has no effect
 		if (!hasAccess) {
-			String err = buildError(420, "The action has no effect. See message.", "User " + username + " has no access to account " + IBAN + ".");
+			String err = buildError(420, "The action has no effect. See message.", "User " + targetAcc.getUsername() + " has no access to account " + IBAN + ".");
 			return respondError(err, 500);
 		}
 		
