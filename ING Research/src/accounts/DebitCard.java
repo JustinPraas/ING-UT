@@ -196,7 +196,7 @@ public class DebitCard implements database.DBObject {
 		}
 	}
 	
-	public void pinPayment(float amount, String PIN, String destinationIBAN) {
+	public void pinPayment(float amount, String PIN, String destinationIBAN) throws IllegalAmountException, IllegalTransferException {
 		//TODO Throw exceptions for expired card, invalid PIN
 		BankAccount ownAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, bankAccountIBAN);
 		if (!isValidPIN(PIN)) {
@@ -207,15 +207,7 @@ public class DebitCard implements database.DBObject {
 			return;
 		}
 		
-		try {
-			ownAccount.transfer(destinationIBAN, amount, "Debit card payment from " + ownAccount.getIBAN() + " to " + destinationIBAN + ".");
-		} catch (IllegalAmountException e) {
-			System.err.println(e.toString());
-			return;
-		} catch (IllegalTransferException e) {
-			System.err.println(e.toString());
-				return;
-		}
+		ownAccount.transfer(destinationIBAN, amount, "Debit card payment from " + ownAccount.getIBAN() + " to " + destinationIBAN + ".");
 	}
 	
 	@Column(name = "PIN")

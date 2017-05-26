@@ -183,10 +183,13 @@ public class BankAccount implements database.DBObject {
 	/**
 	 * Deposit a specific sum of money into the <code>BankAccount</code>.
 	 * @param amount The amount of money to be deposited
+	 * @throws ClosedAccountTransferException 
 	 */
-	public void deposit(float amount, String cardNum) throws IllegalAmountException {
+	public void deposit(float amount, String cardNum) throws IllegalAmountException, ClosedAccountTransferException {
 		if (amount <= 0) {
 			throw new IllegalAmountException(amount);
+		} else if (this.closed) {
+			throw new ClosedAccountTransferException();
 		}
 		this.debit(amount);
 		
@@ -233,7 +236,8 @@ public class BankAccount implements database.DBObject {
 		destination.saveToDB();
 	}
 	
-	public void transfer(String destinationIBAN, float amount, String description) throws IllegalAmountException, IllegalTransferException {
+	public void transfer(String destinationIBAN, float amount, String description) throws IllegalAmountException, InsufficientFundsTransferException,
+		ClosedAccountTransferException, SameAccountTransferException {
 		if (amount <= 0) {
 			throw new IllegalAmountException(amount);
 		} else if (balance < amount) {
