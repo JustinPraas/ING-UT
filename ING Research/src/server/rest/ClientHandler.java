@@ -257,7 +257,7 @@ public class ClientHandler {
 		    return respondError(err, 500);
 		}
 		
-		if (!InputValidator.isValidBSN((String) params.get("BSN"))) {
+		if (!InputValidator.isValidBSN((String) params.get("ssn"))) {
 		    String err = buildError(418, "One or more parameter has an invalid value. See message.", params.get("BSN") + " is not a valid BSN.");
 		    return respondError(err, 500);
 		}
