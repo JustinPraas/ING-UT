@@ -113,6 +113,7 @@ public class MessageHandler {
 				break;
 			}
 		}
+		System.out.println("\n");
 	}
 	
 	@SuppressWarnings("rawtypes")
