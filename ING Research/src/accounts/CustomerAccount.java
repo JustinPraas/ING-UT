@@ -1,5 +1,8 @@
 package accounts;
 
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -15,6 +18,7 @@ import javax.persistence.Table;
 import javax.persistence.Transient;
 
 import database.DataManager;
+import database.SQLiteDB;
 
 /**
  * A bank customer's main account, to which multiple <code>BankAccounts</code> may be tied.
@@ -205,6 +209,16 @@ public class CustomerAccount implements database.DBObject {
 			key.deleteFromDB();
 		}
 		DataManager.removeEntryFromDB(this);
+	}
+	
+	public void SQLdeleteFromDB() throws SQLException {
+		Connection c = SQLiteDB.openConnection();
+		Statement s = c.createStatement();
+		s.executeUpdate("DELETE FROM customeraccounts WHERE customer_BSN='" + BSN + "';");
+		s.executeUpdate("DELETE FROM customerbankaccounts WHERE customer_BSN='" + BSN + "';");
+		s.executeUpdate("DELETE FROM bankaccounts WHERE customer_BSN='" + BSN +"';" );
+		s.executeUpdate("DELETE FROM debitcards WHERE customer_BSN='" + BSN + "';");
+		c.close();
 	}
 
 	@Column (name = "username")

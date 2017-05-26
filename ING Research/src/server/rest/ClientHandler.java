@@ -401,7 +401,12 @@ public class ClientHandler {
 		
 		// If this was the customer's last bank account, vaporize the customer
 		if (lastAcc) {
-			acc.deleteFromDB();
+			try {
+				acc.SQLdeleteFromDB();
+			} catch (SQLException e) {
+				String err = buildError(500, "One or more parameter has an invalid value. See message.", "An SQL error occurred on the server.");
+				return respondError(err, 500);
+			}
 		}
 		
 		// If all is well, respond with true.
