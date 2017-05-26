@@ -370,6 +370,14 @@ public class BankAccount implements database.DBObject {
 		balance += amount;
 	}
 	
+	public void removeOwner(String BSN) {
+		for (CustomerAccount c : owners) {
+			if (c.getBSN().equals(BSN)) {
+				owners.remove(c);
+			}
+		}
+	}
+	
 	public void setIBAN(String IBAN) {
 		this.IBAN = IBAN; 
 	}

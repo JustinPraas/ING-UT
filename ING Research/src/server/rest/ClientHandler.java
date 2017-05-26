@@ -9,10 +9,10 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import javax.ws.rs.Consumes;
@@ -502,6 +502,7 @@ public class ClientHandler {
 	}
 
 	private static Response revokeAccess(JSONRPC2Request jReq) {
+		//TODO: Stop user removing own privileges from account while being owner
 		HashMap<String, Object> params = (HashMap<String, Object>) jReq.getNamedParams();
 		
 		// If the request is missing required parameters, stop and notify the client
@@ -598,10 +599,11 @@ public class ClientHandler {
 			}
 		}
 		
+		SQLiteDB.executeStatement("DELETE FROM customerbankaccounts WHERE customer_BSN='" + targetAcc.getBSN() + "' AND IBAN='" + bAcc.getIBAN() + "'");
+		bAcc.removeOwner(targetAcc.getBSN());
+		
 		bAcc.saveToDB();
 		targetAcc.saveToDB();
-		
-		SQLiteDB.executeStatement("DELETE FROM customerbankaccounts WHERE customer_BSN='" + targetAcc.getBSN() + "' AND IBAN='" + bAcc.getIBAN() + "'");
 		
 		JSONRPC2Response jResp = new JSONRPC2Response(true, "response-" + java.lang.System.currentTimeMillis());
 		return respond(jResp.toJSONString());
