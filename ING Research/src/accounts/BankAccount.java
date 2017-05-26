@@ -371,10 +371,16 @@ public class BankAccount implements database.DBObject {
 	}
 	
 	public void removeOwner(String BSN) {
+		CustomerAccount cAcc = null;
 		for (CustomerAccount c : owners) {
 			if (c.getBSN().equals(BSN)) {
-				owners.remove(c);
+				cAcc = c;
+				break;
 			}
+		}
+		
+		if (cAcc != null) {
+			owners.remove(cAcc);
 		}
 	}
 	
