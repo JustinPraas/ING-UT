@@ -247,11 +247,8 @@ public class ClientHandler {
 		
 		String date = (String) params.get("dob");
 		DateFormat df = new SimpleDateFormat("dd/MM/yyyy"); 
-		Date startDate;
 		try {
-		    startDate = df.parse(date);
-		    String newDateString = df.format(startDate);
-		    System.out.println(newDateString);
+		    df.parse(date);
 		} catch (ParseException e) {
 		    String err = buildError(418, "One or more parameter has an invalid value. See message.", date + " is not a valid date in dd/MM/yyyy format.");
 		    return respondError(err, 500);
