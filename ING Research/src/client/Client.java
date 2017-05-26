@@ -8,6 +8,7 @@ import java.net.Socket;
  */
 public class Client {
 	
+	@SuppressWarnings("unused")
 	private static TUI tui;
 	public static Socket s;
 	public static final int port = 1337;

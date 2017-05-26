@@ -130,6 +130,9 @@ public class MessageHandler {
 			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
 			if (!jResp.indicatesSuccess()) {
 				System.out.println("Error: " + jResp.getError().getMessage());
+				if (jResp.getError().getData() != null) {
+					System.out.println((String)jResp.getError().getData());
+				}
 				return;
 			}
 			
@@ -142,7 +145,7 @@ public class MessageHandler {
 				System.out.print(hm.get("username") + " ");
 			}
 		} catch (JSONRPC2ParseException e) {
-			e.printStackTrace();
+			System.out.println("Discarded invalid JSON-RPC response from server.");
 		}
 	}
 
@@ -161,6 +164,9 @@ public class MessageHandler {
 			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
 			if (!jResp.indicatesSuccess()) {
 				System.out.println("Error: " + jResp.getError().getMessage());
+				if (jResp.getError().getData() != null) {
+					System.out.println((String)jResp.getError().getData());
+				}
 				return;
 			}
 			
@@ -176,7 +182,7 @@ public class MessageHandler {
 				System.out.println();
 			}
 		} catch (JSONRPC2ParseException e) {
-			e.printStackTrace();
+			System.out.println("Discarded invalid JSON-RPC response from server.");
 		}
 	}
 
@@ -201,12 +207,15 @@ public class MessageHandler {
 			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
 			if (!jResp.indicatesSuccess()) {
 				System.out.println("Error: " + jResp.getError().getMessage());
+				if (jResp.getError().getData() != null) {
+					System.out.println((String)jResp.getError().getData());
+				}
 				return;
 			}
 			
 			System.out.println("Successfully revoked privileges of user " + parameterArray[1]);
 		} catch (JSONRPC2ParseException e) {
-			e.printStackTrace();
+			System.out.println("Discarded invalid JSON-RPC response from server.");
 		}
 	}
 
@@ -231,6 +240,9 @@ public class MessageHandler {
 			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
 			if (!jResp.indicatesSuccess()) {
 				System.out.println("Error: " + jResp.getError().getMessage());
+				if (jResp.getError().getData() != null) {
+					System.out.println((String)jResp.getError().getData());
+				}
 				return;
 			}
 			
@@ -245,7 +257,7 @@ public class MessageHandler {
 			
 			System.out.println();
 		} catch (JSONRPC2ParseException e) {
-			e.printStackTrace();
+			System.out.println("Discarded invalid JSON-RPC response from server.");
 		}
 	}
 
@@ -283,11 +295,14 @@ public class MessageHandler {
 			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
 			if (!jResp.indicatesSuccess()) {
 				System.out.println("Error: " + jResp.getError().getMessage());
+				if (jResp.getError().getData() != null) {
+					System.out.println((String)jResp.getError().getData());
+				}
 				return;
 			}
 			System.out.println("Payment successful.");
 		} catch (JSONRPC2ParseException e) {
-			e.printStackTrace();
+			System.out.println("Discarded invalid JSON-RPC response from server.");
 		}
 	}
 
@@ -314,11 +329,14 @@ public class MessageHandler {
 			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
 			if (!jResp.indicatesSuccess()) {
 				System.out.println("Error: " + jResp.getError().getMessage());
+				if (jResp.getError().getData() != null) {
+					System.out.println((String)jResp.getError().getData());
+				}
 				return;
 			}
 			System.out.println("Account closed successfully.");
 		} catch (JSONRPC2ParseException e) {
-			e.printStackTrace();
+			System.out.println("Discarded invalid JSON-RPC response from server.");
 		}
 	}
 
@@ -349,6 +367,9 @@ public class MessageHandler {
 			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
 			if (!jResp.indicatesSuccess()) {
 				System.out.println("Error: " + jResp.getError().getMessage());
+				if (jResp.getError().getData() != null) {
+					System.out.println((String)jResp.getError().getData());
+				}
 				return;
 			}
 			
@@ -367,7 +388,7 @@ public class MessageHandler {
 				System.out.println();
 			}
 		} catch (JSONRPC2ParseException e) {
-			e.printStackTrace();
+			System.out.println("Discarded invalid JSON-RPC response from server.");
 		}
 	}
 
@@ -383,12 +404,15 @@ public class MessageHandler {
 			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
 			if (!jResp.indicatesSuccess()) {
 				System.out.println("Error: " + jResp.getError().getMessage());
+				if (jResp.getError().getData() != null) {
+					System.out.println((String)jResp.getError().getData());
+				}
 				return;
 			}
 			
 			System.out.println("Balance for account " + params.get("iBAN") + " is " + jResp.getResult());
 		} catch (JSONRPC2ParseException e) {
-			e.printStackTrace();
+			System.out.println("Discarded invalid JSON-RPC response from server.");
 		}
 	}
 	
@@ -420,6 +444,9 @@ public class MessageHandler {
 			
 			if (!jResp.indicatesSuccess()) {
 				System.out.println("Error: " + jResp.getError().getMessage());
+				if (jResp.getError().getData() != null) {
+					System.out.println((String)jResp.getError().getData());
+				}
 				return;
 			}
 			HashMap<String, Object> results = (HashMap<String, Object>) jResp.getResult();
@@ -427,7 +454,7 @@ public class MessageHandler {
 			state = State.AUTHENTICATED;
 			System.out.println("Authentication successful.");
 		} catch (JSONRPC2ParseException e) {
-			e.printStackTrace();
+			System.out.println("Discarded invalid JSON-RPC response from server.");
 		}
 	}
 
@@ -468,12 +495,15 @@ public class MessageHandler {
 			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
 			if (!jResp.indicatesSuccess()) {
 				System.out.println("Error: " + jResp.getError().getMessage());
+				if (jResp.getError().getData() != null) {
+					System.out.println((String)jResp.getError().getData());
+				}
 				return;
 			}
 			
 			System.out.println("Transfer successful.");
 		} catch (JSONRPC2ParseException e) {
-			e.printStackTrace();
+			System.out.println("Discarded invalid JSON-RPC response from server.");
 		}
 	}
 	
@@ -509,12 +539,15 @@ public class MessageHandler {
 			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
 			if (!jResp.indicatesSuccess()) {
 				System.out.println("Error: " + jResp.getError().getMessage());
+				if (jResp.getError().getData() != null) {
+					System.out.println((String)jResp.getError().getData());
+				}
 				return;
 			}
 			
 			System.out.println("Deposit successful.");
 		} catch (JSONRPC2ParseException e) {
-			e.printStackTrace();
+			System.out.println("Discarded invalid JSON-RPC response from server.");
 		}
 	}
 
@@ -532,6 +565,9 @@ public class MessageHandler {
 			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
 			if (!jResp.indicatesSuccess()) {
 				System.out.println("Error: " + jResp.getError().getMessage());
+				if (jResp.getError().getData() != null) {
+					System.out.println((String)jResp.getError().getData());
+				}
 				return;
 			}
 			
@@ -544,7 +580,7 @@ public class MessageHandler {
 			System.out.println("Your new card number is: " + pinCard);
 			System.out.println("Your new PIN is: " + pinCode);
 		} catch (JSONRPC2ParseException e) {
-			e.printStackTrace();
+			System.out.println("Discarded invalid JSON-RPC response from server.");
 		}
 	}
 
@@ -594,6 +630,9 @@ public class MessageHandler {
 			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
 			if (!jResp.indicatesSuccess()) {
 				System.out.println("Error: " + jResp.getError().getMessage());
+				if (jResp.getError().getData() != null) {
+					System.out.println((String)jResp.getError().getData());
+				}
 				return;
 			}
 			
@@ -606,17 +645,15 @@ public class MessageHandler {
 			System.out.println("Your new card number is: " + pinCard);
 			System.out.println("Your new PIN is: " + pinCode);
 		} catch (JSONRPC2ParseException e) {
-			e.printStackTrace();
+			System.out.println("Discarded invalid JSON-RPC response from server.");
 		}
 	}
 	
 	public String sendToServer(JSONRPC2Request request) {
-		System.out.println(request.toJSONString());
+		//System.out.println(request.toJSONString());
 		String message = request.toJSONString();
-		System.out.println("Sending to server: " + message);
-		System.out.println();
-		//System.out.println(message);
-		//TODO: Send HTTP POST message to server
+		//System.out.println("Sending to server: " + message);
+		//System.out.println();
 	
 		HttpPost httpPost = new HttpPost("http://localhost:8080/ING-UT/rest/banking/postRequest");
 		StringEntity msg = new StringEntity(message, ContentType.create("application/json", "UTF-8"));
@@ -624,16 +661,16 @@ public class MessageHandler {
 		
 		try {
 			HttpResponse x = httpclient.execute(httpPost);
-			System.out.println(x.toString());
-			System.out.println(x.getEntity().getContent().toString());
-			System.out.println("\n");
+			//System.out.println(x.toString());
+			//System.out.println(x.getEntity().getContent().toString());
+			//System.out.println("\n");
 			BufferedReader reader = new BufferedReader(new InputStreamReader(
 					(x.getEntity().getContent())));
 			String out, output = "";
 			while ((out = reader.readLine()) != null) {
 				output += out;
 			}
-			System.out.println(output);
+			//System.out.println(output);
 			return output;
 		} catch (IOException e) {
 			e.printStackTrace();

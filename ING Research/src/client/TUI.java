@@ -53,7 +53,7 @@ public class TUI {
 	private void printCommands() {
 		switch (MessageHandler.state) {
 		case NOT_AUTHENTICATED: 
-			System.out.println("\nUse one of the following commands:"
+			System.out.println("Use one of the following commands:"
 					+ "\nLOGIN <username>:<password>"
 					+ "\nOPEN_BANK_ACCOUNT <firstname>:<lastname>:<initials>:<dateofbirth>:<SSN>:<address>:<phonenumber>:<email>:<username>:<password>"
 					+ "\nPAY_BY_CARD <sourceIBAN>:<targetIBAN>:<cardnumber>:<PIN>:<amount>"
