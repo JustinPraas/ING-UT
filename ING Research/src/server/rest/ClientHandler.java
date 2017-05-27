@@ -244,14 +244,15 @@ public class ClientHandler {
 			return respondError(err, 500);
 		}
 		
-		String date = (String) params.get("dob");
-		DateFormat df = new SimpleDateFormat("dd/MM/yyyy"); 
-		try {
-		    df.parse(date);
-		} catch (ParseException e) {
-		    String err = buildError(418, "One or more parameter has an invalid value. See message.", date + " is not a valid date in dd/MM/yyyy format.");
-		    return respondError(err, 500);
-		}
+		// TODO: Figure out standard date format, uncomment
+//		String date = (String) params.get("dob");
+//		DateFormat df = new SimpleDateFormat("dd/MM/yyyy"); 
+//		try {
+//		    df.parse(date);
+//		} catch (ParseException e) {
+//		    String err = buildError(418, "One or more parameter has an invalid value. See message.", date + " is not a valid date in dd/MM/yyyy format.");
+//		    return respondError(err, 500);
+//		}
 		
 		if (!InputValidator.isValidBSN((String) params.get("ssn"))) {
 		    String err = buildError(418, "One or more parameter has an invalid value. See message.", params.get("BSN") + " is not a valid BSN.");
@@ -294,11 +295,11 @@ public class ClientHandler {
 		
 		
 		// Create the JSON response and send it to the client
-		HashMap<String, String> resp = new HashMap<>();
+		HashMap<String, Object> resp = new HashMap<>();
 		
 		resp.put("iBAN", IBAN);
-		resp.put("pinCard", pinCard);
-		resp.put("pinCode", pinCode);
+		resp.put("pinCard", Long.parseLong(pinCard));
+		resp.put("pinCode", Long.parseLong(pinCode));
 		
 		JSONRPC2Response response = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
 		return respond(response.toJSONString());
@@ -333,10 +334,10 @@ public class ClientHandler {
 		card.saveToDB();
 		
 		// Send the user the details of his new account and card
-		HashMap<String, String> resp = new HashMap<>();
+		HashMap<String, Object> resp = new HashMap<>();
 		resp.put("iBAN", IBAN);
-		resp.put("pinCard", pinCard);
-		resp.put("pinCode", pinCode);
+		resp.put("pinCard", Long.parseLong(pinCard));
+		resp.put("pinCode", Long.parseLong(pinCode));
 		
 		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
 		
@@ -498,8 +499,8 @@ public class ClientHandler {
 		
 		HashMap<String, Object> resp = new HashMap<>();
 		
-		resp.put("pinCard", pinCard);
-		resp.put("pinCode", pinCode);
+		resp.put("pinCard", Long.parseLong(pinCard));
+		resp.put("pinCode", Long.parseLong(pinCode));
 		
 		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
 		return respond(jResp.toJSONString());
@@ -621,7 +622,7 @@ public class ClientHandler {
 		HashMap<String, Object> params = (HashMap<String, Object>) jReq.getNamedParams();
 		
 		// If the request is missing required parameters, stop and notify the client 
-		if (!params.containsKey("iBAN") || !params.containsKey("pinCard") || params.containsKey("pinCode")) {
+		if (!params.containsKey("iBAN") || !params.containsKey("pinCard") || !params.containsKey("pinCode")) {
 			String err = buildError(-32602, "Invalid method parameters.");
 			return respondError(err, 500);
 		}
@@ -890,7 +891,7 @@ public class ClientHandler {
 		
 		// Send the generated token to the client
 		HashMap<String, String> resp = new HashMap<>();
-		resp.put("result", token);
+		resp.put("authToken", token);
 		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
 		return respond(jResp.toJSONString());
 	}
