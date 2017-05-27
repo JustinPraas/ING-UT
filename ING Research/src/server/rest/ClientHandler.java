@@ -370,6 +370,8 @@ public class ClientHandler {
 		
 		CustomerAccount acc = accounts.get(token);
 		boolean found = false;
+		BankAccount target = null;
+		
 		
 		// Look for the bank account
 		for (BankAccount b : acc.getBankAccounts()) {
@@ -382,6 +384,7 @@ public class ClientHandler {
 				b.saveToDB();
 				acc.saveToDB();
 				found = true;
+				target = b;
 				break;
 			}
 		}
@@ -389,6 +392,12 @@ public class ClientHandler {
 		// If the bank account doesn't exist under the authenticated user account, send an error
 		if (!found) {
 			String err = buildError(500, "No account found with the specified IBAN under user account " + acc.getUsername() + ".");
+			return respondError(err, 500);
+		}
+		
+		// If the target account is not owned by the user, stop and notify the client
+		if (!acc.getBSN().equals(target.getMainHolderBSN()) ) {
+			String err = buildError(419, "The authenticated user is not authorized to perform this action.");
 			return respondError(err, 500);
 		}
 		
