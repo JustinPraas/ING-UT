@@ -22,7 +22,7 @@ public class Transaction implements DBObject, Comparable {
 	private String destinationIBAN;
 	private String dateTime;
 	private long dateTimeMilis;
-	private float amount;
+	private double amount;
 	private String description;
 	private int id;
 	private String targetName;
@@ -75,11 +75,11 @@ public class Transaction implements DBObject, Comparable {
 	}
 	
 	@Column(name = "amount")
-	public float getAmount() {
+	public double getAmount() {
 		return amount;
 	}
 	
-	public void setAmount(float amount) {
+	public void setAmount(double amount) {
 		this.amount = amount;
 	}
 	

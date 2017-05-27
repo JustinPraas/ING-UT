@@ -454,7 +454,7 @@ public class MessageHandler {
 				return;
 			}
 			HashMap<String, Object> results = (HashMap<String, Object>) jResp.getResult();
-			AUTHTOKEN = (String) results.get("result");
+			AUTHTOKEN = (String) results.get("authToken");
 			state = State.AUTHENTICATED;
 			System.out.println("Authentication successful.");
 		} catch (JSONRPC2ParseException e) {

@@ -185,7 +185,7 @@ public class BankAccount implements database.DBObject {
 	 * @param amount The amount of money to be deposited
 	 * @throws ClosedAccountTransferException 
 	 */
-	public void deposit(float amount, String cardNum) throws IllegalAmountException, ClosedAccountTransferException {
+	public void deposit(double amount, String cardNum) throws IllegalAmountException, ClosedAccountTransferException {
 		if (amount <= 0) {
 			throw new IllegalAmountException(amount);
 		} else if (this.closed) {
@@ -236,7 +236,7 @@ public class BankAccount implements database.DBObject {
 		destination.saveToDB();
 	}
 	
-	public void transfer(String destinationIBAN, float amount, String description) throws IllegalAmountException, InsufficientFundsTransferException,
+	public void transfer(String destinationIBAN, double amount, String description) throws IllegalAmountException, InsufficientFundsTransferException,
 		ClosedAccountTransferException, SameAccountTransferException {
 		if (amount <= 0) {
 			throw new IllegalAmountException(amount);
@@ -286,7 +286,7 @@ public class BankAccount implements database.DBObject {
 	 * @param amount The amount of money to be transferred from this <code>BankAccount</code> to the destination
 	 * @param description Description of the transfer
 	 */
-	public void transfer(BankAccount destination, float amount, String description) throws IllegalAmountException, IllegalTransferException {
+	public void transfer(BankAccount destination, double amount, String description) throws IllegalAmountException, IllegalTransferException {
 		if (amount <= 0) {
 			throw new IllegalAmountException(amount);
 		} else if (balance < amount || destination.getClosed()) {
@@ -313,7 +313,7 @@ public class BankAccount implements database.DBObject {
 		destination.saveToDB();
 	}
 	
-	public void transfer(BankAccount destination, float amount, String description, String targetName) throws IllegalAmountException, IllegalTransferException {
+	public void transfer(BankAccount destination, double amount, String description, String targetName) throws IllegalAmountException, IllegalTransferException {
 		if (amount <= 0) {
 			throw new IllegalAmountException(amount);
 		} else if (balance < amount || destination.getClosed()) {
@@ -351,7 +351,7 @@ public class BankAccount implements database.DBObject {
 	 * @param amount The amount of money to credit the <code>BankAccount</code> with
 	 * @throws IllegalAmountException Thrown when the specified amount is 0 or negative
 	 */
-	public void credit(float amount) throws IllegalAmountException {
+	public void credit(double amount) throws IllegalAmountException {
 		if (amount <= 0) {
 			throw new IllegalAmountException(amount);
 		}
@@ -363,7 +363,7 @@ public class BankAccount implements database.DBObject {
 	 * @param amount The amount of money to debit the <code>BankAccount</code> with
 	 * @throws Thrown when the specified amount is 0 or negative
 	 */
-	public void debit(float amount) throws IllegalAmountException {
+	public void debit(double amount) throws IllegalAmountException {
 		if (amount <= 0) {
 			throw new IllegalAmountException(amount);
 		}

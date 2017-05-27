@@ -271,7 +271,7 @@ public class InputValidator {
 	 * @return true if the input is a valid debit card number, false otherwise
 	 */
 	public static boolean isValidCardNumber(String input) {
-		if (input.matches("^\\d{3}+[a-zA-Z]\\d{3}$")) {
+		if (input.matches("^\\d{7}$")) {
 			return true;
 		} else {
 			System.err.print("Card number " + input + " is invalid.");

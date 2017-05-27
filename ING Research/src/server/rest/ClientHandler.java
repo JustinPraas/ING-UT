@@ -411,7 +411,10 @@ public class ClientHandler {
 		}
 		
 		// If all is well, respond with true.
-		JSONRPC2Response jResp = new JSONRPC2Response(true, "response-" + java.lang.System.currentTimeMillis());
+		HashMap<String, Object> resp = new HashMap<>();
+		resp.put("result", true);
+		
+		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
 		return respond(jResp.toJSONString());
 	}
 
@@ -614,7 +617,10 @@ public class ClientHandler {
 		bAcc.saveToDB();
 		targetAcc.saveToDB();
 		
-		JSONRPC2Response jResp = new JSONRPC2Response(true, "response-" + java.lang.System.currentTimeMillis());
+		HashMap<String, Object> resp = new HashMap<>();
+		resp.put("result", true);
+		
+		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
 		return respond(jResp.toJSONString());
 	}
 
@@ -628,14 +634,14 @@ public class ClientHandler {
 		}
 		
 		String IBAN = (String) params.get("iBAN");
-		String pinCard = (String) params.get("pinCard");
-		String pinCode = (String) params.get("pinCode");
-		float amount = 0;
+		String pinCard = "" + params.get("pinCard");
+		String pinCode = "" + params.get("pinCode");
+		double amount = 0;
 		
 		// If any given parameter values are invalid, stop and notify the client
 		try {
-			amount = Float.parseFloat((String) params.get("amount"));
-		} catch (NumberFormatException e) {
+			amount = (double) params.get("amount");
+		} catch (ClassCastException e) {
 			String err = buildError(418, "One or more parameter has an invalid value. See message.", params.get("amount") + " is not a valid amount.");
 			return respondError(err, 500);
 		}
@@ -645,12 +651,12 @@ public class ClientHandler {
 			return respondError(err, 500);
 		}
 		
-		if (!InputValidator.isValidCardNumber(pinCard)) {
+		if (!InputValidator.isValidCardNumber("" + pinCard)) {
 			String err = buildError(418, "One or more parameter has an invalid value. See message.", pinCard + " is not a valid card number.");
 			return respondError(err, 500);
 		}
 		
-		if (!InputValidator.isValidPIN(pinCode)) {
+		if (!InputValidator.isValidPIN("" + pinCode)) {
 			String err = buildError(418, "One or more parameter has an invalid value. See message.", pinCode + " is not a valid PIN.");
 			return respondError(err, 500);
 		}
@@ -689,7 +695,10 @@ public class ClientHandler {
 		
 		bAcc.saveToDB();
 		
-		JSONRPC2Response jResp = new JSONRPC2Response(true, "response-" + java.lang.System.currentTimeMillis());
+		HashMap<String, Object> resp = new HashMap<>();
+		resp.put("result", true);
+		
+		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
 		return respond(jResp.toJSONString());
 	}
 
@@ -705,16 +714,15 @@ public class ClientHandler {
 		
 		String sourceIBAN = (String) params.get("sourceIBAN");
 		String targetIBAN = (String) params.get("targetIBAN");
-		String pinCard = (String) params.get("pinCard");
-		String pinCode = (String) params.get("pinCode");
-		String strAmount = (String) params.get("amount");
-		float amount = 0;
+		long pinCard = (long) params.get("pinCard");
+		long pinCode = (long) params.get("pinCode");
+		double amount = 0;
 		
 		// If any of the parameters have invalid values, stop and notify the client
 		try {
-			amount = Float.parseFloat(strAmount);
-		} catch (NumberFormatException e) {
-			String err = buildError(418, "One or more parameter has an invalid value. See message.", strAmount + " is not a valid amount.");
+			amount = (double) params.get("amount");
+		} catch (ClassCastException e) {
+			String err = buildError(418, "One or more parameter has an invalid value. See message.", amount + " is not a valid amount.");
 			return respondError(err, 500);
 		}
 		
@@ -728,12 +736,12 @@ public class ClientHandler {
 			return respondError(err, 500);
 		}
 		
-		if (!InputValidator.isValidCardNumber(pinCard)) {
+		if (!InputValidator.isValidCardNumber("" + pinCard)) {
 			String err = buildError(418, "One or more parameter has an invalid value. See message.", pinCard + " is not a valid card number.");
 			return respondError(err, 500);
 		}
 		
-		if (!InputValidator.isValidPIN(pinCode)) {
+		if (!InputValidator.isValidPIN("" + pinCode)) {
 			String err = buildError(418, "One or more parameter has an invalid value. See message.", pinCard + " is not a valid PIN.");
 			return respondError(err, 500);
 		}
@@ -745,22 +753,25 @@ public class ClientHandler {
 		}
 		
 		// If the debit card could not be found, stop and notify the client
-		if (DataManager.isPrimaryKeyUnique(DebitCard.CLASSNAME, DebitCard.PRIMARYKEYNAME, pinCard)) {
+		if (DataManager.isPrimaryKeyUnique(DebitCard.CLASSNAME, DebitCard.PRIMARYKEYNAME, "" + pinCard)) {
 			String err = buildError(500, "An unexpected error occured, see error details.", "Card " + pinCard + " could not be found.");
 			return respondError(err, 500);
 		}
 		
-		DebitCard card = (DebitCard) DataManager.getObjectByPrimaryKey(DebitCard.CLASSNAME, pinCard);
+		DebitCard card = (DebitCard) DataManager.getObjectByPrimaryKey(DebitCard.CLASSNAME, "" + pinCard);
 		
 		// If the payment goes wrong, stop and report the exception
 		try {
-			card.pinPayment(amount, pinCode, targetIBAN);
+			card.pinPayment(amount, "" + pinCode, targetIBAN);
 		} catch (IllegalAmountException | IllegalTransferException e) {
 			String err = buildError(500, "An unexpected error occured, see error details.", e.toString());
 			return respondError(err, 500);
 		}
 		
-		JSONRPC2Response jResp = new JSONRPC2Response(true, "response-" + java.lang.System.currentTimeMillis());
+		HashMap<String, Object> resp = new HashMap<>();
+		resp.put("result", true);
+		
+		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
 		return respond(jResp.toJSONString());
 	}
 
@@ -778,15 +789,14 @@ public class ClientHandler {
 		String sourceIBAN = (String) params.get("sourceIBAN");
 		String targetIBAN = (String) params.get("targetIBAN");
 		String targetName = (String) params.get("targetName");
-		String strAmount = (String) params.get("amount");
 		String description = (String) params.get("description");
-		float amount = 0;
+		double amount = 0;
 		
 		// If any parameter has an invalid value, stop and notify the client
 		try {
-			amount = Float.parseFloat(strAmount);
-		} catch (NumberFormatException e) {
-			String err = buildError(418, "One or more parameter has an invalid value. See message.", strAmount + " is not a valid amount.");
+			amount = (double) params.get("amount");
+		} catch (ClassCastException e) {
+			String err = buildError(418, "One or more parameter has an invalid value. See message.", amount + " is not a valid amount.");
 			return respondError(err, 500);
 		}
 		
@@ -1037,7 +1047,7 @@ public class ClientHandler {
 				tMap.put("targetName", "N/A");
 			}
 			tMap.put("date", t.getDateTime());
-			tMap.put("amount", Float.toString(t.getAmount()));
+			tMap.put("amount", Double.toString(t.getAmount()));
 			tMap.put("description", t.getDescription());
 			transactionMaps.add(tMap);
 			counter--;

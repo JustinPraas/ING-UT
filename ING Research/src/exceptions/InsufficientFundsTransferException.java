@@ -7,11 +7,11 @@ package exceptions;
  */
 public class InsufficientFundsTransferException extends IllegalTransferException {
 	private static final long serialVersionUID = -8284837193637155915L;
-	float balance;
+	double balance;
 	String IBAN;
-	float amount;
+	double amount;
 	
-	public InsufficientFundsTransferException(float balance, String IBAN, float amount) {
+	public InsufficientFundsTransferException(double balance, String IBAN, double amount) {
 		this.balance = balance;
 		this.IBAN = IBAN;
 		this.amount = amount;
