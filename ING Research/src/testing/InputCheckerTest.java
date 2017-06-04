@@ -246,9 +246,9 @@ public class InputCheckerTest {
 	
 	@Test
 	public void testIsValidCardNumber() {
-		String cardNum = "342T244";
-		String nonNum1 = "34T3453";
-		String nonNum2 = "3453453";
+		String cardNum = "3420244";
+		String nonNum1 = "343T4453";
+		String nonNum2 = "345T453";
 		
 		assert(InputValidator.isValidCardNumber(cardNum));
 		assert(!InputValidator.isValidCardNumber(nonNum1));
