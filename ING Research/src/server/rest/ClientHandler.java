@@ -645,10 +645,10 @@ public class ClientHandler {
 			return respondError(err, 500);
 		}
 		
-		if (!InputValidator.isValidCardNumber("" + pinCard)) {
-			String err = buildError(418, "One or more parameter has an invalid value. See message.", pinCard + " is not a valid card number.");
-			return respondError(err, 500);
-		}
+//		if (!InputValidator.isValidCardNumber("" + pinCard)) {
+//			String err = buildError(418, "One or more parameter has an invalid value. See message.", pinCard + " is not a valid card number.");
+//			return respondError(err, 500);
+//		}
 		
 		if (!InputValidator.isValidPIN("" + pinCode)) {
 			String err = buildError(418, "One or more parameter has an invalid value. See message.", pinCode + " is not a valid PIN.");
@@ -729,10 +729,10 @@ public class ClientHandler {
 			return respondError(err, 500);
 		}
 		
-		if (!InputValidator.isValidCardNumber("" + pinCard)) {
-			String err = buildError(418, "One or more parameter has an invalid value. See message.", pinCard + " is not a valid card number.");
-			return respondError(err, 500);
-		}
+//		if (!InputValidator.isValidCardNumber("" + pinCard)) {
+//			String err = buildError(418, "One or more parameter has an invalid value. See message.", pinCard + " is not a valid card number.");
+//			return respondError(err, 500);
+//		}
 		
 		if (!InputValidator.isValidPIN("" + pinCode)) {
 			String err = buildError(418, "One or more parameter has an invalid value. See message.", pinCard + " is not a valid PIN.");
@@ -954,7 +954,10 @@ public class ClientHandler {
 			return respondError(err, 500);
 		}
 		
-		JSONRPC2Response jResp = new JSONRPC2Response(new Float(source.getBalance()), "response-" + java.lang.System.currentTimeMillis());
+		HashMap<String, Object> resp = new HashMap<>();
+		resp.put("result", new Double(source.getBalance()));
+		
+		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
 		return respond(jResp.toJSONString());
 	}
 
@@ -970,7 +973,7 @@ public class ClientHandler {
 		
 		String authToken = (String) params.get("authToken");
 		String IBAN = (String) params.get("iBAN");
-		int num = 0;
+		long num = 0;
 		
 		// If the IBAN is invalid, stop and notify the client
 		if (!InputValidator.isValidIBAN(IBAN)) {
@@ -980,7 +983,7 @@ public class ClientHandler {
 		
 		// If the number of transactions is not an integer, stop and notify the client
 		try {
-			num = Integer.parseInt((String) params.get("nrOfTransactions"));
+			num = (long) params.get("nrOfTransactions");
 		} catch (NumberFormatException e) {
 			String err = buildError(418, "One or more parameter has an invalid value. See message.", params.get("nrOfTransactions") + " is not a valid amount.");
 			return respondError(err, 500);
@@ -1029,7 +1032,8 @@ public class ClientHandler {
 		Collections.reverse(transactions);
 		@SuppressWarnings("rawtypes")
 		ArrayList<HashMap> transactionMaps = new ArrayList<>();
-		int counter = num, i;
+		long counter = num;
+		int i;
 		for (i = 0; i < transactions.size(); i++) {
 			Transaction t = transactions.get(i);
 			HashMap<String, String> tMap = new HashMap<>();
