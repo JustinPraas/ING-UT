@@ -1,6 +1,7 @@
 package exceptions;
 
-public class ExpiredCardException {
+public class ExpiredCardException extends Exception {
+	private static final long serialVersionUID = -5804804620134879308L;
 	String card, expDate;
 	
 	public ExpiredCardException(String card, String expDate) {
