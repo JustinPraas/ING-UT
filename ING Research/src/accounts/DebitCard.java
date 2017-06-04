@@ -8,8 +8,10 @@ import javax.persistence.Table;
 import javax.persistence.Transient;
 
 import database.DataManager;
+import exceptions.ExpiredCardException;
 import exceptions.IllegalAmountException;
 import exceptions.IllegalTransferException;
+import exceptions.InvalidPINException;
 
 import java.sql.Date;
 import java.text.ParseException;
@@ -164,16 +166,15 @@ public class DebitCard implements database.DBObject {
 	 * @param amount The amount to be charged
 	 * @param PIN The PIN entered
 	 * @param destination The destination IBAN
+	 * @throws InvalidPINException 
+	 * @throws ExpiredCardException 
 	 */
-	public void pinPayment(double amount, String PIN, BankAccount destination) {
-		//TODO Throw exceptions for expired card, invalid PIN
+	public void pinPayment(double amount, String PIN, BankAccount destination) throws InvalidPINException, ExpiredCardException {
 		BankAccount ownAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, bankAccountIBAN);
 		if (!isValidPIN(PIN)) {
-			System.err.println("Invalid PIN.");
-			return;
+			throw new InvalidPINException(PIN, getCardNumber());
 		} else if (isExpired()) {
-			System.err.println("Card " + cardNumber + " is expired.");
-			return;
+			throw new ExpiredCardException(getCardNumber(), getExpirationDate());
 		}
 		
 		try {
@@ -187,15 +188,12 @@ public class DebitCard implements database.DBObject {
 		}
 	}
 	
-	public void pinPayment(double amount, String PIN, String destinationIBAN) throws IllegalAmountException, IllegalTransferException {
-		//TODO Throw exceptions for expired card, invalid PIN
+	public void pinPayment(double amount, String PIN, String destinationIBAN) throws IllegalAmountException, IllegalTransferException, InvalidPINException, ExpiredCardException {
 		BankAccount ownAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, bankAccountIBAN);
 		if (!isValidPIN(PIN)) {
-			System.err.println("Invalid PIN.");
-			return;
+			throw new InvalidPINException(PIN, getCardNumber());
 		} else if (isExpired()) {
-			System.err.println("Card " + cardNumber + " is expired.");
-			return;
+			throw new ExpiredCardException(getCardNumber(), getExpirationDate());
 		}
 		
 		ownAccount.transfer(destinationIBAN, amount, "Debit card payment from " + ownAccount.getIBAN() + " to " + destinationIBAN + ".");
