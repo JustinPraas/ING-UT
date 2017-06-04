@@ -33,6 +33,7 @@ All of the aforementioned dependencies are automatically managed via Maven.
 
 ## Significant Assumptions
 
+* That having matching IDs for corresponding JSON-RPC request/response pairs is currently irrelevant
 * That security is completely outside the scope of this project
 * That we are not considering the possibility of having multiple concurrent clients
 * That transaction atomicity is not an implicit part of the given requirements specification
