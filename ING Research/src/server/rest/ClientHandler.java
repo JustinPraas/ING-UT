@@ -33,8 +33,10 @@ import database.DataManager;
 import database.SQLiteDB;
 import server.core.InputValidator;
 import exceptions.ClosedAccountTransferException;
+import exceptions.ExpiredCardException;
 import exceptions.IllegalAmountException;
 import exceptions.IllegalTransferException;
+import exceptions.InvalidPINException;
 
 @Path("/banking")
 public class ClientHandler {
@@ -645,11 +647,6 @@ public class ClientHandler {
 			return respondError(err, 500);
 		}
 		
-//		if (!InputValidator.isValidCardNumber("" + pinCard)) {
-//			String err = buildError(418, "One or more parameter has an invalid value. See message.", pinCard + " is not a valid card number.");
-//			return respondError(err, 500);
-//		}
-		
 		if (!InputValidator.isValidPIN("" + pinCode)) {
 			String err = buildError(418, "One or more parameter has an invalid value. See message.", pinCode + " is not a valid PIN.");
 			return respondError(err, 500);
@@ -729,11 +726,6 @@ public class ClientHandler {
 			return respondError(err, 500);
 		}
 		
-//		if (!InputValidator.isValidCardNumber("" + pinCard)) {
-//			String err = buildError(418, "One or more parameter has an invalid value. See message.", pinCard + " is not a valid card number.");
-//			return respondError(err, 500);
-//		}
-		
 		if (!InputValidator.isValidPIN("" + pinCode)) {
 			String err = buildError(418, "One or more parameter has an invalid value. See message.", pinCard + " is not a valid PIN.");
 			return respondError(err, 500);
@@ -756,8 +748,11 @@ public class ClientHandler {
 		// If the payment goes wrong, stop and report the exception
 		try {
 			card.pinPayment(amount, "" + pinCode, targetIBAN);
-		} catch (IllegalAmountException | IllegalTransferException e) {
+		} catch (IllegalAmountException | IllegalTransferException | ExpiredCardException e) {
 			String err = buildError(500, "An unexpected error occured, see error details.", e.toString());
+			return respondError(err, 500);
+		} catch (InvalidPINException e) {
+			String err = buildError(421, "An invalid PINcard, -code or -combination was used.");
 			return respondError(err, 500);
 		}
 		
