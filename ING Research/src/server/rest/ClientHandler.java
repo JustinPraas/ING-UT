@@ -499,8 +499,8 @@ public class ClientHandler {
 		
 		HashMap<String, Object> resp = new HashMap<>();
 		
-		resp.put("pinCard", Long.parseLong(pinCard));
-		resp.put("pinCode", Long.parseLong(pinCode));
+		resp.put("pinCard", pinCard);
+		resp.put("pinCode", pinCode);
 		
 		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
 		return respond(jResp.toJSONString());
