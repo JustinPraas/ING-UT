@@ -287,8 +287,8 @@ public class ClientHandler {
 		HashMap<String, Object> resp = new HashMap<>();
 		
 		resp.put("iBAN", IBAN);
-		resp.put("pinCard", Long.parseLong(pinCard));
-		resp.put("pinCode", Long.parseLong(pinCode));
+		resp.put("pinCard", pinCard);
+		resp.put("pinCode", pinCode);
 		
 		JSONRPC2Response response = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
 		return respond(response.toJSONString());
@@ -325,8 +325,8 @@ public class ClientHandler {
 		// Send the user the details of his new account and card
 		HashMap<String, Object> resp = new HashMap<>();
 		resp.put("iBAN", IBAN);
-		resp.put("pinCard", Long.parseLong(pinCard));
-		resp.put("pinCode", Long.parseLong(pinCode));
+		resp.put("pinCard", pinCard);
+		resp.put("pinCode", pinCode);
 		
 		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
 		
@@ -630,8 +630,8 @@ public class ClientHandler {
 		}
 		
 		String IBAN = (String) params.get("iBAN");
-		String pinCard = "" + params.get("pinCard");
-		String pinCode = "" + params.get("pinCode");
+		String pinCard = (String) params.get("pinCard");
+		String pinCode = (String) params.get("pinCode");
 		double amount = 0;
 		
 		// If any given parameter values are invalid, stop and notify the client
@@ -647,8 +647,13 @@ public class ClientHandler {
 			return respondError(err, 500);
 		}
 		
-		if (!InputValidator.isValidPIN("" + pinCode)) {
+		if (!InputValidator.isValidPIN(pinCode)) {
 			String err = buildError(418, "One or more parameter has an invalid value. See message.", pinCode + " is not a valid PIN.");
+			return respondError(err, 500);
+		}
+		
+		if (!InputValidator.isValidCardNumber(pinCard)) {
+			String err = buildError(418, "One or more parameter has an invalid value. See message.", pinCard + " is not a valid PIN.");
 			return respondError(err, 500);
 		}
 		
@@ -704,8 +709,8 @@ public class ClientHandler {
 		
 		String sourceIBAN = (String) params.get("sourceIBAN");
 		String targetIBAN = (String) params.get("targetIBAN");
-		long pinCard = (long) params.get("pinCard");
-		long pinCode = (long) params.get("pinCode");
+		String pinCard = (String) params.get("pinCard");
+		String pinCode = (String) params.get("pinCode");
 		double amount = 0;
 		
 		// If any of the parameters have invalid values, stop and notify the client
@@ -726,7 +731,12 @@ public class ClientHandler {
 			return respondError(err, 500);
 		}
 		
-		if (!InputValidator.isValidPIN("" + pinCode)) {
+		if (!InputValidator.isValidPIN(pinCode)) {
+			String err = buildError(418, "One or more parameter has an invalid value. See message.", pinCode + " is not a valid PIN.");
+			return respondError(err, 500);
+		}
+		
+		if (!InputValidator.isValidCardNumber(pinCard)) {
 			String err = buildError(418, "One or more parameter has an invalid value. See message.", pinCard + " is not a valid PIN.");
 			return respondError(err, 500);
 		}
@@ -747,7 +757,7 @@ public class ClientHandler {
 		
 		// If the payment goes wrong, stop and report the exception
 		try {
-			card.pinPayment(amount, "" + pinCode, targetIBAN);
+			card.pinPayment(amount, pinCode, targetIBAN);
 		} catch (IllegalAmountException | IllegalTransferException | ExpiredCardException e) {
 			String err = buildError(500, "An unexpected error occured, see error details.", e.toString());
 			return respondError(err, 500);
