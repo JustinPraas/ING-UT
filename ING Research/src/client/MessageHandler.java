@@ -378,9 +378,10 @@ public class MessageHandler {
 			}
 			
 			System.out.println("Transaction history:");
+			@SuppressWarnings({ "unchecked", "rawtypes" })
 			ArrayList<HashMap> transactions = (ArrayList<HashMap>) jResp.getResult();
 			
-			for (HashMap hm : transactions) {
+			for (HashMap<?, ?> hm : transactions) {
 				System.out.println("==============================");
 				System.out.println("Source IBAN: " + hm.get("sourceIBAN"));
 				System.out.println("Target IBAN: " + hm.get("targetIBAN"));
@@ -453,6 +454,7 @@ public class MessageHandler {
 				}
 				return;
 			}
+			@SuppressWarnings("unchecked")
 			HashMap<String, Object> results = (HashMap<String, Object>) jResp.getResult();
 			AUTHTOKEN = (String) results.get("authToken");
 			state = State.AUTHENTICATED;
@@ -575,6 +577,7 @@ public class MessageHandler {
 				return;
 			}
 			
+			@SuppressWarnings("unchecked")
 			HashMap<String, Object> results = (HashMap<String, Object>) jResp.getResult();
 			
 			String iBAN = (String) results.get("iBAN");
@@ -593,6 +596,7 @@ public class MessageHandler {
 	 * @param parameters consists of the BSN, first name, surname, street address,
 	 * email address, phone number and the birth date
 	 */
+	@SuppressWarnings("unchecked")
 	private void openAccount(String parameters) {
 		String[] parameterArray = parameters.split(":");
 		
@@ -654,10 +658,7 @@ public class MessageHandler {
 	}
 	
 	public String sendToServer(JSONRPC2Request request) {
-		//System.out.println(request.toJSONString());
 		String message = request.toJSONString();
-		//System.out.println("Sending to server: " + message);
-		//System.out.println();
 	
 		HttpPost httpPost = new HttpPost("http://localhost:8080/ING-UT/rest/banking/postRequest");
 		StringEntity msg = new StringEntity(message, ContentType.create("application/json", "UTF-8"));
@@ -665,16 +666,12 @@ public class MessageHandler {
 		
 		try {
 			HttpResponse x = httpclient.execute(httpPost);
-			//System.out.println(x.toString());
-			//System.out.println(x.getEntity().getContent().toString());
-			//System.out.println("\n");
 			BufferedReader reader = new BufferedReader(new InputStreamReader(
 					(x.getEntity().getContent())));
 			String out, output = "";
 			while ((out = reader.readLine()) != null) {
 				output += out;
 			}
-			//System.out.println(output);
 			return output;
 		} catch (IOException e) {
 			e.printStackTrace();

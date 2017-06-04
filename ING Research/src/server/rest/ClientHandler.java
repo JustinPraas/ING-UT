@@ -4,9 +4,6 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -244,16 +241,6 @@ public class ClientHandler {
 			return respondError(err, 500);
 		}
 		
-		// TODO: Figure out standard date format, uncomment
-//		String date = (String) params.get("dob");
-//		DateFormat df = new SimpleDateFormat("dd/MM/yyyy"); 
-//		try {
-//		    df.parse(date);
-//		} catch (ParseException e) {
-//		    String err = buildError(418, "One or more parameter has an invalid value. See message.", date + " is not a valid date in dd/MM/yyyy format.");
-//		    return respondError(err, 500);
-//		}
-		
 		if (!InputValidator.isValidBSN((String) params.get("ssn"))) {
 		    String err = buildError(418, "One or more parameter has an invalid value. See message.", params.get("BSN") + " is not a valid BSN.");
 		    return respondError(err, 500);
@@ -421,7 +408,6 @@ public class ClientHandler {
 		
 		// If all is well, respond with true.
 		HashMap<String, Object> resp = new HashMap<>();
-		resp.put("result", true);
 		
 		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
 		return respond(jResp.toJSONString());
@@ -627,7 +613,6 @@ public class ClientHandler {
 		targetAcc.saveToDB();
 		
 		HashMap<String, Object> resp = new HashMap<>();
-		resp.put("result", true);
 		
 		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
 		return respond(jResp.toJSONString());
@@ -705,7 +690,6 @@ public class ClientHandler {
 		bAcc.saveToDB();
 		
 		HashMap<String, Object> resp = new HashMap<>();
-		resp.put("result", true);
 		
 		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
 		return respond(jResp.toJSONString());
@@ -778,7 +762,6 @@ public class ClientHandler {
 		}
 		
 		HashMap<String, Object> resp = new HashMap<>();
-		resp.put("result", true);
 		
 		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
 		return respond(jResp.toJSONString());
@@ -860,7 +843,9 @@ public class ClientHandler {
 			return respondError(err, 500);
 		}
 
-		JSONRPC2Response jResp = new JSONRPC2Response(true, "response-" + java.lang.System.currentTimeMillis());
+		HashMap<String, Object> resp = new HashMap<>();
+		
+		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
 		return respond(jResp.toJSONString());
 	}
 
