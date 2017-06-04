@@ -20,12 +20,11 @@ CREATE TABLE IF NOT EXISTS customeraccounts (
 );
 
 CREATE TABLE IF NOT EXISTS customerbankaccounts (
-	id INTEGER PRIMARY KEY,
     customer_BSN VARCHAR NOT NULL,
     IBAN VARCHAR NOT NULL,
     FOREIGN KEY(customer_BSN) REFERENCES customeraccounts(customer_BSN),
     FOREIGN KEY(IBAN) REFERENCES bankaccounts(IBAN),
-    UNIQUE(customer_BSN, IBAN)
+    PRIMARY KEY(customer_BSN, IBAN)
 );
 
 CREATE TABLE IF NOT EXISTS transactions (
@@ -35,8 +34,6 @@ CREATE TABLE IF NOT EXISTS transactions (
     date_time VARCHAR NOT NULL,
     amount NUMERIC NOT NULL,
     description VARCHAR NOT NULL,
-    target_name VARCHAR,
-    date_time_milis BIGINT NOT NULL,
     FOREIGN KEY (source_IBAN) REFERENCES bankaccounts(IBAN),
     FOREIGN KEY (destination_IBAN) REFERENCES bankaccounts(IBAN)
 );

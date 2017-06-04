@@ -14,6 +14,7 @@ import accounts.BankAccount;
 import accounts.CustomerAccount;
 import accounts.Transaction;
 import database.DataManager;
+import exceptions.ClosedAccountTransferException;
 import exceptions.IllegalAmountException;
 import exceptions.IllegalTransferException;
 
@@ -21,10 +22,11 @@ public class AccountTest {
 	public static String customerBSN = "1453.25.62";
 	public static BankAccount bankAccount;
 	public static CustomerAccount customerAccount;
+	public static String CARDNUM = "TESTCARDNUM";
 	
 	@Before
 	public void init() throws Exception {
-		customerAccount = new CustomerAccount("John", "Test", customerBSN, "103 Testings Ave.", "000-TEST", "johntest@testing.test", "TESTDATE");
+		customerAccount = new CustomerAccount("John", "Test", "JT", customerBSN, "103 Testings Ave.", "000-TEST", "johntest@testing.test", "TESTDATE", "blah", "blah");
 		customerAccount.openBankAccount();
 		Set<BankAccount> bankAccounts = customerAccount.getBankAccounts();
 		for (BankAccount key : bankAccounts) {
@@ -51,8 +53,8 @@ public class AccountTest {
 	@Test
 	public void accountDepositTest() {
 		try {
-			bankAccount.deposit(100);
-		} catch (IllegalAmountException e) {
+			bankAccount.deposit(100, CARDNUM);
+		} catch (IllegalAmountException | ClosedAccountTransferException e) {
 			
 		}
 		
@@ -63,8 +65,8 @@ public class AccountTest {
 	@Test
 	public void illegalDepositTest() {
 		try {
-			bankAccount.deposit(-100);
-		} catch (IllegalAmountException e) {
+			bankAccount.deposit(-100, CARDNUM);
+		} catch (IllegalAmountException | ClosedAccountTransferException e) {
 			
 		}
 		
@@ -76,8 +78,8 @@ public class AccountTest {
 	public void transferTest() {
 		BankAccount bankAccount2 = new BankAccount(customerAccount.getBSN());
 		try {
-			bankAccount2.deposit(100);
-		} catch (IllegalAmountException e) {
+			bankAccount2.deposit(100, CARDNUM);
+		} catch (IllegalAmountException | ClosedAccountTransferException e) {
 			
 		}
 		
@@ -148,8 +150,10 @@ public class AccountTest {
 	public void illegalTransferAmountTest() {
 		BankAccount bankAccount2 = new BankAccount(customerAccount.getBSN());
 		try {
-			bankAccount2.deposit(100);
+			bankAccount2.deposit(100, CARDNUM);
 		} catch (IllegalAmountException e) {
+			
+		} catch (ClosedAccountTransferException e) {
 			
 		}
 		
@@ -171,8 +175,8 @@ public class AccountTest {
 	public void illegalTransferTest() {
 		BankAccount bankAccount2 = new BankAccount(customerAccount.getBSN());
 		try {
-			bankAccount2.deposit(100);
-		} catch (IllegalAmountException e) {
+			bankAccount2.deposit(100, CARDNUM);
+		} catch (IllegalAmountException | ClosedAccountTransferException e) {
 			
 		}
 		

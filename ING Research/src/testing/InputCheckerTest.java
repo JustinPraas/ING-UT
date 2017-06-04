@@ -3,7 +3,7 @@ package testing;
 import static org.junit.Assert.*;
 import org.junit.Test;
 
-import client.InputChecker;
+import server.core.InputValidator;
 
 /**
  * A simple test class for the InputChecker.
@@ -21,11 +21,11 @@ public class InputCheckerTest {
 		String invalid3 = "3b";
 		String invalid4 = "'313`3&35";
 		
-		assertFalse(InputChecker.isNumericalOnly(invalid1));
-		assertFalse(InputChecker.isNumericalOnly(invalid2));
-		assertFalse(InputChecker.isNumericalOnly(invalid3));
-		assertFalse(InputChecker.isNumericalOnly(invalid4));
-		assertTrue(InputChecker.isNumericalOnly(valid));
+		assertFalse(InputValidator.isNumericalOnly(invalid1));
+		assertFalse(InputValidator.isNumericalOnly(invalid2));
+		assertFalse(InputValidator.isNumericalOnly(invalid3));
+		assertFalse(InputValidator.isNumericalOnly(invalid4));
+		assertTrue(InputValidator.isNumericalOnly(valid));
 	}
 	
 	@Test
@@ -40,14 +40,14 @@ public class InputCheckerTest {
 		String invalid3 = "-";
 		String invalid4 = "4";
 
-		assertTrue(InputChecker.isAlphabeticalOnly(valid1));
-		assertTrue(InputChecker.isAlphabeticalOnly(valid2));
-		assertTrue(InputChecker.isAlphabeticalOnly(valid3));
-		assertTrue(InputChecker.isAlphabeticalOnly(valid4));
-		assertFalse(InputChecker.isAlphabeticalOnly(invalid1));
-		assertFalse(InputChecker.isAlphabeticalOnly(invalid2));
-		assertFalse(InputChecker.isAlphabeticalOnly(invalid3));
-		assertFalse(InputChecker.isAlphabeticalOnly(invalid4));
+		assertTrue(InputValidator.isAlphabeticalOnly(valid1));
+		assertTrue(InputValidator.isAlphabeticalOnly(valid2));
+		assertTrue(InputValidator.isAlphabeticalOnly(valid3));
+		assertTrue(InputValidator.isAlphabeticalOnly(valid4));
+		assertFalse(InputValidator.isAlphabeticalOnly(invalid1));
+		assertFalse(InputValidator.isAlphabeticalOnly(invalid2));
+		assertFalse(InputValidator.isAlphabeticalOnly(invalid3));
+		assertFalse(InputValidator.isAlphabeticalOnly(invalid4));
 	}
 	
 	@Test
@@ -61,13 +61,13 @@ public class InputCheckerTest {
 		String invalid4 = "2305201d";
 		String invalid5 = "2305201dd";
 
-		assertTrue(InputChecker.isValidBSN(valid1));
-		assertTrue(InputChecker.isValidBSN(valid2));
-		assertFalse(InputChecker.isValidBSN(invalid1));
-		assertFalse(InputChecker.isValidBSN(invalid2));
-		assertFalse(InputChecker.isValidBSN(invalid3));
-		assertFalse(InputChecker.isValidBSN(invalid4));
-		assertFalse(InputChecker.isValidBSN(invalid5));
+		assertTrue(InputValidator.isValidBSN(valid1));
+		assertTrue(InputValidator.isValidBSN(valid2));
+		assertFalse(InputValidator.isValidBSN(invalid1));
+		assertFalse(InputValidator.isValidBSN(invalid2));
+		assertFalse(InputValidator.isValidBSN(invalid3));
+		assertFalse(InputValidator.isValidBSN(invalid4));
+		assertFalse(InputValidator.isValidBSN(invalid5));
 	}
 	
 	@Test
@@ -80,12 +80,12 @@ public class InputCheckerTest {
 		String invalid3 = "JustinPraasSteenanjerNijverdalTheNetherlands"; // Too long
 		String invalid4 = "333";
 		
-		assertTrue(InputChecker.isValidName(valid1));
-		assertTrue(InputChecker.isValidName(valid2));
-		assertFalse(InputChecker.isValidName(invalid1));
-		assertFalse(InputChecker.isValidName(invalid2));
-		assertFalse(InputChecker.isValidName(invalid3));
-		assertFalse(InputChecker.isValidName(invalid4));
+		assertTrue(InputValidator.isValidName(valid1));
+		assertTrue(InputValidator.isValidName(valid2));
+		assertFalse(InputValidator.isValidName(invalid1));
+		assertFalse(InputValidator.isValidName(invalid2));
+		assertFalse(InputValidator.isValidName(invalid3));
+		assertFalse(InputValidator.isValidName(invalid4));
 	}
 	
 	@Test
@@ -97,11 +97,11 @@ public class InputCheckerTest {
 		String invalid1 = "3Delige madeliefstraat";
 		String invalid2 = "d";
 
-		assertTrue(InputChecker.isValidStreetAddress(valid1));
-		assertTrue(InputChecker.isValidStreetAddress(valid2));
-		assertTrue(InputChecker.isValidStreetAddress(valid3));
-		assertFalse(InputChecker.isValidStreetAddress(invalid1));
-		assertFalse(InputChecker.isValidStreetAddress(invalid2));
+		assertTrue(InputValidator.isValidStreetAddress(valid1));
+		assertTrue(InputValidator.isValidStreetAddress(valid2));
+		assertTrue(InputValidator.isValidStreetAddress(valid3));
+		assertFalse(InputValidator.isValidStreetAddress(invalid1));
+		assertFalse(InputValidator.isValidStreetAddress(invalid2));
 	}
 	
 	@Test
@@ -112,10 +112,10 @@ public class InputCheckerTest {
 		String invalid1 = "a.b.c.@gmail.com";
 		String invalid2 = "a.jansen@.gmail.org";
 		
-		assertTrue(InputChecker.isValidEmailAddress(valid1));
-		assertTrue(InputChecker.isValidEmailAddress(valid2));
-		assertFalse(InputChecker.isValidEmailAddress(invalid1));
-		assertFalse(InputChecker.isValidEmailAddress(invalid2));
+		assertTrue(InputValidator.isValidEmailAddress(valid1));
+		assertTrue(InputValidator.isValidEmailAddress(valid2));
+		assertFalse(InputValidator.isValidEmailAddress(invalid1));
+		assertFalse(InputValidator.isValidEmailAddress(invalid2));
 	}
 	
 	@Test
@@ -127,11 +127,11 @@ public class InputCheckerTest {
 		String invalid2 = "065102779355";
 		String invalid3 = "06510277";
 		
-		assertTrue(InputChecker.isValidPhoneNumber(valid1));
-		assertTrue(InputChecker.isValidPhoneNumber(valid2));
-		assertFalse(InputChecker.isValidPhoneNumber(invalid1));
-		assertFalse(InputChecker.isValidPhoneNumber(invalid2));
-		assertFalse(InputChecker.isValidPhoneNumber(invalid3));
+		assertTrue(InputValidator.isValidPhoneNumber(valid1));
+		assertTrue(InputValidator.isValidPhoneNumber(valid2));
+		assertFalse(InputValidator.isValidPhoneNumber(invalid1));
+		assertFalse(InputValidator.isValidPhoneNumber(invalid2));
+		assertFalse(InputValidator.isValidPhoneNumber(invalid3));
 	}
 	
 	@Test
@@ -147,15 +147,15 @@ public class InputCheckerTest {
 		String invalid5 = "30-2000-11";
 		String invalid6 = "11-2000-30";
 		
-		assertTrue(InputChecker.isValidBirthDate(valid1));
-		assertTrue(InputChecker.isValidBirthDate(valid2));
-		assertTrue(InputChecker.isValidBirthDate(valid3));
-		assertFalse(InputChecker.isValidBirthDate(invalid1));
-		assertFalse(InputChecker.isValidBirthDate(invalid2));
-		assertFalse(InputChecker.isValidBirthDate(invalid3));
-		assertFalse(InputChecker.isValidBirthDate(invalid4));
-		assertFalse(InputChecker.isValidBirthDate(invalid5));
-		assertFalse(InputChecker.isValidBirthDate(invalid6));		
+		assertTrue(InputValidator.isValidBirthDate(valid1));
+		assertTrue(InputValidator.isValidBirthDate(valid2));
+		assertTrue(InputValidator.isValidBirthDate(valid3));
+		assertFalse(InputValidator.isValidBirthDate(invalid1));
+		assertFalse(InputValidator.isValidBirthDate(invalid2));
+		assertFalse(InputValidator.isValidBirthDate(invalid3));
+		assertFalse(InputValidator.isValidBirthDate(invalid4));
+		assertFalse(InputValidator.isValidBirthDate(invalid5));
+		assertFalse(InputValidator.isValidBirthDate(invalid6));		
 	}
 	
 	@Test
@@ -170,12 +170,12 @@ public class InputCheckerTest {
 		String invalid3 = "3L35ABNA000325D223";
 		String invalid4 = "NLB5ABNA000325D223";
 		
-		assertTrue(InputChecker.isValidIBAN(valid1));
-		assertTrue(InputChecker.isValidIBAN(valid2));
-		assertFalse(InputChecker.isValidIBAN(invalid1));
-		assertFalse(InputChecker.isValidIBAN(invalid2));
-		assertFalse(InputChecker.isValidIBAN(invalid3));
-		assertFalse(InputChecker.isValidIBAN(invalid4));		
+		assertTrue(InputValidator.isValidIBAN(valid1));
+		assertTrue(InputValidator.isValidIBAN(valid2));
+		assertFalse(InputValidator.isValidIBAN(invalid1));
+		assertFalse(InputValidator.isValidIBAN(invalid2));
+		assertFalse(InputValidator.isValidIBAN(invalid3));
+		assertFalse(InputValidator.isValidIBAN(invalid4));		
 	}
 	
 	@Test
@@ -201,28 +201,28 @@ public class InputCheckerTest {
 		String validBirthDate = "22-03-1998";
 		String invalidBirthDate = "33-02-2000";
 		
-		assertTrue(InputChecker.isValidCustomer(validBSN, validFirstName, 
+		assertTrue(InputValidator.isValidCustomer(validBSN, validFirstName, 
 				validSurname, validStreetAddress, validEmailAddress, validPhoneNumber, 
 				validBirthDate));
-		assertFalse(InputChecker.isValidCustomer(invalidBSN, validFirstName, 
+		assertFalse(InputValidator.isValidCustomer(invalidBSN, validFirstName, 
 				validSurname, validStreetAddress, validEmailAddress, validPhoneNumber, 
 				validBirthDate));
-		assertFalse(InputChecker.isValidCustomer(validBSN, invalidFirstName, 
+		assertFalse(InputValidator.isValidCustomer(validBSN, invalidFirstName, 
 				validSurname, validStreetAddress, validEmailAddress, validPhoneNumber, 
 				validBirthDate));
-		assertFalse(InputChecker.isValidCustomer(validBSN, validFirstName, 
+		assertFalse(InputValidator.isValidCustomer(validBSN, validFirstName, 
 				invalidSurname, validStreetAddress, validEmailAddress, validPhoneNumber, 
 				validBirthDate));
-		assertFalse(InputChecker.isValidCustomer(validBSN, validFirstName, 
+		assertFalse(InputValidator.isValidCustomer(validBSN, validFirstName, 
 				validSurname, invalidStreetAddress, validEmailAddress, validPhoneNumber, 
 				validBirthDate));
-		assertFalse(InputChecker.isValidCustomer(validBSN, validFirstName, 
+		assertFalse(InputValidator.isValidCustomer(validBSN, validFirstName, 
 				validSurname, validStreetAddress, invalidEmailAddress, validPhoneNumber, 
 				validBirthDate));
-		assertFalse(InputChecker.isValidCustomer(validBSN, validFirstName, 
+		assertFalse(InputValidator.isValidCustomer(validBSN, validFirstName, 
 				validSurname, validStreetAddress, validEmailAddress, invalidPhoneNumber, 
 				validBirthDate));
-		assertFalse(InputChecker.isValidCustomer(validBSN, validFirstName, 
+		assertFalse(InputValidator.isValidCustomer(validBSN, validFirstName, 
 				validSurname, validStreetAddress, validEmailAddress, validPhoneNumber, 
 				invalidBirthDate));
 	}
@@ -236,23 +236,23 @@ public class InputCheckerTest {
 		String amount2 = "135";
 		String amount3 = "30204.05";
 		
-		assert(InputChecker.isValidAmount(amount1));
-		assert(InputChecker.isValidAmount(amount2));
-		assert(InputChecker.isValidAmount(amount3));
-		assert(!InputChecker.isValidAmount(nonAmount1));
-		assert(!InputChecker.isValidAmount(nonAmount2));
-		assert(!InputChecker.isValidAmount(nonAmount3));
+		assert(InputValidator.isValidAmount(amount1));
+		assert(InputValidator.isValidAmount(amount2));
+		assert(InputValidator.isValidAmount(amount3));
+		assert(!InputValidator.isValidAmount(nonAmount1));
+		assert(!InputValidator.isValidAmount(nonAmount2));
+		assert(!InputValidator.isValidAmount(nonAmount3));
 	}
 	
 	@Test
 	public void testIsValidCardNumber() {
-		String cardNum = "342T244";
-		String nonNum1 = "34T3453";
-		String nonNum2 = "3453453";
+		String cardNum = "3420244";
+		String nonNum1 = "343T4453";
+		String nonNum2 = "345T453";
 		
-		assert(InputChecker.isValidCardNumber(cardNum));
-		assert(!InputChecker.isValidCardNumber(nonNum1));
-		assert(!InputChecker.isValidCardNumber(nonNum2));
+		assert(InputValidator.isValidCardNumber(cardNum));
+		assert(!InputValidator.isValidCardNumber(nonNum1));
+		assert(!InputValidator.isValidCardNumber(nonNum2));
 	}
 	
 	@Test
@@ -261,8 +261,8 @@ public class InputCheckerTest {
 		String nonPIN1 = "4A44";
 		String nonPIN2 = "ABCD";
 		
-		assert(InputChecker.isValidPIN(PIN));
-		assert(!InputChecker.isValidPIN(nonPIN1));
-		assert(!InputChecker.isValidPIN(nonPIN2));
+		assert(InputValidator.isValidPIN(PIN));
+		assert(!InputValidator.isValidPIN(nonPIN1));
+		assert(!InputValidator.isValidPIN(nonPIN2));
 	}
 }

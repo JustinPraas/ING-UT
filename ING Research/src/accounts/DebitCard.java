@@ -88,17 +88,8 @@ public class DebitCard implements database.DBObject {
 		while (!unique) {
 			resultCardNumber = new StringBuilder();
 			
-			//Append the first 3 digits
-			for (int i = 0; i < 3; i++) {
-				resultCardNumber.append((int)(Math.random() * 10));
-			}
-			
-			//Append a random alphabetical character in the range of [A-Z]
-			char c = (char) ('A' + (int) (Math.random() * 26));
-			resultCardNumber.append(c);
-			
-			//Append the last 3 digits
-			for (int i = 0; i < 3; i++) {
+			//Append 7 random digits
+			for (int i = 0; i < 7; i++) {
 				resultCardNumber.append((int)(Math.random() * 10));
 			}
 			
@@ -174,7 +165,8 @@ public class DebitCard implements database.DBObject {
 	 * @param PIN The PIN entered
 	 * @param destination The destination IBAN
 	 */
-	public void pinMachineCharge(float amount, String PIN, BankAccount destination) {
+	public void pinPayment(double amount, String PIN, BankAccount destination) {
+		//TODO Throw exceptions for expired card, invalid PIN
 		BankAccount ownAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, bankAccountIBAN);
 		if (!isValidPIN(PIN)) {
 			System.err.println("Invalid PIN.");
@@ -183,16 +175,30 @@ public class DebitCard implements database.DBObject {
 			System.err.println("Card " + cardNumber + " is expired.");
 			return;
 		}
-			try {
-				ownAccount.transfer(destination, amount, "PIN machine payment.");
-			} catch (IllegalAmountException e) {
-				System.err.println(e.toString());
+		
+		try {
+			ownAccount.transfer(destination, amount, "Debit card payment.");
+		} catch (IllegalAmountException e) {
+			System.err.println(e.toString());
+			return;
+		} catch (IllegalTransferException e) {
+			System.err.println(e.toString());
 				return;
-			} catch (IllegalTransferException e) {
-				System.err.println(e.toString());
-				return;
-			}
-
+		}
+	}
+	
+	public void pinPayment(double amount, String PIN, String destinationIBAN) throws IllegalAmountException, IllegalTransferException {
+		//TODO Throw exceptions for expired card, invalid PIN
+		BankAccount ownAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, bankAccountIBAN);
+		if (!isValidPIN(PIN)) {
+			System.err.println("Invalid PIN.");
+			return;
+		} else if (isExpired()) {
+			System.err.println("Card " + cardNumber + " is expired.");
+			return;
+		}
+		
+		ownAccount.transfer(destinationIBAN, amount, "Debit card payment from " + ownAccount.getIBAN() + " to " + destinationIBAN + ".");
 	}
 	
 	@Column(name = "PIN")

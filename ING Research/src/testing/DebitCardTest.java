@@ -42,11 +42,11 @@ public class DebitCardTest {
 		bAcc.saveToDB();
 		bAcc2.saveToDB();
 		DebitCard card2 = new DebitCard("TEST1", "TEST2", "2022-04-30", "999", "4444");
-		card2.pinMachineCharge(1000, "3444", bAcc2);
+		card2.pinPayment(1000, "3444", bAcc2);
 		bAcc = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, bAcc.getIBAN());
 		bAcc2 = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, bAcc2.getIBAN());
 		assert(bAcc.getBalance() == 10000 && bAcc2.getBalance() == 0);
-		card2.pinMachineCharge(1000, "4444", bAcc2);
+		card2.pinPayment(1000, "4444", bAcc2);
 		bAcc = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, bAcc.getIBAN());
 		bAcc2 = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, bAcc2.getIBAN());
 		assert(bAcc.getBalance() == 9000 && bAcc2.getBalance() == 1000);

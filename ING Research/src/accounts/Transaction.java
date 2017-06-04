@@ -17,19 +17,23 @@ import database.DataManager;
  */
 @Entity
 @Table(name = "transactions")
-public class Transaction implements DBObject{
+public class Transaction implements DBObject, Comparable<Object> {
 	private String sourceIBAN;
 	private String destinationIBAN;
 	private String dateTime;
-	private float amount;
+	private long dateTimeMilis;
+	private double amount;
 	private String description;
 	private int id;
+	private String targetName;
 	public static final String CLASSNAME = "accounts.Transaction";
 	public static final String PRIMARYKEYNAME = "id";
 	
 	public Transaction() {
 		
 	}
+	
+	
 	
 	public String toString() {
 		String output = "";
@@ -71,11 +75,11 @@ public class Transaction implements DBObject{
 	}
 	
 	@Column(name = "amount")
-	public float getAmount() {
+	public double getAmount() {
 		return amount;
 	}
 	
-	public void setAmount(float amount) {
+	public void setAmount(double amount) {
 		this.amount = amount;
 	}
 	
@@ -125,5 +129,40 @@ public class Transaction implements DBObject{
 	@Override
 	public void deleteFromDB() {
 		DataManager.removeEntryFromDB(this);
+	}
+
+	@Column(name = "target_name")
+	public String getTargetName() {
+		return targetName;
+	}
+
+	public void setTargetName(String targetName) {
+		this.targetName = targetName;
+	}
+
+	@Column(name = "date_time_milis")
+	public long getDateTimeMilis() {
+		return dateTimeMilis;
+	}
+
+	public void setDateTimeMilis(long dateTimeMilis) {
+		this.dateTimeMilis = dateTimeMilis;
+	}
+
+	@Override
+	public int compareTo(Object o) {
+		if (!(o instanceof Transaction)) {
+			return 0;
+		}
+		
+		Transaction t = (Transaction) o;
+		
+		if (this.dateTimeMilis < t.dateTimeMilis) {
+			return -1;
+		} else if (this.dateTimeMilis > t.dateTimeMilis) {
+			return 1;
+		} else {
+			return 0;
+		}
 	}
 }

@@ -1,4 +1,4 @@
-package client;
+package server.core;
 
 import java.time.DateTimeException;
 import java.time.LocalDate;
@@ -10,7 +10,7 @@ import org.apache.commons.validator.routines.EmailValidator;
  * @author Justin Praas
  * @version 3rd of April, 2017
  */
-public class InputChecker {
+public class InputValidator {
 	
 	public static final String VALID_NAME_CHARACTERS = "abcdefghijklmnopqrstuvwxyzÎˆÙÈËABCDEFGHIJKLMNOPQRSTUVWXYZ÷‘…»-' ";
 	public static final String UPPER_CASE_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZÀ÷‘…»";
@@ -271,7 +271,7 @@ public class InputChecker {
 	 * @return true if the input is a valid debit card number, false otherwise
 	 */
 	public static boolean isValidCardNumber(String input) {
-		if (input.matches("^\\d{3}+[a-zA-Z]\\d{3}$")) {
+		if (input.matches("^\\d{7}$")) {
 			return true;
 		} else {
 			System.err.print("Card number " + input + " is invalid.");

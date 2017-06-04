@@ -183,10 +183,13 @@ public class BankAccount implements database.DBObject {
 	/**
 	 * Deposit a specific sum of money into the <code>BankAccount</code>.
 	 * @param amount The amount of money to be deposited
+	 * @throws ClosedAccountTransferException 
 	 */
-	public void deposit(float amount) throws IllegalAmountException {
+	public void deposit(double amount, String cardNum) throws IllegalAmountException, ClosedAccountTransferException {
 		if (amount <= 0) {
 			throw new IllegalAmountException(amount);
+		} else if (this.closed) {
+			throw new ClosedAccountTransferException();
 		}
 		this.debit(amount);
 		
@@ -196,7 +199,7 @@ public class BankAccount implements database.DBObject {
 		t.setDateTime(date);
 		t.setDestinationIBAN(this.getIBAN());
 		t.setAmount(amount);
-		t.setDescription("Physical deposit.");
+		t.setDescription("Deposit from card " + cardNum);
 		t.saveToDB();
 		this.saveToDB();
 	}
@@ -209,7 +212,7 @@ public class BankAccount implements database.DBObject {
 	public void transfer(BankAccount destination, float amount) throws IllegalAmountException, IllegalTransferException {
 		if (amount <= 0) {
 			throw new IllegalAmountException(amount);
-		} else if (balance < amount || destination.getClosed()) {
+		} else if (balance < amount) {
 			throw new InsufficientFundsTransferException(balance, IBAN, amount);
 		} else if (destination.getIBAN().equals(this.getIBAN())) {
 			throw new SameAccountTransferException();
@@ -223,6 +226,7 @@ public class BankAccount implements database.DBObject {
 		String date = c.getTime().toString();
 		Transaction t = new Transaction();
 		t.setDateTime(date);
+		t.setDateTimeMilis(c.getTimeInMillis());
 		t.setSourceIBAN(this.getIBAN());
 		t.setDestinationIBAN(destination.getIBAN());
 		t.setAmount(amount);
@@ -232,13 +236,57 @@ public class BankAccount implements database.DBObject {
 		destination.saveToDB();
 	}
 	
+	public void transfer(String destinationIBAN, double amount, String description) throws IllegalAmountException, InsufficientFundsTransferException,
+		ClosedAccountTransferException, SameAccountTransferException {
+		if (amount <= 0) {
+			throw new IllegalAmountException(amount);
+		} else if (balance < amount) {
+			throw new InsufficientFundsTransferException(balance, IBAN, amount);
+		} else if (this.closed) {
+			throw new ClosedAccountTransferException();
+		}
+		
+		boolean knownAccount = false;
+		BankAccount destination = null;
+		
+		if (!DataManager.isPrimaryKeyUnique(BankAccount.CLASSNAME, BankAccount.PRIMARYKEYNAME, destinationIBAN)) {
+			knownAccount = true;
+			destination = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, destinationIBAN);
+		}
+		
+		if (knownAccount) {
+			if (destination.getClosed()) {
+				throw new ClosedAccountTransferException();
+			} else if (destination.getIBAN().equals(this.getIBAN())) {
+				throw new SameAccountTransferException();
+			}
+		}
+		
+		this.credit(amount);
+		Calendar c = Calendar.getInstance();
+		String date = c.getTime().toString();
+		Transaction t = new Transaction();
+		t.setDateTime(date);
+		t.setDateTimeMilis(c.getTimeInMillis());
+		t.setSourceIBAN(this.getIBAN());
+		t.setDestinationIBAN(destinationIBAN);
+		t.setAmount(amount);
+		t.setDescription(description);
+		t.saveToDB();
+		this.saveToDB();
+		if (knownAccount) {
+			destination.debit(amount);
+			destination.saveToDB();
+		}
+	}
+	
 	/**
 	 * Transfers a specific amount of money from this <code>BankAccount</code> to another.
 	 * @param destination The <code>BankAccount</code> to which the transferred money should go
 	 * @param amount The amount of money to be transferred from this <code>BankAccount</code> to the destination
 	 * @param description Description of the transfer
 	 */
-	public void transfer(BankAccount destination, float amount, String description) throws IllegalAmountException, IllegalTransferException {
+	public void transfer(BankAccount destination, double amount, String description) throws IllegalAmountException, IllegalTransferException {
 		if (amount <= 0) {
 			throw new IllegalAmountException(amount);
 		} else if (balance < amount || destination.getClosed()) {
@@ -255,6 +303,35 @@ public class BankAccount implements database.DBObject {
 		String date = c.getTime().toString();
 		Transaction t = new Transaction();
 		t.setDateTime(date);
+		t.setDateTimeMilis(c.getTimeInMillis());
+		t.setSourceIBAN(this.getIBAN());
+		t.setDestinationIBAN(destination.getIBAN());
+		t.setAmount(amount);
+		t.setDescription(description);
+		t.saveToDB();
+		this.saveToDB();
+		destination.saveToDB();
+	}
+	
+	public void transfer(BankAccount destination, double amount, String description, String targetName) throws IllegalAmountException, IllegalTransferException {
+		if (amount <= 0) {
+			throw new IllegalAmountException(amount);
+		} else if (balance < amount || destination.getClosed()) {
+			throw new InsufficientFundsTransferException(balance, IBAN, amount);
+		} else if (destination.getIBAN().equals(this.getIBAN())) {
+			throw new SameAccountTransferException();
+		} else if (this.closed || destination.getClosed()) {
+			throw new ClosedAccountTransferException();
+		}
+		
+		this.credit(amount);
+		destination.debit(amount);
+		Calendar c = Calendar.getInstance();
+		String date = c.getTime().toString();
+		Transaction t = new Transaction();
+		t.setDateTime(date);
+		t.setDateTimeMilis(c.getTimeInMillis());
+		t.setTargetName(targetName);
 		t.setSourceIBAN(this.getIBAN());
 		t.setDestinationIBAN(destination.getIBAN());
 		t.setAmount(amount);
@@ -274,7 +351,7 @@ public class BankAccount implements database.DBObject {
 	 * @param amount The amount of money to credit the <code>BankAccount</code> with
 	 * @throws IllegalAmountException Thrown when the specified amount is 0 or negative
 	 */
-	public void credit(float amount) throws IllegalAmountException {
+	public void credit(double amount) throws IllegalAmountException {
 		if (amount <= 0) {
 			throw new IllegalAmountException(amount);
 		}
@@ -286,11 +363,25 @@ public class BankAccount implements database.DBObject {
 	 * @param amount The amount of money to debit the <code>BankAccount</code> with
 	 * @throws Thrown when the specified amount is 0 or negative
 	 */
-	public void debit(float amount) throws IllegalAmountException {
+	public void debit(double amount) throws IllegalAmountException {
 		if (amount <= 0) {
 			throw new IllegalAmountException(amount);
 		}
 		balance += amount;
+	}
+	
+	public void removeOwner(String BSN) {
+		CustomerAccount cAcc = null;
+		for (CustomerAccount c : owners) {
+			if (c.getBSN().equals(BSN)) {
+				cAcc = c;
+				break;
+			}
+		}
+		
+		if (cAcc != null) {
+			owners.remove(cAcc);
+		}
 	}
 	
 	public void setIBAN(String IBAN) {
