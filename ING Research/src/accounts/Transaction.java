@@ -17,7 +17,7 @@ import database.DataManager;
  */
 @Entity
 @Table(name = "transactions")
-public class Transaction implements DBObject, Comparable {
+public class Transaction implements DBObject, Comparable<Object> {
 	private String sourceIBAN;
 	private String destinationIBAN;
 	private String dateTime;
