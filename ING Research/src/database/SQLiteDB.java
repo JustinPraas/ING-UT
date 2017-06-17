@@ -9,13 +9,15 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
 
+import client.Client;
+
 /**
  * A class for dynamic DB generation.
  * @author Andrei Cojocaru
  */
 public class SQLiteDB {
-	public static final String DBName = "banking";
-	public static final String schema = "bankingtables";
+	public static final String DBName = Client.DESKTOP_PATH + "1banking.db";
+	public static final String schema = Client.DESKTOP_PATH + "bankingtables.txt";
 	
 	/**
 	 * Creates a .db file if it does not already exist.
@@ -55,7 +57,7 @@ public class SQLiteDB {
 		String tableStructure = getSchemaStatements();
 		Connection conn;
 		try {
-			conn = DriverManager.getConnection("jdbc:sqlite:" + DBName + ".db");
+			conn = DriverManager.getConnection("jdbc:sqlite:" + DBName);
 			Statement statement = conn.createStatement();
 			statement.executeUpdate(tableStructure);
 			statement.close();
@@ -68,7 +70,7 @@ public class SQLiteDB {
 	public static void executeStatement(String s) {
 		Connection conn;
 		try {
-			conn = DriverManager.getConnection("jdbc:sqlite:" + DBName + ".db");
+			conn = DriverManager.getConnection("jdbc:sqlite:" + DBName);
 			Statement statement = conn.createStatement();
 			statement.executeUpdate(s);
 			statement.close();
@@ -81,7 +83,7 @@ public class SQLiteDB {
 	public static Connection openConnection() {
 		Connection c = null;
 		try {
-			c = DriverManager.getConnection("jdbc:sqlite:" + DBName + ".db");
+			c = DriverManager.getConnection("jdbc:sqlite:" + DBName);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

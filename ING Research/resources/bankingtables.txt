@@ -1,0 +1,53 @@
+CREATE TABLE IF NOT EXISTS bankaccounts (
+	closed INTEGER DEFAULT 0,
+    IBAN VARCHAR PRIMARY KEY NOT NULL,
+    balance NUMERIC DEFAULT 0,
+    customer_BSN VARCHAR NOT NULL,
+    FOREIGN KEY(customer_BSN) REFERENCES customeraccounts(customer_BSN)
+);
+
+CREATE TABLE IF NOT EXISTS customeraccounts (
+    customer_BSN VARCHAR PRIMARY KEY NOT NULL,
+    name VARCHAR NOT NULL,
+    surname VARCHAR NOT NULL,
+    initials VARCHAR NOT NULL,
+    street_address VARCHAR NOT NULL,
+    email VARCHAR NOT NULL,
+    phone_number VARCHAR NOT NULL,
+    username VARCHAR UNIQUE NOT NULL,
+    password VARCHAR NOT NULL,
+    birth_date VARCHAR NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS customerbankaccounts (
+	id INTEGER PRIMARY KEY,
+    customer_BSN VARCHAR NOT NULL,
+    IBAN VARCHAR NOT NULL,
+    FOREIGN KEY(customer_BSN) REFERENCES customeraccounts(customer_BSN),
+    FOREIGN KEY(IBAN) REFERENCES bankaccounts(IBAN),
+    UNIQUE(customer_BSN, IBAN)
+);
+
+CREATE TABLE IF NOT EXISTS transactions (
+	ID INTEGER PRIMARY KEY,
+    source_IBAN VARCHAR,
+    destination_IBAN VARCHAR NOT NULL,
+    date_time VARCHAR NOT NULL,
+    amount NUMERIC NOT NULL,
+    description VARCHAR NOT NULL,
+    target_name VARCHAR,
+    date_time_milis BIGINT NOT NULL,
+    FOREIGN KEY (source_IBAN) REFERENCES bankaccounts(IBAN),
+    FOREIGN KEY (destination_IBAN) REFERENCES bankaccounts(IBAN)
+);
+
+CREATE TABLE IF NOT EXISTS debitcards (
+	customer_BSN VARCHAR NOT NULL,
+	bankaccount_IBAN VARCHAR NOT NULL,
+	PIN CHAR(4) NOT NULL,
+	card_number VARCHAR UNIQUE NOT NULL,
+	expiration_date VARCHAR NOT NULL,
+	FOREIGN KEY (customer_BSN) REFERENCES customeraccounts(customer_BSN),
+	FOREIGN KEY (bankaccount_IBAN) REFERENCES bankaccounts(IBAN),
+    PRIMARY KEY (card_number)
+);

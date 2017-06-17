@@ -6,7 +6,7 @@
    <session-factory>
     <property name="hibernate.dialect">com.enigmabridge.hibernate.dialect.SQLiteDialect</property>
     <property name="hibernate.connection.driver_class">org.sqlite.JDBC</property>
-    <property name="hibernate.connection.url">jdbc:sqlite:banking.db</property>
+    <property name="hibernate.connection.url">jdbc:sqlite:C:/Users/jwpra/Desktop/ING-UT Justin Praas/banking.db</property>
     <property name="connection.username"></property>
     <property name="connection.password"></property>
     <property name="hibernate.hbm2ddl.auto">update</property>
