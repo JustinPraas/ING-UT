@@ -801,8 +801,8 @@ public class ClientHandler {
 		
 		if (newPinCodeString.equals("true")) {
 			newPinCode = true;
-		} else if (!newPinCodeString.equals("true") || !newPinCodeString.equals("false")) {
-			String err = buildError(418, "One or more parameter has an invalid value. See message.", newPinCodeString + " is not a valid boolean representation.");
+		} else if (!newPinCodeString.equals("true") && !newPinCodeString.equals("false")) {
+			String err = buildError(418, "One or more parameter has an invalid value. See message.", "'" + newPinCodeString + "' is not a valid boolean representation.");
 			return respondError(err, 500);
 		}
 		
@@ -836,7 +836,7 @@ public class ClientHandler {
 		List<DebitCard> debitCards = bankAccount.getDebitCards();
 		DebitCard currentDebitCard = null;
 		for (DebitCard db : debitCards) {
-			if (db.getCardNumber() == pinCardNumber) {
+			if (db.getCardNumber().equals(pinCardNumber)) {
 				currentDebitCard = db;
 				break;
 			}
@@ -862,16 +862,11 @@ public class ClientHandler {
 			newDebitCard = new DebitCard(customerAccount.getBSN(), bankAccount.getIBAN(), currentDebitCard.getPIN());
 		}
 		
-		//TODO test which one works
-		// CASE 1
-		//bankAccount.getDebitCards().add(newDebitCard);
 		bankAccount.saveToDB();
-		
-		// CASE 2
 		newDebitCard.saveToDB();
 		currentDebitCard.deleteFromDB();
 		
-		
+		// Send response
 		HashMap<String, Object> resp = new HashMap<>();
 		resp.put("pinCard", newDebitCard.getCardNumber());
 		
