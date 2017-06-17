@@ -53,27 +53,30 @@ public class TUI {
 	private void printCommands() {
 		switch (MessageHandler.state) {
 		case NOT_AUTHENTICATED: 
-			System.out.println("Use one of the following commands:"
-					+ "\nLOGIN <username>:<password>"
-					+ "\nOPEN_BANK_ACCOUNT <firstname>:<lastname>:<initials>:<dateofbirth>:<SSN>:<address>:<phonenumber>:<email>:<username>:<password>"
-					+ "\nPAY_BY_CARD <sourceIBAN>:<targetIBAN>:<cardnumber>:<PIN>:<amount>"
-					+ "\nDEPOSIT <IBAN>:<cardnumber>:<PIN>:<amount>"
-					+ "\nEXIT");
+			System.out.println("=====================================================================================================");
+			System.out.printf("%25s %1s %s %n", "Command:", "", "Parameters:");
+			System.out.printf("%25s %1s %s %n", "LOGIN", "", "<username>:<password>");
+			System.out.printf("%25s %1s %s %n", "OPEN_BANK_ACCOUNT", "", "<firstname>:<lastname>:<initials>:<dateofbirth>:<SSN>:<address>:<phonenumber>:<email>:<username>:<password>");
+			System.out.printf("%25s %1s %s %n", "PAY_BY_CARD", "", "<sourceIBAN>:<targetIBAN>:<cardnumber>:<PIN>:<amount>");
+			System.out.printf("%25s %1s %s %n", "DEPOSIT", "", "<IBAN>:<cardnumber>:<PIN>:<amount>");
+			System.out.printf("%25s %1s %s %n", "EXIT", "", "");
+
 			break;
-		case AUTHENTICATED:
-			System.out.println("\nUse one of the following commands:"
-					+ "\nOPEN_ADDITIONAL_ACCOUNT"
-					+ "\nPAY_BY_CARD <sourceIBAN>:<targetIBAN>:<cardnumber>:<PIN>:<amount>"
-					+ "\nDEPOSIT <IBAN>:<cardnumber>:<PIN>:<amount>"
-					+ "\nTRANSACTION_OVERVIEW <IBAN>:<nrOfTransactions>"
-					+ "\nGET_BALANCE <IBAN>"
-					+ "\nTRANSFER <sourceIBAN>:<destinationIBAN>:<targetName>:<amount>:<description>"
-					+ "\nADD_OWNER <IBAN>:<username>"
-					+ "\nREMOVE_OWNER <IBAN>[:username]"
-					+ "\nGET_USER_ACCESS"
-					+ "\nGET_BANK_ACCOUNT_ACCESS <IBAN>"
-					+ "\nCLOSE <IBAN>"
-					+ "\nEXIT");
+		case AUTHENTICATED:			
+			System.out.println("=====================================================================================================");
+			System.out.printf("%25s %1s %s %n", "Command:", "", "Parameters:");
+			System.out.printf("%25s %1s %s %n", "OPEN_ADDITIONAL_ACCOUNT", "", "");
+			System.out.printf("%25s %1s %s %n", "PAY_BY_CARD", "", "<sourceIBAN>:<targetIBAN>:<cardnumber>:<PIN>:<amount>");
+			System.out.printf("%25s %1s %s %n", "DEPOSIT", "", "<IBAN>:<cardnumber>:<PIN>:<amount>");
+			System.out.printf("%25s %1s %s %n", "TRANSACTION_OVERVIEW", "", "<IBAN>:<nrOfTransactions>");
+			System.out.printf("%25s %1s %s %n", "GET_BALANCE", "", "<IBAN>");
+			System.out.printf("%25s %1s %s %n", "TRANSFER", "", "<sourceIBAN>:<destinationIBAN>:<targetName>:<amount>:<description>");
+			System.out.printf("%25s %1s %s %n", "ADD_OWNER", "", "<IBAN>:<username>");
+			System.out.printf("%25s %1s %s %n", "REMOVE_OWNER", "", "<IBAN>[:username]");
+			System.out.printf("%25s %1s %s %n", "GET_USER_ACCESS", "", "");
+			System.out.printf("%25s %1s %s %n", "GET_BANK_ACCOUNT_ACCESS", "", "<IBAN>");
+			System.out.printf("%25s %1s %s %n", "CLOSE", "", "<IBAN>");
+			System.out.printf("%25s %1s %s %n", "EXIT", "", "");
 			break;			
 		}
 	}
