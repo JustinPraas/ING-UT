@@ -355,6 +355,8 @@ public class MessageHandler {
 				}
 				return;
 			}
+			
+			@SuppressWarnings("unchecked")
 			HashMap<String, Object> results = (HashMap<String, Object>) jResp.getResult();
 			String newPinCardNumber = (String)results.get("pinCard");
 			System.out.println("Pincard succesfully invalidated \nNew Pincard card obtained with number: " + newPinCardNumber);
