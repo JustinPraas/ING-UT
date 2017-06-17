@@ -64,6 +64,7 @@ public class TUI {
 			System.out.println("\nUse one of the following commands:"
 					+ "\nOPEN_ADDITIONAL_ACCOUNT"
 					+ "\nPAY_BY_CARD <sourceIBAN>:<targetIBAN>:<cardnumber>:<PIN>:<amount>"
+					+ "\nINVALIDATE_PIN_CARD <IBAN>:<nrOfPinCard>:<New Pin Code: true | false>"
 					+ "\nDEPOSIT <IBAN>:<cardnumber>:<PIN>:<amount>"
 					+ "\nTRANSACTION_OVERVIEW <IBAN>:<nrOfTransactions>"
 					+ "\nGET_BALANCE <IBAN>"

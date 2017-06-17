@@ -73,6 +73,8 @@ public class ClientHandler {
 			return depositIntoAccount(jReq);
 		case "payFromAccount":
 			return payFromAccount(jReq);
+		case "invalidateCard":
+			return invalidateCard(jReq);
 		case "transferMoney":
 			return transferMoney(jReq);
 		case "getAuthToken":
@@ -770,6 +772,116 @@ public class ClientHandler {
 		
 		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
 		return respond(jResp.toJSONString());
+	}
+
+	private static Response invalidateCard(JSONRPC2Request jReq) {
+		Map<String, Object> params = jReq.getNamedParams();
+		
+		if (!params.containsKey("authToken") || !params.containsKey("iBAN") || 
+				!params.containsKey("pinCard")) {
+			String err = buildError(-32602, "Invalid method parameters.");
+			return respondError(err, 500);
+		}
+		
+		String authToken = (String) params.get("authToken");
+		String IBAN = (String) params.get("iBAN");
+		String pinCardNumber = (String) params.get("pinCard");
+		String newPinCodeString = (String) params.get("newPin");
+		boolean newPinCode = false;
+		
+		if (!InputValidator.isValidIBAN(IBAN)) {
+			String err = buildError(418, "One or more parameter has an invalid value. See message.", IBAN + " is not a valid IBAN.");
+			return respondError(err, 500);
+		}
+		
+		if (!InputValidator.isNumericalOnly(pinCardNumber)) {
+			String err = buildError(418, "One or more parameter has an invalid value. See message.", pinCardNumber + " is not a valid card number");
+			return respondError(err, 500);
+		}
+		
+		if (newPinCodeString.equals("true")) {
+			newPinCode = true;
+		} else if (!newPinCodeString.equals("true") || !newPinCodeString.equals("false")) {
+			String err = buildError(418, "One or more parameter has an invalid value. See message.", newPinCodeString + " is not a valid boolean representation.");
+			return respondError(err, 500);
+		}
+		
+		// If this is a bogus auth token, slap the client
+		if (!accounts.containsKey(authToken)) {
+			String err = buildError(419, "The authenticated user is not authorized to perform this action.");
+			return respondError(err, 500);
+		}
+		
+		CustomerAccount customerAccount = accounts.get(authToken);
+		BankAccount bankAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, IBAN);
+		boolean authorized = false;
+		
+		if (customerAccount.getBSN().equals(bankAccount.getMainHolderBSN())) {
+			authorized = true;
+		} else {
+			for (CustomerAccount c : bankAccount.getOwners()) {
+				if (c.getBSN().equals(customerAccount.getBSN())) {
+					authorized = true;
+				}
+			}
+		}
+		
+		// If the user is trying to invalidate someone else's pincard
+		if (!authorized) {
+			String err = buildError(419, "The authenticated user is not authorized to perform this action.");
+			return respondError(err, 500);
+		}
+		
+		// If there is no such pincard for this bankAccount
+		List<DebitCard> debitCards = bankAccount.getDebitCards();
+		DebitCard currentDebitCard = null;
+		for (DebitCard db : debitCards) {
+			if (db.getCardNumber() == pinCardNumber) {
+				currentDebitCard = db;
+				break;
+			}
+		}
+		
+		if (currentDebitCard == null) {
+			String err = buildError(419, "The authenticated user is not authorized to perform this action. The user has no access to such a pin card with number " + pinCardNumber);
+			return respondError(err, 500);
+		}
+		
+		// Create the new pin card and charge the customer	
+		try {
+			bankAccount.credit(7.50);
+		} catch (IllegalAmountException e) {
+			String err = buildError(419, "The authenticated user is not authorized to perform this action. The user does not have the required fee of 7.50 euros");
+			return respondError(err, 500);
+		}
+		
+		DebitCard newDebitCard = null;
+		if (newPinCode) {
+			newDebitCard = new DebitCard(customerAccount.getBSN(), bankAccount.getIBAN());
+		} else {
+			newDebitCard = new DebitCard(customerAccount.getBSN(), bankAccount.getIBAN(), currentDebitCard.getPIN());
+		}
+		
+		//TODO test which one works
+		// CASE 1
+		//bankAccount.getDebitCards().add(newDebitCard);
+		bankAccount.saveToDB();
+		
+		// CASE 2
+		newDebitCard.saveToDB();
+		currentDebitCard.deleteFromDB();
+		
+		
+		HashMap<String, Object> resp = new HashMap<>();
+		resp.put("pinCard", newDebitCard.getCardNumber());
+		
+		if (newPinCode) {
+			resp.put("pinCode", newDebitCard.getPIN());
+		}
+		
+		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
+		return respond(jResp.toJSONString());
+		
 	}
 
 	private static Response transferMoney(JSONRPC2Request jReq) {

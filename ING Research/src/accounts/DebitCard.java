@@ -61,6 +61,14 @@ public class DebitCard implements database.DBObject {
 		this.PIN = PIN;
 	}
 	
+	public DebitCard(String holderBSN, String bankAccountIBAN, String PIN) {
+		this.holderBSN = holderBSN;
+		this.bankAccountIBAN = bankAccountIBAN;
+		this.PIN = PIN;
+		cardNumber = generateCardNumber();
+		expirationDate = generateExpirationDate();
+	}
+
 	/**
 	 * Generates a random PIN for the <code>DebitCard</code> object. 
 	 * The standardized format (ING): 4 digits.
