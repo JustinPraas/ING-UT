@@ -43,13 +43,15 @@ public class DataManager {
     
     /**
      * Initializes hibernate configuration and DB connection if
-     * they are not already initialized.
+     * they are not already initialized. Sets up ING bank account in the database
+     * for further use by the program. Resets the account on every server startup.
      */
 	private static void initIfRequired() {
 		if (!initialized) {
     		init();
     		initialized = true;
-    	}
+    		BankAccount.setUpINGaccount();
+    	}	
 	}
     
     /**

@@ -451,6 +451,18 @@ public class BankAccount implements database.DBObject {
 		this.owners = owners;
 	}
 	
+	public static void setUpINGaccount() {
+		System.out.println("Set up ING account");
+		CustomerAccount ingAccount = new CustomerAccount("ING", "BANK", "I.B", "00000000", "ING Street 1", "0600000000",
+				"ing@mail.com", "01-01-1950", "ing", "bank");
+		BankAccount ingBankAccount = new BankAccount("00000000", 1000000f, "NL36INGB8278309172");
+		HashSet<BankAccount> bankAccountSet = new HashSet<>();
+		bankAccountSet.add(ingBankAccount);
+		ingAccount.setBankAccounts(bankAccountSet);
+		ingAccount.saveToDB();
+		ingBankAccount.saveToDB();
+	}
+	
 	public void saveToDB() {
 		DataManager.save(this);
 	}

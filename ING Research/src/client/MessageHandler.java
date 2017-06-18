@@ -367,7 +367,7 @@ public class MessageHandler {
 			}
 			
 			// Transfer 7.50 euros to ING bank account
-			String transferParams = IBAN + ":NL84INGB8518115879:ING:7.50:Fee for new pincard";
+			String transferParams = IBAN + ":NL36INGB8278309172:ING:7.50:Fee for new pincard";
 			transfer(transferParams);
 			
 		} catch (JSONRPC2ParseException e) {
