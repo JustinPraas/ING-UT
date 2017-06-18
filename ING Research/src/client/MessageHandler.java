@@ -253,8 +253,8 @@ public class MessageHandler {
 			@SuppressWarnings("unchecked")
 			HashMap<String, Object> results = (HashMap<String, Object>) jResp.getResult();
 			
-			String pinCard = Long.toString((long) results.get("pinCard"));
-			String pinCode = Long.toString((long) results.get("pinCode"));
+			String pinCard = (String) results.get("pinCard");
+			String pinCode = (String) results.get("pinCode");
 			System.out.println("Successfully linked accounts.");
 			System.out.println("Card number: " + pinCard);
 			System.out.println("PIN: " + pinCode);
