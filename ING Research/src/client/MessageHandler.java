@@ -262,9 +262,9 @@ public class MessageHandler {
 
 			@SuppressWarnings("unchecked")
 			HashMap<String, Object> results = (HashMap<String, Object>) jResp.getResult();
-
-			String pinCard = Long.toString((long) results.get("pinCard"));
-			String pinCode = Long.toString((long) results.get("pinCode"));
+			
+			String pinCard = (String) results.get("pinCard");
+			String pinCode = (String) results.get("pinCode");
 			System.out.println("Successfully linked accounts.");
 			System.out.println("Card number: " + pinCard);
 			System.out.println("PIN: " + pinCode);
@@ -483,7 +483,9 @@ public class MessageHandler {
 				return;
 			}
 
-			System.out.println("Balance for account " + params.get("iBAN") + " is " + jResp.getResult());
+			HashMap<String, Object> results = (HashMap<String, Object>) jResp.getResult();
+			System.out.println("Balance for account " + params.get("iBAN") + " is " + results.get("result"));
+
 		} catch (JSONRPC2ParseException e) {
 			System.out.println("Discarded invalid JSON-RPC response from server.");
 		}
@@ -664,8 +666,8 @@ public class MessageHandler {
 			HashMap<String, Object> results = (HashMap<String, Object>) jResp.getResult();
 
 			String iBAN = (String) results.get("iBAN");
-			String pinCard = Long.toString((long) results.get("pinCard"));
-			String pinCode = Long.toString((long) results.get("pinCode"));
+			String pinCard = (String) results.get("pinCard");
+			String pinCode = (String) results.get("pinCode");
 			System.out.println("Your new IBAN is: " + iBAN);
 			System.out.println("Your new card number is: " + pinCard);
 			System.out.println("Your new PIN is: " + pinCode);

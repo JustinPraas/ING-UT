@@ -717,7 +717,7 @@ public class ClientHandler {
 		
 		// If any of the parameters have invalid values, stop and notify the client
 		try {
-			amount = (double) params.get("amount");
+			amount = Double.parseDouble((String) params.get("amount"));
 		} catch (ClassCastException e) {
 			String err = buildError(418, "One or more parameter has an invalid value. See message.", amount + " is not a valid amount.");
 			return respondError(err, 500);
@@ -890,7 +890,7 @@ public class ClientHandler {
 		
 		// If any parameter has an invalid value, stop and notify the client
 		try {
-			amount = (double) params.get("amount");
+			amount = Double.parseDouble((String) params.get("amount"));
 		} catch (ClassCastException e) {
 			String err = buildError(418, "One or more parameter has an invalid value. See message.", amount + " is not a valid amount.");
 			return respondError(err, 500);
