@@ -414,8 +414,8 @@ public class MessageHandler {
 				}
 				return;
 			}
-			
-			System.out.println("Balance for account " + params.get("iBAN") + " is " + jResp.getResult());
+			HashMap<String, Object> results = (HashMap<String, Object>) jResp.getResult();
+			System.out.println("Balance for account " + params.get("iBAN") + " is " + results.get("result"));
 		} catch (JSONRPC2ParseException e) {
 			System.out.println("Discarded invalid JSON-RPC response from server.");
 		}
