@@ -8,7 +8,7 @@ import javax.swing.filechooser.FileSystemView;
  */
 public class Client {
 	
-	public static final String DESKTOP_PATH = FileSystemView.getFileSystemView().getHomeDirectory().getAbsolutePath() + "\\ING-UT Justin Praas\\";
+	public static final String DESKTOP_ING_FOLDER_PATH = FileSystemView.getFileSystemView().getHomeDirectory().getAbsolutePath() + "\\ING-UT Justin Praas\\";
 	
 	@SuppressWarnings("unused")
 	private static TUI tui;

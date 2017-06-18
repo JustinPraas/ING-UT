@@ -16,8 +16,8 @@ import client.Client;
  * @author Andrei Cojocaru
  */
 public class SQLiteDB {
-	public static final String DBName = Client.DESKTOP_PATH + "1banking.db";
-	public static final String schema = Client.DESKTOP_PATH + "bankingtables.txt";
+	public static final String DBName = Client.DESKTOP_ING_FOLDER_PATH + "banking.db";
+	public static final String schema = Client.DESKTOP_ING_FOLDER_PATH + "bankingtables.txt";
 	
 	/**
 	 * Creates a .db file if it does not already exist.
