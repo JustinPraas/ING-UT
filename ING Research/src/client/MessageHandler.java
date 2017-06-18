@@ -483,6 +483,7 @@ public class MessageHandler {
 				return;
 			}
 
+			@SuppressWarnings("unchecked")
 			HashMap<String, Object> results = (HashMap<String, Object>) jResp.getResult();
 			System.out.println("Balance for account " + params.get("iBAN") + " is " + results.get("result"));
 

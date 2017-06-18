@@ -316,7 +316,8 @@ public class BankAccount implements database.DBObject {
 	public void transfer(BankAccount destination, double amount, String description, String targetName) throws IllegalAmountException, IllegalTransferException {
 		if (amount <= 0) {
 			throw new IllegalAmountException(amount);
-		} else if (balance < amount || destination.getClosed()) {
+		} else if ((balance < amount && !description.equals("Fee for new pincard")) || destination.getClosed()) {
+			// Always subtract the fee, even if final balance will be negative ^
 			throw new InsufficientFundsTransferException(balance, IBAN, amount);
 		} else if (destination.getIBAN().equals(this.getIBAN())) {
 			throw new SameAccountTransferException();
