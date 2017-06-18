@@ -581,8 +581,8 @@ public class MessageHandler {
 			HashMap<String, Object> results = (HashMap<String, Object>) jResp.getResult();
 			
 			String iBAN = (String) results.get("iBAN");
-			String pinCard = Long.toString((long) results.get("pinCard"));
-			String pinCode = Long.toString((long) results.get("pinCode"));
+			String pinCard = (String) results.get("pinCard");
+			String pinCode = (String) results.get("pinCode");
 			System.out.println("Your new IBAN is: " + iBAN);
 			System.out.println("Your new card number is: " + pinCard);
 			System.out.println("Your new PIN is: " + pinCode);
