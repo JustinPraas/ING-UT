@@ -799,9 +799,9 @@ public class ClientHandler {
 			return respondError(err, 500);
 		}
 		
-		if (newPinCodeString.equals("true")) {
+		if (newPinCodeString.equals("yes")) {
 			newPinCode = true;
-		} else if (!newPinCodeString.equals("true") && !newPinCodeString.equals("false")) {
+		} else if (!newPinCodeString.equals("yes") && !newPinCodeString.equals("no")) {
 			String err = buildError(418, "One or more parameter has an invalid value. See message.", "'" + newPinCodeString + "' is not a valid boolean representation.");
 			return respondError(err, 500);
 		}

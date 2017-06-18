@@ -67,6 +67,7 @@ public class TUI {
 			System.out.printf("%25s %1s %s %n", "Command:", "", "Parameters:");
 			System.out.printf("%25s %1s %s %n", "OPEN_ADDITIONAL_ACCOUNT", "", "");
 			System.out.printf("%25s %1s %s %n", "PAY_BY_CARD", "", "<sourceIBAN>:<targetIBAN>:<cardnumber>:<PIN>:<amount>");
+			System.out.printf("%25s %1s %s %n", "INVALIDATE_PIN_CARD", "", "<IBAN>:<nrOfPinCard>:<New Pin Code: yes | no>");
 			System.out.printf("%25s %1s %s %n", "DEPOSIT", "", "<IBAN>:<cardnumber>:<PIN>:<amount>");
 			System.out.printf("%25s %1s %s %n", "TRANSACTION_OVERVIEW", "", "<IBAN>:<nrOfTransactions>");
 			System.out.printf("%25s %1s %s %n", "GET_BALANCE", "", "<IBAN>");
