@@ -142,8 +142,7 @@ public class MessageHandler {
 			ArrayList<HashMap> users = (ArrayList<HashMap>) jResp.getResult();
 			
 			for (HashMap hm : users) {
-				System.out.println();
-				System.out.print(hm.get("username") + " ");
+				System.out.print(hm.get("username") + ", ");
 			}
 		} catch (JSONRPC2ParseException e) {
 			System.out.println("Discarded invalid JSON-RPC response from server.");
@@ -176,11 +175,12 @@ public class MessageHandler {
 			ArrayList<HashMap> transactions = (ArrayList<HashMap>) jResp.getResult();
 			
 			for (HashMap hm : transactions) {
-				System.out.println("==============================");
-				System.out.println("Owner: " + hm.get("owner"));
-				System.out.println("IBAN: " + hm.get("iBAN"));
-				System.out.println("==============================");
-				System.out.println();
+				System.out.printf("%-30s %s %n", "Owner: " + (String)hm.get("owner"), "IBAN: " + (String)hm.get("iBAN"));
+//				System.out.println("==============================");
+//				System.out.println("Owner: " + hm.get("owner"));
+//				System.out.println("IBAN: " + hm.get("iBAN"));
+//				System.out.println("==============================");
+//				System.out.println();
 			}
 		} catch (JSONRPC2ParseException e) {
 			System.out.println("Discarded invalid JSON-RPC response from server.");
