@@ -42,6 +42,8 @@ All of the aforementioned dependencies are automatically managed via Maven.
 
 Place the bankingtables file on your desktop. This is also where the banking.db file will be created.
 
+To get the database working, you will have to change some settings: In the hibernate.cfg.xml file, edit the line: <property name = "hibernate.connection.url">jdbc:sqlite:C:/Users/jwpra/Desktop/ING-UT Justin Praas/banking.db</property> where jwpra is your use user directory
+
 Download Tomcat 8.5, set up a Tomcat server in Eclipse JEE. Via the Server view, add the ING-UT project to the server and start the server. 
 
 Once the server is started, locate the Client class in the client package and run it as a Java application. All input/output is currently console-based. The command syntax is COMMAND [parameter1]:[parameter2]:[parameter...].
