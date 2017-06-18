@@ -15,7 +15,6 @@ import org.hibernate.query.Query;
 import accounts.BankAccount;
 import accounts.CustomerAccount;
 import accounts.DebitCard;
-import client.Client;
 
 /**
  * Provides utility methods to store/retrieve objects from DB
