@@ -366,6 +366,10 @@ public class MessageHandler {
 				System.out.println("New Pincode obtained: " + newPinCode);
 			}
 			
+			// Transfer 7.50 euros to ING bank account
+			String transferParams = IBAN + ":NL84INGB8518115879:ING:7.50:Fee for new pincard";
+			transfer(transferParams);
+			
 		} catch (JSONRPC2ParseException e) {
 			System.out.println("Discarded invalid JSON-RPC response from server.");
 		}

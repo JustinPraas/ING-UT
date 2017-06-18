@@ -847,14 +847,6 @@ public class ClientHandler {
 			return respondError(err, 500);
 		}
 		
-		// Create the new pin card and charge the customer	
-		try {
-			bankAccount.credit(7.50);
-		} catch (IllegalAmountException e) {
-			String err = buildError(419, "The authenticated user is not authorized to perform this action. The user does not have the required fee of 7.50 euros");
-			return respondError(err, 500);
-		}
-		
 		DebitCard newDebitCard = null;
 		if (newPinCode) {
 			newDebitCard = new DebitCard(customerAccount.getBSN(), bankAccount.getIBAN());
