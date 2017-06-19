@@ -57,7 +57,7 @@ public class Client {
 		}			
 	}
 	
-	private static void resetSimulatedDays() {
+	public static void resetSimulatedDays() {
 		setSimulatedDays(0);
 		System.out.println("Simulating " + Client.simulatedDays + " days.");
 	}
