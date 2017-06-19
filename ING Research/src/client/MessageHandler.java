@@ -217,7 +217,7 @@ public class MessageHandler {
 				return;
 			}
 			
-			Client.setSimulatedDays(Integer.parseInt(parameterArray[0]));
+			Client.setSimulatedDays(Integer.parseInt(parameterArray[0]), true);
 			
 		} catch (JSONRPC2ParseException e) {
 			System.out.println("Discarded invalid JSON-RPC response from server.");
