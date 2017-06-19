@@ -72,6 +72,15 @@ public class MessageHandler {
 			case "DEPOSIT":
 				depositIntoAccount(parameters);
 				break;
+			case "SIMULATE_TIME":
+				simulateTime(parameters);
+				break;
+			case "RESET":
+				reset();
+				break;
+			case "GET_DATE":
+				getDate();
+				break;
 			default:
 				System.err.println("Invalid command.");
 				break;
@@ -113,6 +122,15 @@ public class MessageHandler {
 				break;
 			case "GET_BANK_ACCOUNT_ACCESS":
 				getBankAccountAccess(parameters);
+				break;
+			case "SIMULATE_TIME":
+				simulateTime(parameters);
+				break;
+			case "RESET":
+				reset();
+				break;
+			case "GET_DATE":
+				getDate();
 				break;
 			default:
 				System.err.println("Invalid command.");
