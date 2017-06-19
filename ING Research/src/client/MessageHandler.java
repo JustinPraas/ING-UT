@@ -182,7 +182,9 @@ public class MessageHandler {
 				return;
 			}
 			
-			// TODO: implement
+			Client.resetSimulatedDays();
+			//TODO FINISH
+			//DataManager.wipe();
 			
 		} catch (JSONRPC2ParseException e) {
 			System.out.println("Discarded invalid JSON-RPC response from server.");
