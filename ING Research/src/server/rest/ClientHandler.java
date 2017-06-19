@@ -112,6 +112,29 @@ public class ClientHandler {
 	private static Response respondError(String jResp, int code) {
 		return Response.status(500).entity(jResp).build();	
 	}
+	
+	private static Response simulateTime(JSONRPC2Request jReq) {
+		Map<String, Object> params = jReq.getNamedParams();
+	
+		// If the required parameters aren't present, stop and notify the client
+		if (!params.containsKey("nrOfDays")) {
+			String err = buildError(-32602, "Invalid method parameters.");
+			return respondError(err, 500);
+		}
+		
+		String nrOfDays = (String) params.get("nrOfDays");
+		
+		// If input is invalid (i.e. not a numerical value)
+		if (!InputValidator.isNumericalOnly(nrOfDays)) {
+			String err = buildError(418, "One or more parameter has an invalid value. See message.", nrOfDays + " is not a valid number.");
+			return respondError(err, 500);
+		}
+		
+		HashMap<String, Object> resp = new HashMap<>();
+		
+		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
+		return respond(jResp.toJSONString());
+	}
 
 	private static Response getBankAccountAccess(JSONRPC2Request jReq) {
 		Map<String, Object> params = jReq.getNamedParams();
