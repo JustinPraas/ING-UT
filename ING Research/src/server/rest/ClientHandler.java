@@ -113,6 +113,13 @@ public class ClientHandler {
 		return Response.status(500).entity(jResp).build();	
 	}
 	
+	private static Response reset(JSONRPC2Request jReq) {	
+		HashMap<String, Object> resp = new HashMap<>();
+		
+		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
+		return respond(jResp.toJSONString());
+	}
+	
 	private static Response simulateTime(JSONRPC2Request jReq) {
 		Map<String, Object> params = jReq.getNamedParams();
 	
