@@ -122,6 +122,40 @@ public class MessageHandler {
 		System.out.println("\n");
 	}
 
+	private void simulateTime(String parameters) {
+		String[] parameterArray = parameters.split(":");
+		String method = "simulateTime";
+		HashMap<String, Object> params = new HashMap<>();
+
+		if (parameterArray.length != 1) {
+			System.err.println("Please enter the requested parameters.");
+			return;
+		}
+		
+		params.put("nrOfDays", parameterArray[1]);
+		
+		JSONRPC2Request request = new JSONRPC2Request(method, params,
+				"request-" + java.lang.System.currentTimeMillis());
+		String resp = sendToServer(request);
+		try {
+			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
+			if (!jResp.indicatesSuccess()) {
+				System.out.println("Error: " + jResp.getError().getMessage());
+				if (jResp.getError().getData() != null) {
+					System.out.println((String) jResp.getError().getData());
+				}
+				return;
+			}
+			
+			// TODO: implement
+			
+		} catch (JSONRPC2ParseException e) {
+			System.out.println("Discarded invalid JSON-RPC response from server.");
+		}
+		
+	}
+	
+	
 	@SuppressWarnings("rawtypes")
 	private void getBankAccountAccess(String parameters) {
 		String parameterArray[] = parameters.split(":");
