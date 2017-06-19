@@ -121,7 +121,7 @@ public class DebitCard implements database.DBObject {
 		Calendar c = Calendar.getInstance();
 		
 		//Add the specified amount of time to the given calendar field
-		c.add(Calendar.YEAR, 5);
+		c.add(Calendar.YEAR, 4);
 		
 		return new Date(c.getTime().getTime()).toString();
 	}
