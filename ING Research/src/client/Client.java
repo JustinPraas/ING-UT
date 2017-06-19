@@ -55,5 +55,10 @@ public class Client {
 			e.printStackTrace();
 			return 0;
 		}			
-	}	
+	}
+	
+	private static void resetSimulatedDays() {
+		setSimulatedDays(0);
+		System.out.println("Simulating " + Client.simulatedDays + " days.");
+	}
 }
