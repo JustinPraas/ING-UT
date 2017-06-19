@@ -7,6 +7,7 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
+import client.Client;
 import database.DataManager;
 import exceptions.ExpiredCardException;
 import exceptions.IllegalAmountException;
@@ -120,6 +121,9 @@ public class DebitCard implements database.DBObject {
 		//Get a calendar using the default time zone and locale
 		Calendar c = Calendar.getInstance();
 		
+		// Add simulated days 
+		c.add(Calendar.DATE, Client.getSimulatedDays());		
+		
 		//Add the specified amount of time to the given calendar field
 		c.add(Calendar.YEAR, 4);
 		
@@ -143,6 +147,10 @@ public class DebitCard implements database.DBObject {
 	@Transient
 	public boolean isExpired() {
 		Calendar c = Calendar.getInstance();
+		
+		// Add simulated days 
+		c.add(Calendar.DATE, Client.getSimulatedDays());
+		
 		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
 		Date today = new Date(c.getTime().getTime());
 		try {

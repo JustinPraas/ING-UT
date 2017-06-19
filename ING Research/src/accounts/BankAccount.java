@@ -17,6 +17,7 @@ import javax.persistence.Transient;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
 
+import client.Client;
 import database.DataManager;
 
 import java.math.BigInteger;
@@ -194,6 +195,10 @@ public class BankAccount implements database.DBObject {
 		this.debit(amount);
 		
 		Calendar c = Calendar.getInstance();
+		
+		// Add simulated days 
+		c.add(Calendar.DATE, Client.getSimulatedDays());
+		
 		String date = c.getTime().toString();
 		Transaction t = new Transaction();
 		t.setDateTime(date);
@@ -223,6 +228,10 @@ public class BankAccount implements database.DBObject {
 		this.credit(amount);
 		destination.debit(amount);
 		Calendar c = Calendar.getInstance();
+		
+		// Add simulated days 
+		c.add(Calendar.DATE, Client.getSimulatedDays());
+		
 		String date = c.getTime().toString();
 		Transaction t = new Transaction();
 		t.setDateTime(date);
@@ -264,6 +273,10 @@ public class BankAccount implements database.DBObject {
 		
 		this.credit(amount);
 		Calendar c = Calendar.getInstance();
+		
+		// Add simulated days 
+		c.add(Calendar.DATE, Client.getSimulatedDays());
+		
 		String date = c.getTime().toString();
 		Transaction t = new Transaction();
 		t.setDateTime(date);
@@ -300,6 +313,10 @@ public class BankAccount implements database.DBObject {
 		this.credit(amount);
 		destination.debit(amount);
 		Calendar c = Calendar.getInstance();
+		
+		// Add simulated days 
+		c.add(Calendar.DATE, Client.getSimulatedDays());
+		
 		String date = c.getTime().toString();
 		Transaction t = new Transaction();
 		t.setDateTime(date);
@@ -328,6 +345,10 @@ public class BankAccount implements database.DBObject {
 		this.credit(amount);
 		destination.debit(amount);
 		Calendar c = Calendar.getInstance();
+		
+		// Add simulated days 
+		c.add(Calendar.DATE, Client.getSimulatedDays());
+		
 		String date = c.getTime().toString();
 		Transaction t = new Transaction();
 		t.setDateTime(date);
