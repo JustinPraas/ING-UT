@@ -1,5 +1,7 @@
 package client;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Scanner;
 
 import exceptions.IllegalAmountException;
@@ -18,6 +20,13 @@ public class TUI {
 	 * Binds a <code>Session</code> object to this TUI. Start listening to input.
 	 */
 	public TUI() {
+		System.out.println("Simulating " + Client.getSimulatedDays() + "days");	
+		Calendar c = Calendar.getInstance();
+		c.add(Calendar.DATE, Client.getSimulatedDays());
+		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+		String simulatedDate = format.format(c.getTime());
+		System.out.println("Simulated date: " + simulatedDate);
+		
 		inputProcessor = new MessageHandler();
 		try {
 			listen();
