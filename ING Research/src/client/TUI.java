@@ -59,6 +59,9 @@ public class TUI {
 			System.out.printf("%25s %1s %s %n", "OPEN_BANK_ACCOUNT", "", "<firstname>:<lastname>:<initials>:<dateofbirth>:<SSN>:<address>:<phonenumber>:<email>:<username>:<password>");
 			System.out.printf("%25s %1s %s %n", "PAY_BY_CARD", "", "<sourceIBAN>:<targetIBAN>:<cardnumber>:<PIN>:<amount>");
 			System.out.printf("%25s %1s %s %n", "DEPOSIT", "", "<IBAN>:<cardnumber>:<PIN>:<amount>");
+			System.out.printf("%25s %1s %s %n", "SIMULATE_TIME", "", "<nrOfDays>");
+			System.out.printf("%25s %1s %s %n", "RESET", "", "");
+			System.out.printf("%25s %1s %s %n", "GET_DATE", "", "");
 			System.out.printf("%25s %1s %s %n", "EXIT", "", "");
 
 			break;
@@ -77,6 +80,9 @@ public class TUI {
 			System.out.printf("%25s %1s %s %n", "GET_USER_ACCESS", "", "");
 			System.out.printf("%25s %1s %s %n", "GET_BANK_ACCOUNT_ACCESS", "", "<IBAN>");
 			System.out.printf("%25s %1s %s %n", "CLOSE", "", "<IBAN>");
+			System.out.printf("%25s %1s %s %n", "SIMULATE_TIME", "", "<nrOfDays>");
+			System.out.printf("%25s %1s %s %n", "RESET", "", "");
+			System.out.printf("%25s %1s %s %n", "GET_DATE", "", "");
 			System.out.printf("%25s %1s %s %n", "EXIT", "", "");
 			break;			
 		}
