@@ -1,0 +1,4 @@
+Setup commands:
+OPEN_BANK_ACCOUNT Justin:Praas:J.W:27-11-1997:22222222:Steenanjer 3:0651027395:jw.praas@gmail.com:Justin:Praas
+OPEN_BANK_ACCOUNT Test1:Test1:T.T:01-01-1950:10000000:a 1:0610000000:test1@mail.com:testOne:testOne
+OPEN_BANK_ACCOUNT Test2:Test2:T.T:01-01-1950:20000000:a 2:0620000000:test2@mail.com:testTwo:testTwo
