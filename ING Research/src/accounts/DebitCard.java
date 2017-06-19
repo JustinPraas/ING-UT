@@ -113,7 +113,7 @@ public class DebitCard implements database.DBObject {
 
 	/**
 	 * Generates the expiration date for the <code>DebitCard</code> object.
-	 * The default expiration date (ING): 5 years after card creation
+	 * The default expiration date (ING - 1): 4 years after card creation
 	 * @return
 	 */
 	public String generateExpirationDate() {		
