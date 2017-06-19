@@ -90,6 +90,12 @@ public class ClientHandler {
 			return getUserAccess(jReq);
 		case "getBankAccountAccess":
 			return getBankAccountAccess(jReq);
+		case "simulateTime":
+			return simulateTime(jReq);
+		case "reset":
+			return reset(jReq);
+		case "getDate":
+			return getDate(jReq);
 		default:
 			String err = buildError(-32601, "The requested remote-procedure does not exist.");
 			return respondError(err, 500);
