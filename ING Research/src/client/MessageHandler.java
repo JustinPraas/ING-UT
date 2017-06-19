@@ -157,7 +157,8 @@ public class MessageHandler {
 				return;
 			}
 			
-			HashMap<String, Object> result = new HashMap<>();
+			@SuppressWarnings("unchecked")
+			HashMap<String, Object> result = (HashMap<String, Object>) jResp.getResult();
 			System.out.println("The server's (unsimulated) date is: " + (String) result.get("date"));
 			
 		} catch (JSONRPC2ParseException e) {
