@@ -121,6 +121,30 @@ public class MessageHandler {
 		}
 		System.out.println("\n");
 	}
+	
+	private void reset() {
+		String method = "reset";
+		HashMap<String, Object> params = new HashMap<>();
+		
+		JSONRPC2Request request = new JSONRPC2Request(method, params,
+				"request-" + java.lang.System.currentTimeMillis());
+		String resp = sendToServer(request);
+		try {
+			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
+			if (!jResp.indicatesSuccess()) {
+				System.out.println("Error: " + jResp.getError().getMessage());
+				if (jResp.getError().getData() != null) {
+					System.out.println((String) jResp.getError().getData());
+				}
+				return;
+			}
+			
+			// TODO: implement
+			
+		} catch (JSONRPC2ParseException e) {
+			System.out.println("Discarded invalid JSON-RPC response from server.");
+		}
+	}
 
 	private void simulateTime(String parameters) {
 		String[] parameterArray = parameters.split(":");
