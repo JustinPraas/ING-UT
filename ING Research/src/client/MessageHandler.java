@@ -198,7 +198,7 @@ public class MessageHandler {
 			return;
 		}
 		
-		params.put("nrOfDays", parameterArray[1]);
+		params.put("nrOfDays", parameterArray[0]);
 		
 		JSONRPC2Request request = new JSONRPC2Request(method, params,
 				"request-" + java.lang.System.currentTimeMillis());
@@ -213,7 +213,7 @@ public class MessageHandler {
 				return;
 			}
 			
-			// TODO: implement
+			Client.setSimulatedDays(Integer.parseInt(parameterArray[0]));
 			
 		} catch (JSONRPC2ParseException e) {
 			System.out.println("Discarded invalid JSON-RPC response from server.");
