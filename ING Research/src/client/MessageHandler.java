@@ -157,7 +157,8 @@ public class MessageHandler {
 				return;
 			}
 			
-			// TODO: implement
+			HashMap<String, Object> result = new HashMap<>();
+			System.out.println("The server's (unsimulated) date is: " + (String) result.get("date"));
 			
 		} catch (JSONRPC2ParseException e) {
 			System.out.println("Discarded invalid JSON-RPC response from server.");
