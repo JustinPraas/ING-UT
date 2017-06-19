@@ -141,6 +141,10 @@ public class ClientHandler {
 	private static Response reset(JSONRPC2Request jReq) {	
 		HashMap<String, Object> resp = new HashMap<>();
 		
+		// Wipe all data from database
+		DataManager.wipeAllData(true);
+		Client.resetSimulatedDays();
+		
 		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
 		return respond(jResp.toJSONString());
 	}

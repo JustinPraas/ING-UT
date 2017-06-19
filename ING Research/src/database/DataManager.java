@@ -186,4 +186,22 @@ public class DataManager {
     	session.close();
     	return true;
     }
+
+	public static void wipeAllData(boolean createINGAccount) {
+		initIfRequired();
+		Session session = factory.openSession();
+		Transaction t = session.beginTransaction();
+		session.createNativeQuery("DROP TABLE customeraccounts").executeUpdate();
+		session.createNativeQuery("DROP TABLE bankaccounts").executeUpdate();
+		session.createNativeQuery("DROP TABLE customerbankaccounts").executeUpdate();
+		session.createNativeQuery("DROP TABLE debitcards").executeUpdate();
+		session.createNativeQuery("DROP TABLE transactions").executeUpdate();
+		t.commit();
+		session.close();
+		init();
+		
+		if (createINGAccount) {
+    		BankAccount.setUpINGaccount();
+		}		
+	}
 }

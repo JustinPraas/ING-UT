@@ -4,6 +4,9 @@ import exceptions.IllegalAmountException;
 import exceptions.IllegalTransferException;
 import com.thetransactioncompany.jsonrpc2.*;
 
+import accounts.CustomerAccount;
+import database.DataManager;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -183,9 +186,10 @@ public class MessageHandler {
 				return;
 			}
 			
+			// Reset Simulated Days
+			System.err.println("Resetting Database - Shutting down program");
 			Client.resetSimulatedDays();
-			//TODO FINISH
-			//DataManager.wipe();
+			System.exit(0);
 			
 		} catch (JSONRPC2ParseException e) {
 			System.out.println("Discarded invalid JSON-RPC response from server.");

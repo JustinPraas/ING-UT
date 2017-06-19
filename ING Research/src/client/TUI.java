@@ -20,7 +20,7 @@ public class TUI {
 	 * Binds a <code>Session</code> object to this TUI. Start listening to input.
 	 */
 	public TUI() {
-		System.out.println("Simulating " + Client.getSimulatedDays() + "days");	
+		System.out.println("Simulating " + Client.getSimulatedDays() + " days ahead");	
 		Calendar c = Calendar.getInstance();
 		c.add(Calendar.DATE, Client.getSimulatedDays());
 		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
