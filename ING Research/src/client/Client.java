@@ -32,20 +32,22 @@ public class Client {
 		return simulatedDays;
 	}
 
-	public static void setSimulatedDays(int simulatedDays) {
+	public static void setSimulatedDays(int simulatedDays, boolean write) {
 		Client.simulatedDays = simulatedDays;
 		System.out.println("Simulating " + Client.simulatedDays + " days.");
 		
-		File simulatedDaysFile = new File(SIMULATED_DAYS_FILE_PATH);
-		System.out.println("Writing simulated days to " + simulatedDaysFile.getAbsolutePath());
-		
-		try {
-			Writer writer = new BufferedWriter(new FileWriter(SIMULATED_DAYS_FILE_PATH, false));
-			writer.write(Integer.toString(simulatedDays));
-			writer.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		if (write) {
+			File simulatedDaysFile = new File(SIMULATED_DAYS_FILE_PATH);
+			System.out.println("Writing simulated days to " + simulatedDaysFile.getAbsolutePath());
+			
+			try {
+				Writer writer = new BufferedWriter(new FileWriter(SIMULATED_DAYS_FILE_PATH, false));
+				writer.write(Integer.toString(simulatedDays));
+				writer.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}		
 	}
 
 	public static int getSimulatedDaysFromFile() {
@@ -58,6 +60,6 @@ public class Client {
 	}
 	
 	public static void resetSimulatedDays() {
-		setSimulatedDays(0);
+		setSimulatedDays(0, true);
 	}
 }
