@@ -32,6 +32,7 @@ import accounts.BankAccount;
 import accounts.CustomerAccount;
 import accounts.DebitCard;
 import accounts.Transaction;
+import client.Client;
 import database.DataManager;
 import database.SQLiteDB;
 import server.core.InputValidator;
@@ -51,6 +52,9 @@ public class ClientHandler {
 	public static Response parseJSONRequest (String request) {
 		JSONRPC2Request jReq = null;
 		String method;
+		
+		// Update simulated time for further use
+		Client.setSimulatedDays(Client.getSimulatedDaysFromFile(), false);
 		
 		try {
 			jReq = JSONRPC2Request.parse(request);
