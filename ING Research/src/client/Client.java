@@ -48,7 +48,7 @@ public class Client {
 		}
 	}
 
-	private static int getSimulatedDaysFromFile() {
+	public static int getSimulatedDaysFromFile() {
 		try {
 			return Integer.parseInt(new String(Files.readAllBytes(Paths.get(SIMULATED_DAYS_FILE_PATH))));
 		} catch (IOException e) {	
@@ -59,6 +59,5 @@ public class Client {
 	
 	public static void resetSimulatedDays() {
 		setSimulatedDays(0);
-		System.out.println("Simulating " + Client.simulatedDays + " days.");
 	}
 }
