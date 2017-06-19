@@ -4,8 +4,11 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -111,6 +114,18 @@ public class ClientHandler {
 	
 	private static Response respondError(String jResp, int code) {
 		return Response.status(500).entity(jResp).build();	
+	}
+	
+	private static Response getDate(JSONRPC2Request jReq) {
+		DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+		Date date = new Date();
+		String systemDate = df.format(date);		
+		
+		HashMap<String, Object> resp = new HashMap<>();
+		resp.put("date", systemDate);
+		
+		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
+		return respond(jResp.toJSONString());
 	}
 	
 	private static Response reset(JSONRPC2Request jReq) {	
