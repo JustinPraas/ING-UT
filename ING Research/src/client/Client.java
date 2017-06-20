@@ -41,7 +41,7 @@ public class Client {
 			 
 			try {
 				Writer writer = new BufferedWriter(new FileWriter(SIMULATED_DAYS_FILE_PATH, false));
-				writer.write(Integer.toString(simulatedDays));
+				writer.write(Integer.toString(Client.simulatedDays));
 				writer.close();
 			} catch (IOException e) {
 				e.printStackTrace();
