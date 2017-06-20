@@ -217,6 +217,10 @@ public class MessageHandler {
 			return;
 		}
 		
+		if (Integer.parseInt(parameterArray[0]) <= 0) {
+			System.err.println("Please enter a number greater than 0.");
+		}
+		
 		params.put("nrOfDays", parameterArray[0]);
 		
 		JSONRPC2Request request = new JSONRPC2Request(method, params,
