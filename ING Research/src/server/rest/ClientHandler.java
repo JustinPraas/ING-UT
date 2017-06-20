@@ -166,6 +166,12 @@ public class ClientHandler {
 			return respondError(err, 500);
 		}
 		
+		// If input is negative...
+		if (Integer.parseInt(nrOfDays) <= 0) {
+			String err = buildError(418, "One or more parameter has an invalid value. See message.", nrOfDays + " is equal to or less than 0.");
+			return respondError(err, 500);
+		}
+		
 		HashMap<String, Object> resp = new HashMap<>();
 		
 		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
