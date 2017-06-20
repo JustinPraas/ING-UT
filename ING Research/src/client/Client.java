@@ -33,7 +33,7 @@ public class Client {
 	}
 
 	public static void setSimulatedDays(int simulatedDays, boolean write) {
-		Client.simulatedDays = simulatedDays;
+		Client.simulatedDays = Client.simulatedDays + simulatedDays;
 		
 		if (write) {
 			File simulatedDaysFile = new File(SIMULATED_DAYS_FILE_PATH);
@@ -59,6 +59,6 @@ public class Client {
 	}
 	
 	public static void resetSimulatedDays() {
-		setSimulatedDays(0, true);
+		setSimulatedDays(-1 * simulatedDays, true);
 	}
 }
