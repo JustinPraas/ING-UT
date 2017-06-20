@@ -219,6 +219,7 @@ public class MessageHandler {
 		
 		if (Integer.parseInt(parameterArray[0]) <= 0) {
 			System.err.println("Please enter a number greater than 0.");
+			return;
 		}
 		
 		params.put("nrOfDays", parameterArray[0]);
