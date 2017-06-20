@@ -20,12 +20,17 @@ public class TUI {
 	 * Binds a <code>Session</code> object to this TUI. Start listening to input.
 	 */
 	public TUI() {
-		System.out.println("Simulating " + Client.getSimulatedDays() + " days ahead");	
-		Calendar c = Calendar.getInstance();
-		c.add(Calendar.DATE, Client.getSimulatedDays());
-		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-		String simulatedDate = format.format(c.getTime());
-		System.out.println("Simulated date: " + simulatedDate);
+		
+		if (Client.getSimulatedDays() > 0) { 
+			System.out.println("Simulating " + Client.getSimulatedDays() + " days ahead");	
+			Calendar c = Calendar.getInstance();
+			c.add(Calendar.DATE, Client.getSimulatedDays());
+			SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+			String simulatedDate = format.format(c.getTime());
+			System.out.println("Simulated date: " + simulatedDate);
+		} else {
+			System.out.println("System date: " + Calendar.getInstance().getTime().toString());
+		}
 		
 		inputProcessor = new MessageHandler();
 		try {
