@@ -37,7 +37,7 @@ public class Client {
 		
 		if (write) {
 			File simulatedDaysFile = new File(SIMULATED_DAYS_FILE_PATH);
-			System.out.println("Writing simulated days (" + simulatedDays + ") to " + simulatedDaysFile.getAbsolutePath());
+			System.out.println("Writing simulated days (" + Client.simulatedDays + ") to " + simulatedDaysFile.getAbsolutePath());
 			 
 			try {
 				Writer writer = new BufferedWriter(new FileWriter(SIMULATED_DAYS_FILE_PATH, false));
