@@ -129,9 +129,6 @@ public class MessageHandler {
 			case "SIMULATE_TIME":
 				simulateTime(parameters);
 				break;
-			case "RESET":
-				reset();
-				break;
 			case "GET_DATE":
 				getDate();
 				break;
@@ -202,9 +199,8 @@ public class MessageHandler {
 			}
 			
 			// Reset Simulated Days
-			System.err.println("Resetting Database - Shutting down program");
+			System.err.println("Resetting Database");
 			Client.resetSimulatedDays();
-			System.exit(0);
 			
 		} catch (JSONRPC2ParseException e) {
 			System.out.println("Discarded invalid JSON-RPC response from server.");

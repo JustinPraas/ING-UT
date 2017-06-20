@@ -90,7 +90,6 @@ public class TUI {
 			System.out.printf("%25s %1s %s %n", "GET_BANK_ACCOUNT_ACCESS", "", "<IBAN>");
 			System.out.printf("%25s %1s %s %n", "CLOSE", "", "<IBAN>");
 			System.out.printf("%25s %1s %s %n", "SIMULATE_TIME", "", "<nrOfDays>");
-			System.out.printf("%25s %1s %s %n", "RESET", "", "");
 			System.out.printf("%25s %1s %s %n", "GET_DATE", "", "");
 			System.out.printf("%25s %1s %s %n", "EXIT", "", "");
 			break;			
