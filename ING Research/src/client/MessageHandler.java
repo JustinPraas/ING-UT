@@ -569,19 +569,13 @@ public class MessageHandler {
 			}
 
 			System.out.println("Transaction history:");
-			@SuppressWarnings({ "unchecked", "rawtypes" })
-			ArrayList<HashMap> transactions = (ArrayList<HashMap>) jResp.getResult();
-
-			for (HashMap<?, ?> hm : transactions) {
-				System.out.println("==============================");
-				System.out.println("Source IBAN: " + hm.get("sourceIBAN"));
-				System.out.println("Target IBAN: " + hm.get("targetIBAN"));
-				System.out.println("Target name: " + hm.get("targetName"));
-				System.out.println("Date: " + hm.get("date"));
-				System.out.println("Amount: " + hm.get("amount"));
-				System.out.println("Description: " + hm.get("description"));
-				System.out.println("==============================");
-				System.out.println();
+			@SuppressWarnings("unchecked")
+			ArrayList<HashMap<String, Object>> transactions = (ArrayList<HashMap<String, Object>>) jResp.getResult();
+			
+			System.out.printf("%-19s %-19s %-15s %-30s %-7s %-100s %n", "Source IBAN:", "Target IBAN:", "Target name:", "Date: ", "Amount:", "Description:");
+			for (HashMap<String, Object> hm : transactions) {
+				System.out.printf("%-19s %-19s %-15s %-30s %-7s %-100s %n", hm.get("sourceIBAN"), hm.get("targetIBAN"), 
+						(String) hm.get("targetName"), hm.get("date"), hm.get("amount"), hm.get("description"));
 			}
 		} catch (JSONRPC2ParseException e) {
 			e.printStackTrace();
