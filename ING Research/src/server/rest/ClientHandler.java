@@ -1142,7 +1142,7 @@ public class ClientHandler {
 		
 		String authToken = (String) params.get("authToken");
 		String IBAN = (String) params.get("iBAN");
-		long num = 0;
+		int num = 0;
 		
 		// If the IBAN is invalid, stop and notify the client
 		if (!InputValidator.isValidIBAN(IBAN)) {
@@ -1152,9 +1152,9 @@ public class ClientHandler {
 		
 		// If the number of transactions is not an integer, stop and notify the client
 		try {
-			num = (long) params.get("nrOfTransactions");
+			num = Integer.parseInt((String) params.get("nrOfTransactions"));
 		} catch (NumberFormatException e) {
-			String err = buildError(418, "One or more parameter has an invalid value. See message.", params.get("nrOfTransactions") + " is not a valid amount.");
+			String err = buildError(418, "One or more parameter has an invalid value. See message.", (String) params.get("nrOfTransactions") + " is not a valid amount.");
 			return respondError(err, 500);
 		}
 			
@@ -1200,30 +1200,47 @@ public class ClientHandler {
 		Collections.sort(transactions);
 		Collections.reverse(transactions);
 		@SuppressWarnings("rawtypes")
-		ArrayList<HashMap> transactionMaps = new ArrayList<>();
+		
+		HashMap[] transactionMapsArray;
+		
+		if (num >= transactions.size()) {
+			transactionMapsArray = new HashMap[transactions.size()];
+		} else {
+			transactionMapsArray = new HashMap[num];
+		}
+		
 		long counter = num;
-		int i;
-		for (i = 0; i < transactions.size(); i++) {
-			Transaction t = transactions.get(i);
+		for (int i = 0; i < transactionMapsArray.length & counter > 0; i++) {
 			HashMap<String, String> tMap = new HashMap<>();
-			tMap.put("sourceIBAN", t.getSourceIBAN());
-			tMap.put("targetIBAN", t.getDestinationIBAN());
-			if (!(t.getTargetName() == null)) {
+			Transaction t = transactions.get(i);			
+			
+			if (t.getSourceIBAN() != null) {
+				tMap.put("sourceIBAN", t.getSourceIBAN());				
+			} else {
+				tMap.put("sourceIBAN", "N/A");
+			}
+			
+			if (t.getDestinationIBAN() != null) {
+				tMap.put("targetIBAN", t.getDestinationIBAN());
+			} else {
+				tMap.put("targetIBAN", "N/A");
+			}
+			
+			if (t.getTargetName() != null) {
 				tMap.put("targetName", t.getTargetName());
 			} else {
 				tMap.put("targetName", "N/A");
 			}
+			
 			tMap.put("date", t.getDateTime());
 			tMap.put("amount", Double.toString(t.getAmount()));
 			tMap.put("description", t.getDescription());
-			transactionMaps.add(tMap);
+			transactionMapsArray[i] = tMap;
+			
 			counter--;
-			if (counter == 0) {
-				break;
-			}
 		}
 			
-		JSONRPC2Response jResp = new JSONRPC2Response(transactionMaps, "response-" + java.lang.System.currentTimeMillis());
+		JSONRPC2Response jResp = new JSONRPC2Response(transactionMapsArray, "response-" + java.lang.System.currentTimeMillis());
 		return respond(jResp.toJSONString());
 	}
 }

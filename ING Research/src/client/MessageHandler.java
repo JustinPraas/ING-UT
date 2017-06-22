@@ -584,6 +584,7 @@ public class MessageHandler {
 				System.out.println();
 			}
 		} catch (JSONRPC2ParseException e) {
+			e.printStackTrace();
 			System.out.println("Discarded invalid JSON-RPC response from server.");
 		}
 	}
