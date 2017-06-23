@@ -45,7 +45,10 @@ import exceptions.PinCardBlockedException;
 
 @Path("/banking")
 public class ServerHandler {
+	
 	private static HashMap<String, CustomerAccount> accounts = new HashMap<>();
+	
+	//Data-container for this server's session
 	private static ServerModel serverModel = new ServerModel();
 	
 	@POST
@@ -130,18 +133,10 @@ public class ServerHandler {
 		return Response.status(500).entity(jResp).build();	
 	}
 	
-	private static Response getDate(JSONRPC2Request jReq) {
-		DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-		Date date = new Date();
-		String systemDate = df.format(date);		
-		
-		HashMap<String, Object> resp = new HashMap<>();
-		resp.put("date", systemDate);
-		
-		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
-		return respond(jResp.toJSONString());
-	}
-	
+	/**
+	 * Extension 2: 'PIN block' related.
+	 * Unblocks a given pin card, given the right parameters and given it is actually blocked.
+	 */
 	private static Response unblockCard(JSONRPC2Request jReq) {			
 		HashMap<String, Object> params = (HashMap<String, Object>) jReq.getNamedParams();
 		
@@ -181,8 +176,20 @@ public class ServerHandler {
 			String err = buildError(420, "The action has no effect. See message.", "Pincard with number " + pinCard + " is not blocked.");
 			return respondError(err, 500);
 		}		
-
+	
 		HashMap<String, Object> resp = new HashMap<>();
+		
+		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
+		return respond(jResp.toJSONString());
+	}
+
+	private static Response getDate(JSONRPC2Request jReq) {
+		DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+		Date date = new Date();
+		String systemDate = df.format(date);		
+		
+		HashMap<String, Object> resp = new HashMap<>();
+		resp.put("date", systemDate);
 		
 		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
 		return respond(jResp.toJSONString());

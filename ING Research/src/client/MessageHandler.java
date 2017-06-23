@@ -143,6 +143,10 @@ public class MessageHandler {
 		System.out.println("\n");
 	}
 	
+	/**
+	 * Extension 2: 'PIN block' related.
+	 * Unblocks a given pin card, given the right parameters and given it is actually blocked.
+	 */
 	private void unblockCard(String parameters) {
 		String parameterArray[] = parameters.split(":");
 		String method = "unblockCard";
