@@ -41,6 +41,7 @@ import exceptions.ExpiredCardException;
 import exceptions.IllegalAmountException;
 import exceptions.IllegalTransferException;
 import exceptions.InvalidPINException;
+import exceptions.ObjectDoesNotExistException;
 import exceptions.PinCardBlockedException;
 
 @Path("/banking")
@@ -166,7 +167,13 @@ public class ServerHandler {
 			return respondError(err, 500);
 		}
 		
-		DebitCard debitCard = (DebitCard) DataManager.getObjectByPrimaryKey(DebitCard.CLASSNAME, pinCard);
+		DebitCard debitCard;
+		try {
+			debitCard = (DebitCard) DataManager.getObjectByPrimaryKey(DebitCard.CLASSNAME, pinCard);
+		} catch (ObjectDoesNotExistException e) {
+			String err = buildError(418, "One or more parameter has an invalid value. See message. \n" + e.toString());
+			return respondError(err, 500);
+		}
 		
 		if (debitCard.isBlocked()) {
 			debitCard.setBlocked(false);
@@ -268,7 +275,12 @@ public class ServerHandler {
 			return respondError(err, 500);
 		}
 		
-		bAcc = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, IBAN);
+		try {
+			bAcc = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, IBAN);
+		} catch (ObjectDoesNotExistException e) {
+			String err = buildError(418, "One or more parameter has an invalid value. See message. \n" + e.toString());
+			return respondError(err, 500);
+		}
 		
 		// If the target account is not owned by the authorized user, stop and notify client
 		if (!bAcc.getMainHolderBSN().equals(cAcc.getBSN())) {
@@ -293,6 +305,9 @@ public class ServerHandler {
 			}
 		} catch (SQLException e) {
 			String err = buildError(500, "An unexpected error occured, see error details.", "SQL error occurred on server.");
+			return respondError(err, 500);
+		} catch (ObjectDoesNotExistException e) {
+			String err = buildError(418, "One or more parameter has an invalid value. See message. \n" + e.toString());
 			return respondError(err, 500);
 		}
 		
@@ -341,6 +356,9 @@ public class ServerHandler {
 			}
 		} catch (SQLException e) {
 			String err = buildError(500, "An unexpected error occured, see error details.", "SQLException occurred on server.");
+			return respondError(err, 500);
+		} catch (ObjectDoesNotExistException e) {
+			String err = buildError(418, "One or more parameter has an invalid value. See message. \n" + e.toString());
 			return respondError(err, 500);
 		}
 		
@@ -787,7 +805,13 @@ public class ServerHandler {
 			return respondError(err, 500);
 		}
 		
-		DebitCard dc = (DebitCard) DataManager.getObjectByPrimaryKey(DebitCard.CLASSNAME, pinCard);	
+		DebitCard dc;
+		try {
+			dc = (DebitCard) DataManager.getObjectByPrimaryKey(DebitCard.CLASSNAME, pinCard);
+		} catch (ObjectDoesNotExistException e) {
+			String err = buildError(418, "One or more parameter has an invalid value. See message. \n" + e.toString());
+			return respondError(err, 500);
+		}
 		
 		// If the card is not yet blocked and the wrong PIN is given, slap the client
 		if (!dc.isBlocked() && !dc.isValidPIN(pinCode)) {
@@ -808,7 +832,13 @@ public class ServerHandler {
 			return respondError(err, 500);
 		}
 		
-		BankAccount bAcc = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, IBAN);
+		BankAccount bAcc;
+		try {
+			bAcc = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, IBAN);
+		} catch (ObjectDoesNotExistException e) {
+			String err = buildError(418, "One or more parameter has an invalid value. See message. \n" + e.toString());
+			return respondError(err, 500);
+		}
 		
 		try {
 			bAcc.deposit(amount, pinCard);
@@ -887,7 +917,13 @@ public class ServerHandler {
 			return respondError(err, 500);
 		}
 		
-		DebitCard card = (DebitCard) DataManager.getObjectByPrimaryKey(DebitCard.CLASSNAME, "" + pinCard);
+		DebitCard card;
+		try {
+			card = (DebitCard) DataManager.getObjectByPrimaryKey(DebitCard.CLASSNAME, "" + pinCard);
+		} catch (ObjectDoesNotExistException e) {
+			String err = buildError(418, "One or more parameter has an invalid value. See message. \n" + e.toString());
+			return respondError(err, 500);
+		}
 		
 		// If the payment goes wrong, stop and report the exception
 		try {
@@ -955,7 +991,13 @@ public class ServerHandler {
 		}
 		
 		CustomerAccount customerAccount = accounts.get(authToken);
-		BankAccount bankAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, IBAN);
+		BankAccount bankAccount;
+		try {
+			bankAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, IBAN);
+		} catch (ObjectDoesNotExistException e) {
+			String err = buildError(418, "One or more parameter has an invalid value. See message. \n" + e.toString());
+			return respondError(err, 500);
+		}
 		boolean authorized = false;
 		
 		if (customerAccount.getBSN().equals(bankAccount.getMainHolderBSN())) {
@@ -1061,7 +1103,12 @@ public class ServerHandler {
 		
 		cAcc = accounts.get(authToken);
 		
-		source = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, sourceIBAN);
+		try {
+			source = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, sourceIBAN);
+		} catch (ObjectDoesNotExistException e) {
+			String err = buildError(418, "One or more parameter has an invalid value. See message. \n" + e.toString());
+			return respondError(err, 500);
+		}
 		
 		if (cAcc.getBSN().equals(source.getMainHolderBSN())) {
 			authorized = true;
@@ -1079,7 +1126,12 @@ public class ServerHandler {
 			return respondError(err, 500);
 		}
 		
-		destination = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, targetIBAN);
+		try {
+			destination = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, targetIBAN);
+		} catch (ObjectDoesNotExistException e) {
+			String err = buildError(418, "One or more parameter has an invalid value. See message. \n" + e.toString());
+			return respondError(err, 500);
+		}
 		
 		// If something goes wrong with the transfer, stop and report it
 		try {
@@ -1182,7 +1234,12 @@ public class ServerHandler {
 			return respondError(err, 500);
 		}
 		
-		source = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, IBAN);
+		try {
+			source = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, IBAN);
+		} catch (ObjectDoesNotExistException e) {
+			String err = buildError(418, "One or more parameter has an invalid value. See message. \n" + e.toString());
+			return respondError(err, 500);
+		}
 		
 		if (cAcc.getBSN().equals(source.getMainHolderBSN())) {
 			authorized = true;
@@ -1251,7 +1308,12 @@ public class ServerHandler {
 			respondError(err, 500);
 		}
 		
-		source = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, IBAN);
+		try {
+			source = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, IBAN);
+		} catch (ObjectDoesNotExistException e) {
+			String err = buildError(418, "One or more parameter has an invalid value. See message. \n" + e.toString());
+			return respondError(err, 500);
+		}
 		
 		cAcc = accounts.get(authToken);
 				

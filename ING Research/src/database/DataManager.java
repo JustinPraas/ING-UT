@@ -15,6 +15,7 @@ import org.hibernate.query.Query;
 import accounts.BankAccount;
 import accounts.CustomerAccount;
 import accounts.DebitCard;
+import exceptions.ObjectDoesNotExistException;
 
 /**
  * Provides utility methods to store/retrieve objects from DB
@@ -146,9 +147,10 @@ public class DataManager {
      * @param className The name of the type of object being queried
      * @param primaryKey The primary key of the desired object
      * @return The object with the given primary key, if found
+     * @throws ObjectDoesNotExistException 
      */
     @SuppressWarnings("deprecation")
-	public static Object getObjectByPrimaryKey(String className, Object primaryKey) {
+	public static Object getObjectByPrimaryKey(String className, Object primaryKey) throws ObjectDoesNotExistException {
     	initIfRequired();
     	
     	Session session = factory.openSession();
@@ -158,7 +160,7 @@ public class DataManager {
     	List<?> results = cr.list();
     	session.close();
     	if (results.size() == 0) {
-    		return null;
+    		throw new ObjectDoesNotExistException(className, primaryKey.toString());
     	}
     	return results.get(0);
     }

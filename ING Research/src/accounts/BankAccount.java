@@ -26,6 +26,7 @@ import exceptions.ClosedAccountTransferException;
 import exceptions.IllegalAmountException;
 import exceptions.IllegalTransferException;
 import exceptions.InsufficientFundsTransferException;
+import exceptions.ObjectDoesNotExistException;
 import exceptions.PinCardBlockedException;
 import exceptions.SameAccountTransferException;
 
@@ -189,12 +190,17 @@ public class BankAccount implements database.DBObject {
 	 * @throws PinCardBlockedException 
 	 */
 	public void deposit(double amount, String cardNum) throws IllegalAmountException, ClosedAccountTransferException, PinCardBlockedException {
-		if (((DebitCard) DataManager.getObjectByPrimaryKey(DebitCard.CLASSNAME, cardNum)).isBlocked()) {
-			throw new PinCardBlockedException(cardNum);
-		} else if (amount <= 0) {
-			throw new IllegalAmountException(amount);
-		} else if (this.closed) {
-			throw new ClosedAccountTransferException();
+		try {
+			if (((DebitCard) DataManager.getObjectByPrimaryKey(DebitCard.CLASSNAME, cardNum)).isBlocked()) {
+				throw new PinCardBlockedException(cardNum);
+			} else if (amount <= 0) {
+				throw new IllegalAmountException(amount);
+			} else if (this.closed) {
+				throw new ClosedAccountTransferException();
+			}
+		} catch (ObjectDoesNotExistException e) {
+			System.err.println(e.toString());
+			return;
 		}
 		this.debit(amount);
 		
@@ -264,7 +270,12 @@ public class BankAccount implements database.DBObject {
 		
 		if (!DataManager.isPrimaryKeyUnique(BankAccount.CLASSNAME, BankAccount.PRIMARYKEYNAME, destinationIBAN)) {
 			knownAccount = true;
-			destination = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, destinationIBAN);
+			try {
+				destination = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, destinationIBAN);
+			} catch (ObjectDoesNotExistException e) {
+				System.err.println(e.toString());
+				return;
+			}
 		}
 		
 		if (knownAccount) {

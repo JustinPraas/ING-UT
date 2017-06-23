@@ -13,6 +13,7 @@ import exceptions.ExpiredCardException;
 import exceptions.IllegalAmountException;
 import exceptions.IllegalTransferException;
 import exceptions.InvalidPINException;
+import exceptions.ObjectDoesNotExistException;
 import exceptions.PinCardBlockedException;
 
 import java.sql.Date;
@@ -191,7 +192,13 @@ public class DebitCard implements database.DBObject {
 	 * @throws ExpiredCardException 
 	 */
 	public void pinPayment(double amount, String PIN, BankAccount destination) throws InvalidPINException, ExpiredCardException {
-		BankAccount ownAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, bankAccountIBAN);
+		BankAccount ownAccount;
+		try {
+			ownAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, bankAccountIBAN);
+		} catch (ObjectDoesNotExistException e) {
+			System.err.println(e.toString());
+			return;
+		}
 		if (!isValidPIN(PIN)) {
 			throw new InvalidPINException(PIN, getCardNumber());
 		} else if (isExpired()) {
@@ -210,7 +217,14 @@ public class DebitCard implements database.DBObject {
 	}
 	
 	public void pinPayment(double amount, String PIN, String destinationIBAN) throws IllegalAmountException, IllegalTransferException, InvalidPINException, ExpiredCardException, PinCardBlockedException {
-		BankAccount ownAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, bankAccountIBAN);
+		BankAccount ownAccount;
+		try {
+			ownAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, bankAccountIBAN);
+		} catch (ObjectDoesNotExistException e) {
+			System.err.println(e.toString());
+			return;
+		}
+		
 		if (isBlocked()) {
 			throw new PinCardBlockedException(cardNumber);
 		} else if (!isValidPIN(PIN)) {

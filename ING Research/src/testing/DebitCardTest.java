@@ -12,6 +12,7 @@ import accounts.Transaction;
 import database.DataManager;
 import exceptions.ExpiredCardException;
 import exceptions.InvalidPINException;
+import exceptions.ObjectDoesNotExistException;
 
 public class DebitCardTest {
 	public DebitCard card;
@@ -51,8 +52,13 @@ public class DebitCardTest {
 		} catch (ExpiredCardException e) {
 			
 		}
-		bAcc = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, bAcc.getIBAN());
-		bAcc2 = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, bAcc2.getIBAN());
+		try {
+			bAcc = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, bAcc.getIBAN());
+			bAcc2 = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, bAcc2.getIBAN());
+		} catch (ObjectDoesNotExistException e) {
+			System.err.println(e.toString());
+		}
+		
 		assert(bAcc.getBalance() == 10000 && bAcc2.getBalance() == 0);
 		try {
 			card2.pinPayment(1000, "4444", bAcc2);
@@ -61,8 +67,13 @@ public class DebitCardTest {
 		} catch (ExpiredCardException e) {
 			
 		}
-		bAcc = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, bAcc.getIBAN());
-		bAcc2 = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, bAcc2.getIBAN());
+		try {
+			bAcc = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, bAcc.getIBAN());
+			bAcc2 = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, bAcc2.getIBAN());
+		} catch (ObjectDoesNotExistException e) {
+			System.err.println(e.toString());
+		}
+		
 		assert(bAcc.getBalance() == 9000 && bAcc2.getBalance() == 1000);
 		bAcc.deleteFromDB();
 		bAcc2.deleteFromDB();
