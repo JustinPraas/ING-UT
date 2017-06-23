@@ -12,6 +12,7 @@ import org.junit.Test;
 
 import accounts.BankAccount;
 import accounts.CustomerAccount;
+import accounts.DebitCard;
 import accounts.Transaction;
 import database.DataManager;
 import exceptions.ClosedAccountTransferException;
@@ -22,8 +23,9 @@ import exceptions.PinCardBlockedException;
 public class AccountTest {
 	public static String customerBSN = "1453.25.62";
 	public static BankAccount bankAccount;
+	public static DebitCard debitCard;
 	public static CustomerAccount customerAccount;
-	public static String CARDNUM = "TESTCARDNUM";
+	public static String CARDNUM;
 	
 	@Before
 	public void init() throws Exception {
@@ -34,13 +36,20 @@ public class AccountTest {
 			bankAccount = key;
 			break;
 		}
+		
+		debitCard = new DebitCard(customerAccount.getBSN(), bankAccount.getIBAN());
+		debitCard.saveToDB();
+		CARDNUM = debitCard.getCardNumber();
 	}
 	
 	@After
 	public void end() throws Exception {
 		customerAccount.deleteFromDB();
+		debitCard.deleteFromDB();
+		bankAccount.deleteFromDB();
 		customerAccount = null;
 		bankAccount = null;
+		debitCard = null;
 	}
 
 	//Test whether new BankAccounts are correctly initialized and linked to the originating CustomerAccount
