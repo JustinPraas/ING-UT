@@ -132,12 +132,42 @@ public class MessageHandler {
 			case "GET_DATE":
 				getDate();
 				break;
+			case "UNBLOCK_PINCARD":
+				unblockCard(parameters);
+				break;
 			default:
 				System.err.println("Invalid command.");
 				break;
 			}
 		}
 		System.out.println("\n");
+	}
+	
+	private void unblockCard(String parameters) {
+		String parameterArray[] = parameters.split(":");
+		String method = "unblockCard";
+		HashMap<String, Object> params = new HashMap<>();
+
+		params.put("authToken", AUTHTOKEN);
+		params.put("iBAN", parameterArray[0]);
+		params.put("pinCard", parameterArray[1]);
+
+		JSONRPC2Request request = new JSONRPC2Request(method, params,
+				"request-" + java.lang.System.currentTimeMillis());
+		String resp = sendToServer(request);
+		try {
+			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
+			if (!jResp.indicatesSuccess()) {
+				System.out.println("Error: " + jResp.getError().getMessage());
+				if (jResp.getError().getData() != null) {
+					System.out.println((String) jResp.getError().getData());
+				}
+				return;
+			}
+			System.out.println("Pin card succesfully unblocked.");
+		} catch (JSONRPC2ParseException e) {
+			System.out.println("Discarded invalid JSON-RPC response from server.");
+		}
 	}
 	
 	private void getDate() {

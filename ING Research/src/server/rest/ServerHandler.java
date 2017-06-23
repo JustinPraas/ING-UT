@@ -102,6 +102,8 @@ public class ServerHandler {
 			return reset(jReq);
 		case "getDate":
 			return getDate(jReq);
+		case "unblockCard":
+			return unblockCard(jReq);
 		default:
 			String err = buildError(-32601, "The requested remote-procedure does not exist.");
 			return respondError(err, 500);
@@ -135,6 +137,52 @@ public class ServerHandler {
 		
 		HashMap<String, Object> resp = new HashMap<>();
 		resp.put("date", systemDate);
+		
+		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
+		return respond(jResp.toJSONString());
+	}
+	
+	private static Response unblockCard(JSONRPC2Request jReq) {			
+		HashMap<String, Object> params = (HashMap<String, Object>) jReq.getNamedParams();
+		
+		// If required parameters are missing, stop and notify the client
+		if (!params.containsKey("authToken") || !params.containsKey("iBAN") || !params.containsKey("pinCard")) {
+			String err = buildError(-32602, "Invalid method parameters.");
+			return respondError(err, 500);
+		}
+		
+		String authToken = (String) params.get("authToken");
+		String IBAN = (String) params.get("iBAN");
+		String pinCard = (String) params.get("pinCard");
+		
+		if (!InputValidator.isValidIBAN(IBAN)) {
+			String err = buildError(418, "One or more parameter has an invalid value. See message.", IBAN + " is not a valid IBAN.");
+			return respondError(err, 500);
+		}
+		
+		if (!InputValidator.isNumericalOnly(pinCard)) {
+			String err = buildError(418, "One or more parameter has an invalid value. See message.", pinCard + " is not a valid card number.");
+			return respondError(err, 500);
+		}
+		
+		// If this is a bogus token, slap the client
+		if (!accounts.keySet().contains(authToken)) {
+			String err = buildError(419, "The authenticated user is not authorized to perform this action.");
+			return respondError(err, 500);
+		}
+		
+		DebitCard debitCard = (DebitCard) DataManager.getObjectByPrimaryKey(DebitCard.CLASSNAME, pinCard);
+		
+		if (debitCard.isBlocked()) {
+			debitCard.setBlocked(false);
+			debitCard.saveToDB();
+			serverModel.getPreviousPinAttempts().remove(pinCard);
+		} else {
+			String err = buildError(420, "The action has no effect. See message.", "Pincard with number " + pinCard + " is not blocked.");
+			return respondError(err, 500);
+		}		
+
+		HashMap<String, Object> resp = new HashMap<>();
 		
 		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
 		return respond(jResp.toJSONString());
@@ -882,7 +930,7 @@ public class ServerHandler {
 		}
 		
 		if (!InputValidator.isNumericalOnly(pinCardNumber)) {
-			String err = buildError(418, "One or more parameter has an invalid value. See message.", pinCardNumber + " is not a valid card number");
+			String err = buildError(418, "One or more parameter has an invalid value. See message.", pinCardNumber + " is not a valid card number.");
 			return respondError(err, 500);
 		}
 		
