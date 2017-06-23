@@ -168,10 +168,27 @@ public class ServerHandler {
 		}
 		
 		DebitCard debitCard;
+		BankAccount bankAccount;
 		try {
 			debitCard = (DebitCard) DataManager.getObjectByPrimaryKey(DebitCard.CLASSNAME, pinCard);
+			bankAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, IBAN);
 		} catch (ObjectDoesNotExistException e) {
 			String err = buildError(418, "One or more parameter has an invalid value. See message. \n" + e.toString());
+			return respondError(err, 500);
+		}
+		
+		// Check if pin card is linked with IBAN
+		boolean isLinked = false;
+		System.out.println(bankAccount.getDebitCards());
+		for (DebitCard dc : bankAccount.getDebitCards()) {
+			if (dc.getCardNumber().equals(pinCard)) {
+				isLinked = true;
+				break;
+			}
+		}
+		
+		if (!isLinked) {
+			String err = buildError(419, "The authenticated user is not authorized to perform this action. Pin card is not linked with this IBAN.");
 			return respondError(err, 500);
 		}
 		
