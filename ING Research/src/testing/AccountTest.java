@@ -17,6 +17,7 @@ import database.DataManager;
 import exceptions.ClosedAccountTransferException;
 import exceptions.IllegalAmountException;
 import exceptions.IllegalTransferException;
+import exceptions.PinCardBlockedException;
 
 public class AccountTest {
 	public static String customerBSN = "1453.25.62";
@@ -56,6 +57,8 @@ public class AccountTest {
 			bankAccount.deposit(100, CARDNUM);
 		} catch (IllegalAmountException | ClosedAccountTransferException e) {
 			
+		} catch (PinCardBlockedException e) {
+			
 		}
 		
 		assertTrue(bankAccount.getBalance() == 100);
@@ -67,6 +70,8 @@ public class AccountTest {
 		try {
 			bankAccount.deposit(-100, CARDNUM);
 		} catch (IllegalAmountException | ClosedAccountTransferException e) {
+			
+		} catch (PinCardBlockedException e) {
 			
 		}
 		
@@ -80,6 +85,8 @@ public class AccountTest {
 		try {
 			bankAccount2.deposit(100, CARDNUM);
 		} catch (IllegalAmountException | ClosedAccountTransferException e) {
+			
+		} catch (PinCardBlockedException e) {
 			
 		}
 		
@@ -155,6 +162,8 @@ public class AccountTest {
 			
 		} catch (ClosedAccountTransferException e) {
 			
+		} catch (PinCardBlockedException e) {
+			
 		}
 		
 		try {
@@ -177,6 +186,8 @@ public class AccountTest {
 		try {
 			bankAccount2.deposit(100, CARDNUM);
 		} catch (IllegalAmountException | ClosedAccountTransferException e) {
+			
+		} catch (PinCardBlockedException e) {
 			
 		}
 		
