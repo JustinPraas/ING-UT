@@ -162,9 +162,9 @@ public class MessageHandler {
 		try {
 			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
 			if (!jResp.indicatesSuccess()) {
-				System.out.println("Error: " + jResp.getError().getMessage());
+				System.out.printf("Error " + jResp.getError().getCode() + ": " + jResp.getError().getMessage());
 				if (jResp.getError().getData() != null) {
-					System.out.println((String) jResp.getError().getData());
+					System.out.println("this" + (String) jResp.getError().getData());
 				}
 				return;
 			}
@@ -184,7 +184,7 @@ public class MessageHandler {
 		try {
 			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
 			if (!jResp.indicatesSuccess()) {
-				System.out.println("Error: " + jResp.getError().getMessage());
+				System.out.printf("Error " + jResp.getError().getCode() + ": " + jResp.getError().getMessage());
 				if (jResp.getError().getData() != null) {
 					System.out.println((String) jResp.getError().getData());
 				}
@@ -225,7 +225,7 @@ public class MessageHandler {
 		try {
 			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
 			if (!jResp.indicatesSuccess()) {
-				System.out.println("Error: " + jResp.getError().getMessage());
+				System.out.printf("Error " + jResp.getError().getCode() + ": " + jResp.getError().getMessage());
 				if (jResp.getError().getData() != null) {
 					System.out.println((String) jResp.getError().getData());
 				}
@@ -264,7 +264,7 @@ public class MessageHandler {
 		try {
 			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
 			if (!jResp.indicatesSuccess()) {
-				System.out.println("Error: " + jResp.getError().getMessage());
+				System.out.printf("Error " + jResp.getError().getCode() + ": " + jResp.getError().getMessage());
 				if (jResp.getError().getData() != null) {
 					System.out.println((String) jResp.getError().getData());
 				}
@@ -295,7 +295,7 @@ public class MessageHandler {
 		try {
 			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
 			if (!jResp.indicatesSuccess()) {
-				System.out.println("Error: " + jResp.getError().getMessage());
+				System.out.printf("Error " + jResp.getError().getCode() + ": " + jResp.getError().getMessage());
 				if (jResp.getError().getData() != null) {
 					System.out.println((String) jResp.getError().getData());
 				}
@@ -329,7 +329,7 @@ public class MessageHandler {
 		try {
 			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
 			if (!jResp.indicatesSuccess()) {
-				System.out.println("Error: " + jResp.getError().getMessage());
+				System.out.printf("Error " + jResp.getError().getCode() + ": " + jResp.getError().getMessage());
 				if (jResp.getError().getData() != null) {
 					System.out.println((String) jResp.getError().getData());
 				}
@@ -377,7 +377,7 @@ public class MessageHandler {
 		try {
 			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
 			if (!jResp.indicatesSuccess()) {
-				System.out.println("Error: " + jResp.getError().getMessage());
+				System.out.printf("Error " + jResp.getError().getCode() + ": " + jResp.getError().getMessage());
 				if (jResp.getError().getData() != null) {
 					System.out.println((String) jResp.getError().getData());
 				}
@@ -411,7 +411,7 @@ public class MessageHandler {
 		try {
 			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
 			if (!jResp.indicatesSuccess()) {
-				System.out.println("Error: " + jResp.getError().getMessage());
+				System.out.printf("Error " + jResp.getError().getCode() + ": " + jResp.getError().getMessage());
 				if (jResp.getError().getData() != null) {
 					System.out.println((String) jResp.getError().getData());
 				}
@@ -468,7 +468,7 @@ public class MessageHandler {
 		try {
 			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
 			if (!jResp.indicatesSuccess()) {
-				System.out.println("Error: " + jResp.getError().getMessage());
+				System.out.printf("Error " + jResp.getError().getCode() + ": " + jResp.getError().getMessage());
 				if (jResp.getError().getData() != null) {
 					System.out.println((String) jResp.getError().getData());
 				}
@@ -507,7 +507,7 @@ public class MessageHandler {
 		try {
 			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
 			if (!jResp.indicatesSuccess()) {
-				System.out.println("Error: " + jResp.getError().getMessage());
+				System.out.printf("Error " + jResp.getError().getCode() + ": " + jResp.getError().getMessage());
 				if (jResp.getError().getData() != null) {
 					System.out.println((String) jResp.getError().getData());
 				}
@@ -556,7 +556,7 @@ public class MessageHandler {
 		try {
 			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
 			if (!jResp.indicatesSuccess()) {
-				System.out.println("Error: " + jResp.getError().getMessage());
+				System.out.printf("Error " + jResp.getError().getCode() + ": " + jResp.getError().getMessage());
 				if (jResp.getError().getData() != null) {
 					System.out.println((String) jResp.getError().getData());
 				}
@@ -595,7 +595,7 @@ public class MessageHandler {
 		try {
 			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
 			if (!jResp.indicatesSuccess()) {
-				System.out.println("Error: " + jResp.getError().getMessage());
+				System.out.printf("Error " + jResp.getError().getCode() + ": " + jResp.getError().getMessage());
 				if (jResp.getError().getData() != null) {
 					System.out.println((String) jResp.getError().getData());
 				}
@@ -629,7 +629,7 @@ public class MessageHandler {
 		try {
 			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
 			if (!jResp.indicatesSuccess()) {
-				System.out.println("Error: " + jResp.getError().getMessage());
+				System.out.printf("Error " + jResp.getError().getCode() + ": " + jResp.getError().getMessage());
 				if (jResp.getError().getData() != null) {
 					System.out.println((String) jResp.getError().getData());
 				}
@@ -675,7 +675,7 @@ public class MessageHandler {
 			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
 
 			if (!jResp.indicatesSuccess()) {
-				System.out.println("Error: " + jResp.getError().getMessage());
+				System.out.printf("Error " + jResp.getError().getCode() + ": " + jResp.getError().getMessage());
 				if (jResp.getError().getData() != null) {
 					System.out.println((String) jResp.getError().getData());
 				}
@@ -733,7 +733,7 @@ public class MessageHandler {
 		try {
 			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
 			if (!jResp.indicatesSuccess()) {
-				System.out.println("Error: " + jResp.getError().getMessage());
+				System.out.printf("Error " + jResp.getError().getCode() + ": " + jResp.getError().getMessage());
 				if (jResp.getError().getData() != null) {
 					System.out.println((String) jResp.getError().getData());
 				}
@@ -781,7 +781,7 @@ public class MessageHandler {
 		try {
 			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
 			if (!jResp.indicatesSuccess()) {
-				System.out.println("Error: " + jResp.getError().getMessage());
+				System.out.printf("Error " + jResp.getError().getCode() + ": " + jResp.getError().getMessage());
 				if (jResp.getError().getData() != null) {
 					System.out.println((String) jResp.getError().getData());
 				}
@@ -809,7 +809,7 @@ public class MessageHandler {
 		try {
 			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
 			if (!jResp.indicatesSuccess()) {
-				System.out.println("Error: " + jResp.getError().getMessage());
+				System.out.printf("Error " + jResp.getError().getCode() + ": " + jResp.getError().getMessage());
 				if (jResp.getError().getData() != null) {
 					System.out.println((String) jResp.getError().getData());
 				}
@@ -879,7 +879,7 @@ public class MessageHandler {
 		try {
 			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
 			if (!jResp.indicatesSuccess()) {
-				System.out.println("Error: " + jResp.getError().getMessage());
+				System.out.printf("Error " + jResp.getError().getCode() + ": " + jResp.getError().getMessage());
 				if (jResp.getError().getData() != null) {
 					System.out.println((String) jResp.getError().getData());
 				}
