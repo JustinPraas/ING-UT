@@ -43,8 +43,9 @@ import exceptions.IllegalTransferException;
 import exceptions.InvalidPINException;
 
 @Path("/banking")
-public class ClientHandler {
+public class ServerHandler {
 	private static HashMap<String, CustomerAccount> accounts = new HashMap<>();
+	private static ServerModel serverModel = new ServerModel();
 	
 	@POST
 	@Path("/postRequest")
@@ -735,6 +736,13 @@ public class ClientHandler {
 		// If this is the wrong PIN, slap the client
 		if (!dc.isValidPIN(pinCode)) {
 			String err = buildError(421, "An invalid PINcard, -code or -combination was used.");
+			serverModel.increaseInvalidPinAttempt(pinCard);
+			
+			if (serverModel.getPreviousPinAttempts().get(pinCard) >= 3) {
+				dc.setBlocked(true);
+				dc.saveToDB();
+			}
+			
 			return respondError(err, 500);
 		}
 		
@@ -830,6 +838,13 @@ public class ClientHandler {
 			return respondError(err, 500);
 		} catch (InvalidPINException e) {
 			String err = buildError(421, "An invalid PINcard, -code or -combination was used.");
+			serverModel.increaseInvalidPinAttempt(pinCard);
+			
+			if (serverModel.getPreviousPinAttempts().get(pinCard) >= 3) {
+				card.setBlocked(true);
+				card.saveToDB();
+			}
+			
 			return respondError(err, 500);
 		}
 		
