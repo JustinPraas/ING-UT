@@ -26,6 +26,7 @@ import exceptions.ClosedAccountTransferException;
 import exceptions.IllegalAmountException;
 import exceptions.IllegalTransferException;
 import exceptions.InsufficientFundsTransferException;
+import exceptions.PinCardBlockedException;
 import exceptions.SameAccountTransferException;
 
 /**
@@ -185,9 +186,12 @@ public class BankAccount implements database.DBObject {
 	 * Deposit a specific sum of money into the <code>BankAccount</code>.
 	 * @param amount The amount of money to be deposited
 	 * @throws ClosedAccountTransferException 
+	 * @throws PinCardBlockedException 
 	 */
-	public void deposit(double amount, String cardNum) throws IllegalAmountException, ClosedAccountTransferException {
-		if (amount <= 0) {
+	public void deposit(double amount, String cardNum) throws IllegalAmountException, ClosedAccountTransferException, PinCardBlockedException {
+		if (((DebitCard) DataManager.getObjectByPrimaryKey(DebitCard.CLASSNAME, cardNum)).isBlocked()) {
+			throw new PinCardBlockedException(cardNum);
+		} else if (amount <= 0) {
 			throw new IllegalAmountException(amount);
 		} else if (this.closed) {
 			throw new ClosedAccountTransferException();

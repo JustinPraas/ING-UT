@@ -41,6 +41,7 @@ import exceptions.ExpiredCardException;
 import exceptions.IllegalAmountException;
 import exceptions.IllegalTransferException;
 import exceptions.InvalidPINException;
+import exceptions.PinCardBlockedException;
 
 @Path("/banking")
 public class ServerHandler {
@@ -731,14 +732,14 @@ public class ServerHandler {
 			return respondError(err, 500);
 		}
 		
-		DebitCard dc = (DebitCard) DataManager.getObjectByPrimaryKey(DebitCard.CLASSNAME, pinCard);		
+		DebitCard dc = (DebitCard) DataManager.getObjectByPrimaryKey(DebitCard.CLASSNAME, pinCard);	
 		
 		// If this is the wrong PIN, slap the client
 		if (!dc.isValidPIN(pinCode)) {
 			String err = buildError(421, "An invalid PINcard, -code or -combination was used.");
 			serverModel.increaseInvalidPinAttempt(pinCard);
 			
-			if (serverModel.getPreviousPinAttempts().get(pinCard) >= 3) {
+			if (!dc.isBlocked() && serverModel.getPreviousPinAttempts().get(pinCard) >= 3) {
 				dc.setBlocked(true);
 				dc.saveToDB();
 			}
@@ -756,6 +757,9 @@ public class ServerHandler {
 		
 		try {
 			bAcc.deposit(amount, pinCard);
+		} catch (PinCardBlockedException e) {
+			String err = buildError(419, "An unexpected error occured, see error details.", e.toString());
+			return respondError(err, 500);
 		} catch (IllegalAmountException e) {
 			String err = buildError(500, "An unexpected error occured, see error details.", e.toString());
 			return respondError(err, 500);
@@ -833,6 +837,9 @@ public class ServerHandler {
 		// If the payment goes wrong, stop and report the exception
 		try {
 			card.pinPayment(amount, pinCode, targetIBAN);
+		} catch (PinCardBlockedException e) {
+			String err = buildError(419, "An unexpected error occured, see error details.", e.toString());
+			return respondError(err, 500);
 		} catch (IllegalAmountException | IllegalTransferException | ExpiredCardException e) {
 			String err = buildError(500, "An unexpected error occured, see error details.", e.toString());
 			return respondError(err, 500);

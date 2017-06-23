@@ -13,6 +13,7 @@ import exceptions.ExpiredCardException;
 import exceptions.IllegalAmountException;
 import exceptions.IllegalTransferException;
 import exceptions.InvalidPINException;
+import exceptions.PinCardBlockedException;
 
 import java.sql.Date;
 import java.text.ParseException;
@@ -208,9 +209,11 @@ public class DebitCard implements database.DBObject {
 		}
 	}
 	
-	public void pinPayment(double amount, String PIN, String destinationIBAN) throws IllegalAmountException, IllegalTransferException, InvalidPINException, ExpiredCardException {
+	public void pinPayment(double amount, String PIN, String destinationIBAN) throws IllegalAmountException, IllegalTransferException, InvalidPINException, ExpiredCardException, PinCardBlockedException {
 		BankAccount ownAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, bankAccountIBAN);
-		if (!isValidPIN(PIN)) {
+		if (isBlocked()) {
+			throw new PinCardBlockedException(cardNumber);
+		} else if (!isValidPIN(PIN)) {
 			throw new InvalidPINException(PIN, getCardNumber());
 		} else if (isExpired()) {
 			throw new ExpiredCardException(getCardNumber(), getExpirationDate());
