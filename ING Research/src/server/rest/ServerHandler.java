@@ -734,8 +734,8 @@ public class ServerHandler {
 		
 		DebitCard dc = (DebitCard) DataManager.getObjectByPrimaryKey(DebitCard.CLASSNAME, pinCard);	
 		
-		// If this is the wrong PIN, slap the client
-		if (!dc.isValidPIN(pinCode)) {
+		// If the card is not yet blocked and the wrong PIN is given, slap the client
+		if (!dc.isBlocked() && !dc.isValidPIN(pinCode)) {
 			String err = buildError(421, "An invalid PINcard, -code or -combination was used.");
 			serverModel.increaseInvalidPinAttempt(pinCard);
 			
