@@ -30,6 +30,7 @@ public class DebitCard implements database.DBObject {
 	private String expirationDate;
 	private String bankAccountIBAN;
 	private String holderBSN;
+	private boolean blocked;
 	public static final String CLASSNAME = "accounts.DebitCard";
 	public static final String PRIMARYKEYNAME = "cardNumber";
 	
@@ -48,6 +49,7 @@ public class DebitCard implements database.DBObject {
 		PIN = generatePin();
 		cardNumber = generateCardNumber();
 		expirationDate = generateExpirationDate();
+		blocked = false;
 	}
 	
 	/**
@@ -60,6 +62,7 @@ public class DebitCard implements database.DBObject {
 		this.expirationDate = expirationDate;
 		this.cardNumber = cardNumber;
 		this.PIN = PIN;
+		blocked = false;
 	}
 	
 	public DebitCard(String holderBSN, String bankAccountIBAN, String PIN) {
@@ -68,6 +71,7 @@ public class DebitCard implements database.DBObject {
 		this.PIN = PIN;
 		cardNumber = generateCardNumber();
 		expirationDate = generateExpirationDate();
+		blocked = false;
 	}
 
 	/**
@@ -240,6 +244,11 @@ public class DebitCard implements database.DBObject {
 	public String getBankAccountIBAN() {
 		return bankAccountIBAN;
 	}
+	
+	@Column(name = "blocked")
+	public boolean isBlocked() {
+		return blocked;
+	}
 
 	public void setCardNumber(String num) {
 		cardNumber = num;
@@ -255,6 +264,10 @@ public class DebitCard implements database.DBObject {
 	
 	public void setBankAccountIBAN(String IBAN) {
 		bankAccountIBAN = IBAN;
+	}
+	
+	public void setBlocked(boolean blocked) {
+		this.blocked = blocked;
 	}
 	
 	public void setExpirationDate(String expirationDate) {
