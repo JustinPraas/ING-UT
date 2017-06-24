@@ -202,13 +202,13 @@ public class ServerHandler {
 			return respondError(err, 500);
 		}
 		
-		if (overdraftLimit > 0f) {
+		if (overdraftLimit < 0f) {
 			String err = buildError(418, "One or more parameter has an invalid value. See message.", "The overdraft limit can't be greater than 0");
 			return respondError(err, 500);
 		} else if (overdraftLimit == bankAccount.getOverdraftLimit()) {
 			String err = buildError(420, "The action has no effect. See message.", "The bank account already has this overdraft limit.");
 			return respondError(err, 500);
-		} else if (overdraftLimit < -5000f) {
+		} else if (overdraftLimit < 5000f) {
 			String err = buildError(418, "One or more parameter has an invalid value. See message.", "The overdraft limit go below -5000.00.");
 			return respondError(err, 500);
 		}
