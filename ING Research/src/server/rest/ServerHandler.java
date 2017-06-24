@@ -163,7 +163,7 @@ public class ServerHandler {
 		
 		// If this is a bogus token, slap the client
 		if (!accounts.keySet().contains(authToken)) {
-			String err = buildError(419, "The authenticated user is not authorized to perform this action.");
+			String err = buildError(419, "The authenticated user is not authorized to perform this action. Invalid authentication token.");
 			return respondError(err, 500);
 		}
 		
@@ -279,7 +279,7 @@ public class ServerHandler {
 		
 		// If token is invalid, stop and notify client
 		if (!accounts.containsKey(authToken)) {
-			String err = buildError(419, "The authenticated user is not authorized to perform this action.");
+			String err = buildError(419, "The authenticated user is not authorized to perform this action. Invalid authentication token.");
 			return respondError(err, 500);
 		}
 		
@@ -301,7 +301,7 @@ public class ServerHandler {
 		
 		// If the target account is not owned by the authorized user, stop and notify client
 		if (!bAcc.getMainHolderBSN().equals(cAcc.getBSN())) {
-			String err = buildError(419, "The authenticated user is not authorized to perform this action.");
+			String err = buildError(419, "The authenticated user is not authorized to perform this action. User does not own the given account.");
 			return respondError(err, 500);
 		}
 		
@@ -345,7 +345,7 @@ public class ServerHandler {
 		
 		// If the authToken is invalid, stop and notify the client 
 		if (!accounts.containsKey(authToken)) {
-			String err = buildError(419, "The authenticated user is not authorized to perform this action.");
+			String err = buildError(419, "The authenticated user is not authorized to perform this action. Invalid authentication token.");
 			return respondError(err, 500);
 		}
 		
@@ -466,7 +466,7 @@ public class ServerHandler {
 		
 		// If this is a bogus token, slap the client
 		if (!accounts.keySet().contains(token)) {
-			String err = buildError(419, "The authenticated user is not authorized to perform this action.");
+			String err = buildError(419, "The authenticated user is not authorized to perform this action. Invalid authentication token.");
 			return respondError(err, 500);
 		}
 		
@@ -506,7 +506,7 @@ public class ServerHandler {
 		
 		// If this is a bogus token, slap the client
 		if (!accounts.keySet().contains(token)) {
-			String err = buildError(419, "The authenticated user is not authorized to perform this action.");
+			String err = buildError(419, "The authenticated user is not authorized to perform this action. Invalid authentication token.");
 			return respondError(err, 500);
 		}
 		
@@ -545,7 +545,7 @@ public class ServerHandler {
 		
 		// If the target account is not owned by the user, stop and notify the client
 		if (!acc.getBSN().equals(target.getMainHolderBSN()) ) {
-			String err = buildError(419, "The authenticated user is not authorized to perform this action.");
+			String err = buildError(419, "The authenticated user is not authorized to perform this action. User does not own this account.");
 			return respondError(err, 500);
 		}
 		
@@ -589,7 +589,7 @@ public class ServerHandler {
 		
 		// If the token is bogus, slap the client
 		if (!accounts.keySet().contains(token)) {
-			String err = buildError(419, "The authenticated user is not authorized to perform this action.");
+			String err = buildError(419, "The authenticated user is not authorized to perform this action. Invalid authentication token.");
 			return respondError(err, 500);
 		}
 		
@@ -618,7 +618,7 @@ public class ServerHandler {
 		
 		// If the sender is not the owner of the account, stop and notify the client
 		if (!bAcc.getMainHolderBSN().equals(cAcc.getBSN())) {
-			String err = buildError(419, "The authenticated user is not authorized to perform this action.");
+			String err = buildError(419, "The authenticated user is not authorized to perform this action. You are not the owner of this account.");
 			return respondError(err, 500);
 		}
 		
@@ -685,7 +685,7 @@ public class ServerHandler {
 		
 		// If the token is bogus, slap the client
 		if (!accounts.keySet().contains(token)) {
-			String err = buildError(419, "The authenticated user is not authorized to perform this action.");
+			String err = buildError(419, "The authenticated user is not authorized to perform this action. Invalid authentication token.");
 			return respondError(err, 500);
 		}
 		
@@ -715,7 +715,8 @@ public class ServerHandler {
 		// If the user doesn't own the account he wants to revoke someone's access from, stop and notify the client
 		// Alternatively, if the user is trying to revoke his own privileges from an account he owns, stop and notify.
 		if (usernameSpecified && !bAcc.getMainHolderBSN().equals(cAcc.getBSN())) {
-			String err = buildError(419, "The authenticated user is not authorized to perform this action.");
+			String err = buildError(419, "The authenticated user is not authorized to perform this action. You don't have the right to revoke "
+					+ "someone's access from this account");
 			return respondError(err, 500);
 		} else if (!usernameSpecified && bAcc.getMainHolderBSN().equals(cAcc.getBSN())) {
 			String err = buildError(500, "An unexpected error occured, see error details.", "You are the owner of account " + IBAN 
@@ -1003,7 +1004,7 @@ public class ServerHandler {
 		
 		// If this is a bogus auth token, slap the client
 		if (!accounts.containsKey(authToken)) {
-			String err = buildError(419, "The authenticated user is not authorized to perform this action.");
+			String err = buildError(419, "The authenticated user is not authorized to perform this action. Invalid authentication token.");
 			return respondError(err, 500);
 		}
 		
@@ -1029,7 +1030,7 @@ public class ServerHandler {
 		
 		// If the user is trying to invalidate someone else's pincard
 		if (!authorized) {
-			String err = buildError(419, "The authenticated user is not authorized to perform this action.");
+			String err = buildError(419, "The authenticated user is not authorized to perform this action. You can not invalidate someone else's pin card.");
 			return respondError(err, 500);
 		}
 		
@@ -1114,7 +1115,7 @@ public class ServerHandler {
 		
 		// If this is a bogus auth token, slap the client
 		if (!accounts.containsKey(authToken)) {
-			String err = buildError(419, "The authenticated user is not authorized to perform this action.");
+			String err = buildError(419, "The authenticated user is not authorized to perform this action. Invalid authentication token.");
 			return respondError(err, 500);
 		}
 		
@@ -1139,7 +1140,7 @@ public class ServerHandler {
 		
 		// If the client is trying to transfer money from someone else's account, send an error
 		if (!authorized) {
-			String err = buildError(419, "The authenticated user is not authorized to perform this action.");
+			String err = buildError(419, "The authenticated user is not authorized to perform this action. You can not transfer money from someone else's account.");
 			return respondError(err, 500);
 		}
 		
@@ -1233,7 +1234,7 @@ public class ServerHandler {
 		
 		// If this is a bogus token, slap the client
 		if (!accounts.containsKey(authToken)) {
-			String err = buildError(419, "The authenticated user is not authorized to perform this action.");
+			String err = buildError(419, "The authenticated user is not authorized to perform this action. Invalid authentication token.");
 			return respondError(err, 500);
 		}
 		
@@ -1270,7 +1271,7 @@ public class ServerHandler {
 		
 		// If the client is trying to snoop on someone else's account, send an error
 		if (!authorized) {
-			String err = buildError(419, "The authenticated user is not authorized to perform this action.");
+			String err = buildError(419, "The authenticated user is not authorized to perform this action. You can't view the balance of this account.");
 			return respondError(err, 500);
 		}
 		
@@ -1315,7 +1316,7 @@ public class ServerHandler {
 			
 		// If this is a bogus token, slap the client
 		if (!accounts.containsKey(authToken)) {
-			String err = buildError(419, "The authenticated user is not authorized to perform this action.");
+			String err = buildError(419, "The authenticated user is not authorized to perform this action. Invalid authentication token.");
 			return respondError(err, 500);
 		}
 				
@@ -1346,7 +1347,7 @@ public class ServerHandler {
 			
 		// If the client is trying to snoop on someone else's account, send an error
 		if (!authorized) {
-			String err = buildError(419, "The authenticated user is not authorized to perform this action.");
+			String err = buildError(419, "The authenticated user is not authorized to perform this action. You can not view the transactions of this account.");
 			return respondError(err, 500);
 		}
 		
