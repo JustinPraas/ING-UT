@@ -45,6 +45,7 @@ public class BankAccount implements database.DBObject {
 	private String mainHolderBSN;
 	private Set<CustomerAccount> owners = new HashSet<CustomerAccount>();
 	boolean closed;
+	double overdraftLimit;
 	public static final String CLASSNAME = "accounts.BankAccount";
 	public static final String PRIMARYKEYNAME = "IBAN";
 	
@@ -76,6 +77,7 @@ public class BankAccount implements database.DBObject {
 		this.balance = 0;
 		this.IBAN = generateIBAN(COUNTRY_CODE, BANK_CODE, randomPAN());
 		this.mainHolderBSN = mainHolderBSN;
+		this.overdraftLimit = 0;
 	}
 	
 	/**
@@ -90,6 +92,7 @@ public class BankAccount implements database.DBObject {
 		this.mainHolderBSN = mainHolderBSN;
 		this.balance = balance;
 		this.IBAN = IBAN;
+		this.overdraftLimit = 0;
 	}
 	
 	public void addOwner(CustomerAccount owner) {
@@ -424,7 +427,11 @@ public class BankAccount implements database.DBObject {
 	public void setIBAN(String IBAN) {
 		this.IBAN = IBAN; 
 	}
-	
+
+	public void setOverdraftLimit(double overdraftLimit) {
+		this.overdraftLimit = overdraftLimit;
+	}
+
 	public void setBalance(float balance) {
 		this.balance = balance; 
 	}
@@ -451,6 +458,11 @@ public class BankAccount implements database.DBObject {
 	@Column(name = "closed")
 	public boolean getClosed() {
 		return closed;
+	}
+	
+	@Column(name = "overdraftlimit")
+	public double getOverdraftLimit() {
+		return overdraftLimit;
 	}
 	
 	@Transient
