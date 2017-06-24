@@ -14,6 +14,6 @@ public class ExceedOverdraftLimitException extends Exception {
 	}
 
 	public String toString() {
-		return "Can not compleet payment/transfer: exceeding overdraft limit of " + overdraftLimit;
+		return "Can not complete payment/transfer: exceeding overdraft limit of " + overdraftLimit + ".";
 	}
 }
