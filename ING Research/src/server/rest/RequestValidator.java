@@ -5,6 +5,8 @@ import java.util.Map;
 
 import javax.ws.rs.core.Response;
 
+import accounts.BankAccount;
+import accounts.CustomerAccount;
 import server.core.InputValidator;
 
 public class RequestValidator {
@@ -391,6 +393,15 @@ public class RequestValidator {
 		return null;
 	}
 	
+	public static boolean userOwnsBankAccount(CustomerAccount customerAccount, BankAccount bankAccount) {
+		for (BankAccount b : customerAccount.getBankAccounts()) {
+			if (b.getIBAN().equals(bankAccount.getIBAN())) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	private static Response invalidMethodParametersResponse() {
 		String err = ServerHandler.buildError(-32602, "Invalid method parameters.");
 		return ServerHandler.respondError(err, 500);
