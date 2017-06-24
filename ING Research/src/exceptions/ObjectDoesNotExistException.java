@@ -1,7 +1,8 @@
 package exceptions;
 
 public class ObjectDoesNotExistException extends Exception {
-	private static final long serialVersionUID = -6904621156696972537L;
+
+	private static final long serialVersionUID = 6514167236433722258L;
 	String className, primaryKey;
 	
 	public ObjectDoesNotExistException(String className, String primaryKey) {

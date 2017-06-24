@@ -1,7 +1,8 @@
 package exceptions;
 
 public class PinCardBlockedException extends Exception {
-	private static final long serialVersionUID = -6904621156696972537L;
+
+	private static final long serialVersionUID = -6464757375808369414L;
 	String card;
 	
 	public PinCardBlockedException(String card) {
