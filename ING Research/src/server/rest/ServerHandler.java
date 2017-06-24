@@ -38,6 +38,7 @@ import database.SQLiteDB;
 import exceptions.ClosedAccountTransferException;
 import exceptions.ExceedOverdraftLimitException;
 import exceptions.ExpiredCardException;
+import exceptions.IllegalAccountCloseException;
 import exceptions.IllegalAmountException;
 import exceptions.IllegalTransferException;
 import exceptions.InvalidPINException;
@@ -539,12 +540,17 @@ public class ServerHandler {
 					String err = buildError(420, "The action has no effect. See message.", "Account " + IBAN + " is already closed");
 					return respondError(err, 500);
 				}
-				b.setClosed(true);
-				b.saveToDB();
-				acc.saveToDB();
-				found = true;
-				target = b;
-				break;
+				try {
+					b.close();
+					b.saveToDB();
+					acc.saveToDB();
+					found = true;
+					target = b;
+					break;
+				} catch (IllegalAccountCloseException e) {
+					String err = buildError(500, "An unexpected error occured, see error details.", e.toString());
+					return respondError(err, 500);
+				}
 			}
 		}
 		

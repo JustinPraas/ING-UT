@@ -24,6 +24,7 @@ import java.math.BigInteger;
 
 import exceptions.ClosedAccountTransferException;
 import exceptions.ExceedOverdraftLimitException;
+import exceptions.IllegalAccountCloseException;
 import exceptions.IllegalAmountException;
 import exceptions.IllegalTransferException;
 import exceptions.InsufficientFundsTransferException;
@@ -426,6 +427,15 @@ public class BankAccount implements database.DBObject {
 		}
 	}
 	
+	public void close() throws IllegalAccountCloseException {
+		if (balance != 0) {
+			throw new IllegalAccountCloseException(IBAN, balance);
+		}
+		
+		setClosed(true);
+		
+	}
+
 	public void setIBAN(String IBAN) {
 		this.IBAN = IBAN; 
 	}
