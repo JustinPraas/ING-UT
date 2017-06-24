@@ -208,8 +208,8 @@ public class ServerHandler {
 		} else if (overdraftLimit == bankAccount.getOverdraftLimit()) {
 			String err = buildError(420, "The action has no effect. See message.", "The bank account already has this overdraft limit.");
 			return respondError(err, 500);
-		} else if (overdraftLimit < 5000f) {
-			String err = buildError(418, "One or more parameter has an invalid value. See message.", "The overdraft limit cannot be greater than -5000.00.");
+		} else if (overdraftLimit > 5000f) {
+			String err = buildError(418, "One or more parameter has an invalid value. See message.", "The overdraft limit cannot be greater than 5000.00.");
 			return respondError(err, 500);
 		}
 		
