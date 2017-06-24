@@ -9,6 +9,45 @@ import server.core.InputValidator;
 
 public class RequestValidator {
 
+	public static Response isValidSetOverdraftLimitRequest(HashMap<String, Object> params) {
+		if (!params.containsKey("authToken") || !params.containsKey("iBAN") || !params.containsKey("overdraftLimit")) {
+			return invalidMethodParametersResponse();
+		}
+		
+		if (!InputValidator.isValidIBAN((String) params.get("iBAN"))) {
+			return invalidIBANResponse((String) params.get("iBAN"));
+		}
+		
+		if (!ServerHandler.getAccounts().keySet().contains((String) params.get("authToken"))) {
+			return invalidAuthTokenResponse();
+		}
+		
+		try {
+			Double.parseDouble((String) params.get("overdraftLimit"));
+		} catch (NumberFormatException e) {
+			String err = ServerHandler.buildError(418, "One or more parameter has an invalid value. See message.", (String) params.get("overdraftLimit") + " is not a valid overdraft limit.");
+			return ServerHandler.respondError(err, 500);
+		}
+		
+		return null;
+	}
+	
+	public static Response isValidGetOverdraftLimitRequest(HashMap<String, Object> params) {
+		if (!params.containsKey("authToken") || !params.containsKey("iBAN")) {
+			return invalidMethodParametersResponse();
+		}
+		
+		if (!InputValidator.isValidIBAN((String) params.get("iBAN"))) {
+			return invalidIBANResponse((String) params.get("iBAN"));
+		}
+		
+		if (!ServerHandler.getAccounts().keySet().contains((String) params.get("authToken"))) {
+			return invalidAuthTokenResponse();
+		}
+		
+		return null;
+	}
+
 	public static Response isValidUnblockCardRequest(HashMap<String, Object> params) {
 		if (!params.containsKey("authToken") || !params.containsKey("iBAN") || !params.containsKey("pinCard")) {
 			return invalidMethodParametersResponse();
@@ -194,7 +233,7 @@ public class RequestValidator {
 		// If any given parameter values are invalid, stop and notify the client
 		try {
 			Double.parseDouble((String) params.get("amount"));
-		} catch (ClassCastException e) {
+		} catch (NumberFormatException e) {
 			return invalidAmountResponse((String) params.get("amount"));
 		}
 		
@@ -223,7 +262,7 @@ public class RequestValidator {
 		// If any of the parameters have invalid values, stop and notify the client
 		try {
 			Double.parseDouble((String) params.get("amount"));
-		} catch (ClassCastException e) {
+		} catch (NumberFormatException e) {
 			return invalidAmountResponse((String) params.get("amount"));
 		}
 		
@@ -283,7 +322,7 @@ public class RequestValidator {
 		// If any parameter has an invalid value, stop and notify the client
 		try {
 			Double.parseDouble((String) params.get("amount"));
-		} catch (ClassCastException e) {
+		} catch (NumberFormatException e) {
 			return invalidAmountResponse((String) params.get("amount"));
 		}
 		
@@ -351,7 +390,7 @@ public class RequestValidator {
 		
 		return null;
 	}
-
+	
 	private static Response invalidMethodParametersResponse() {
 		String err = ServerHandler.buildError(-32602, "Invalid method parameters.");
 		return ServerHandler.respondError(err, 500);
@@ -381,5 +420,4 @@ public class RequestValidator {
 		String err = ServerHandler.buildError(418, "One or more parameter has an invalid value. See message.", pinCode + " is not a valid PIN.");
 		return ServerHandler.respondError(err, 500);
 	}
-
 }
