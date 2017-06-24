@@ -36,6 +36,7 @@ import client.Client;
 import database.DataManager;
 import database.SQLiteDB;
 import exceptions.ClosedAccountTransferException;
+import exceptions.ExceedOverdraftLimitException;
 import exceptions.ExpiredCardException;
 import exceptions.IllegalAmountException;
 import exceptions.IllegalTransferException;
@@ -885,9 +886,6 @@ public class ServerHandler {
 		} catch (PinCardBlockedException e) {
 			String err = buildError(419, "An unexpected error occured, see error details.", e.toString());
 			return respondError(err, 500);
-		} catch (IllegalAmountException | IllegalTransferException | ExpiredCardException e) {
-			String err = buildError(500, "An unexpected error occured, see error details.", e.toString());
-			return respondError(err, 500);
 		} catch (InvalidPINException e) {
 			String err = buildError(421, "An invalid PINcard, -code or -combination was used.");
 			serverModel.increaseInvalidPinAttempt(pinCard);
@@ -897,6 +895,9 @@ public class ServerHandler {
 				card.saveToDB();
 			}
 			
+			return respondError(err, 500);
+		} catch (IllegalAmountException | IllegalTransferException | ExpiredCardException | ExceedOverdraftLimitException e) {
+			String err = buildError(500, "An unexpected error occured, see error details.", e.toString());
 			return respondError(err, 500);
 		}
 		
@@ -970,6 +971,16 @@ public class ServerHandler {
 		} else {
 			newDebitCard = new DebitCard(customerAccount.getBSN(), bankAccount.getIBAN(), currentDebitCard.getPIN());
 		}
+		
+		BankAccount feeDestinationBankAccount;
+		try {
+			feeDestinationBankAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, "NL36INGB8278309172");
+			bankAccount.transfer(feeDestinationBankAccount, 7.50, "Fee for new pincard", "ING");
+		} catch (ObjectDoesNotExistException | IllegalAmountException | IllegalTransferException | ExceedOverdraftLimitException e) {
+			String err = buildError(500, "An unexpected error occured, see error details.", e.toString());
+			return respondError(err, 500);
+		}
+		
 		
 		bankAccount.saveToDB();
 		newDebitCard.saveToDB();
@@ -1046,7 +1057,7 @@ public class ServerHandler {
 		// If something goes wrong with the transfer, stop and report it
 		try {
 			source.transfer(destination, amount, description, targetName);
-		} catch (IllegalAmountException | IllegalTransferException e) {
+		} catch (IllegalAmountException | IllegalTransferException | ExceedOverdraftLimitException e) {
 			String err = buildError(500, "An unexpected error occured, see error details.", e.toString());
 			return respondError(err, 500);
 		}
