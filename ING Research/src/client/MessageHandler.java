@@ -170,7 +170,7 @@ public class MessageHandler {
 			if (!jResp.indicatesSuccess()) {
 				System.out.printf("Error " + jResp.getError().getCode() + ": " + jResp.getError().getMessage());
 				if (jResp.getError().getData() != null) {
-					System.out.println("this" + (String) jResp.getError().getData());
+					System.out.println((String) jResp.getError().getData());
 				}
 				return;
 			}
@@ -200,7 +200,7 @@ public class MessageHandler {
 			if (!jResp.indicatesSuccess()) {
 				System.out.printf("Error " + jResp.getError().getCode() + ": " + jResp.getError().getMessage());
 				if (jResp.getError().getData() != null) {
-					System.out.println("this" + (String) jResp.getError().getData());
+					System.out.println((String) jResp.getError().getData());
 				}
 				return;
 			}
@@ -235,7 +235,7 @@ public class MessageHandler {
 			if (!jResp.indicatesSuccess()) {
 				System.out.printf("Error " + jResp.getError().getCode() + ": " + jResp.getError().getMessage());
 				if (jResp.getError().getData() != null) {
-					System.out.println("this" + (String) jResp.getError().getData());
+					System.out.println((String) jResp.getError().getData());
 				}
 				return;
 			}
