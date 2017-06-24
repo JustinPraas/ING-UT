@@ -174,7 +174,7 @@ public class MessageHandler {
 				}
 				return;
 			}
-			System.out.println("Overdraft limit succesfully set to " + parameterArray[1] + ".");
+			System.out.println("Overdraft limit succesfully set to " + Double.parseDouble(parameterArray[1]) + ".");
 		} catch (JSONRPC2ParseException e) {
 			System.out.println("Discarded invalid JSON-RPC response from server.");
 		}		
