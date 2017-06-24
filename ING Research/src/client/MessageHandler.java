@@ -151,7 +151,7 @@ public class MessageHandler {
 	
 	/**
 	 * Extension 5: 'Overdraft' related.
-	 * Gets the overdraft limit of the given gank account
+	 * Sets the overdraft limit of the given bank account
 	 */
 	private void setOverdraftLimit(String parameters) {
 		String parameterArray[] = parameters.split(":");
@@ -180,6 +180,10 @@ public class MessageHandler {
 		}		
 	}
 
+	/**
+	 * Extension 5: 'Overdraft' related.
+	 * Gets the overdraft limit of the given bank account
+	 */
 	private void getOverdraftLimit(String parameters) {
 		String parameterArray[] = parameters.split(":");
 		String method = "setOverdraftLimit";
