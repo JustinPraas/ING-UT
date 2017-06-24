@@ -155,7 +155,7 @@ public class MessageHandler {
 	 */
 	private void setOverdraftLimit(String parameters) {
 		String parameterArray[] = parameters.split(":");
-		String method = "getOverdraftLimit";
+		String method = "setOverdraftLimit";
 		HashMap<String, Object> params = new HashMap<>();
 
 		params.put("authToken", AUTHTOKEN);
@@ -186,7 +186,7 @@ public class MessageHandler {
 	 */
 	private void getOverdraftLimit(String parameters) {
 		String parameterArray[] = parameters.split(":");
-		String method = "setOverdraftLimit";
+		String method = "getOverdraftLimit";
 		HashMap<String, Object> params = new HashMap<>();
 		
 		params.put("authToken", AUTHTOKEN);
