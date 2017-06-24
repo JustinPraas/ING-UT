@@ -135,6 +135,12 @@ public class MessageHandler {
 			case "UNBLOCK_PINCARD":
 				unblockCard(parameters);
 				break;
+			case "SET_OVERDRAFT_LIMIT":
+				setOverdraftLimit(parameters);
+				break;
+			case "GET_OVERDRAFT_LIMIT":
+				getOverdraftLimit(parameters);
+				break;
 			default:
 				System.err.println("Invalid command.");
 				break;
@@ -143,6 +149,64 @@ public class MessageHandler {
 		System.out.println("\n");
 	}
 	
+	private void getOverdraftLimit(String parameters) {
+		String parameterArray[] = parameters.split(":");
+		String method = "getOverdraftLimit";
+		HashMap<String, Object> params = new HashMap<>();
+
+		params.put("authToken", AUTHTOKEN);
+		params.put("iBAN", parameterArray[0]);
+		params.put("overdraftLimit", parameterArray[1]);
+		
+		JSONRPC2Request request = new JSONRPC2Request(method, params,
+				"request-" + java.lang.System.currentTimeMillis());
+		String resp = sendToServer(request);
+		try {
+			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
+			if (!jResp.indicatesSuccess()) {
+				System.out.printf("Error " + jResp.getError().getCode() + ": " + jResp.getError().getMessage());
+				if (jResp.getError().getData() != null) {
+					System.out.println("this" + (String) jResp.getError().getData());
+				}
+				return;
+			}
+			System.out.println("Overdraft limit succesfully set to " + parameterArray[1] + ".");
+		} catch (JSONRPC2ParseException e) {
+			System.out.println("Discarded invalid JSON-RPC response from server.");
+		}		
+	}
+
+	private void setOverdraftLimit(String parameters) {
+		String parameterArray[] = parameters.split(":");
+		String method = "setOverdraftLimit";
+		HashMap<String, Object> params = new HashMap<>();
+		
+		params.put("authToken", AUTHTOKEN);
+		params.put("iBAN", parameterArray[0]);
+		
+		JSONRPC2Request request = new JSONRPC2Request(method, params,
+				"request-" + java.lang.System.currentTimeMillis());
+		String resp = sendToServer(request);
+		try {
+			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
+			if (!jResp.indicatesSuccess()) {
+				System.out.printf("Error " + jResp.getError().getCode() + ": " + jResp.getError().getMessage());
+				if (jResp.getError().getData() != null) {
+					System.out.println("this" + (String) jResp.getError().getData());
+				}
+				return;
+			}
+			
+			@SuppressWarnings("unchecked")
+			HashMap<String, Object> result = (HashMap<String, Object>) jResp.getResult();
+			String overdraftLimit = (String) result.get("overdraftLimit");
+			System.out.println("Overdraft limit for " + parameterArray[0] + " is " + overdraftLimit + ".");
+		} catch (JSONRPC2ParseException e) {
+			System.out.println("Discarded invalid JSON-RPC response from server.");
+		}	
+		
+	}
+
 	/**
 	 * Extension 2: 'PIN block' related.
 	 * Unblocks a given pin card, given the right parameters and given it is actually blocked.
