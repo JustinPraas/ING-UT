@@ -107,6 +107,10 @@ public class ServerHandler {
 			return getDate(jReq);
 		case "unblockCard":
 			return unblockCard(jReq);
+		case "setOverdraftLimit":
+			return setOverdraftLimit(jReq);
+		case "getOverdraftLimit":
+			return getOverdraftLimit(jReq);
 		default:
 			String err = buildError(-32601, "The requested remote-procedure does not exist.");
 			return respondError(err, 500);
@@ -131,6 +135,90 @@ public class ServerHandler {
 	
 	public static Response respondError(String jResp, int code) {
 		return Response.status(500).entity(jResp).build();	
+	}
+
+	private static Response getOverdraftLimit(JSONRPC2Request jReq) {
+		HashMap<String, Object> params = (HashMap<String, Object>) jReq.getNamedParams();	
+		
+		// Check Request validity, return an error Response if the Request is invalid
+		Response invalidRequest = RequestValidator.isValidGetOverdraftLimitRequest(params);
+		if (invalidRequest != null) {
+			return invalidRequest;
+		}
+
+		String authToken = (String) params.get("authToken");
+		String IBAN = (String) params.get("iBAN");		
+
+		CustomerAccount customerAccount = accounts.get(authToken);
+		BankAccount bankAccount;
+		try {
+			bankAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, IBAN);
+		} catch (ObjectDoesNotExistException e) {
+			String err = buildError(418, "One or more parameter has an invalid value. See message. \n" + e.toString());
+			return respondError(err, 500);
+		}
+		
+		if (!RequestValidator.userOwnsBankAccount(customerAccount, bankAccount)) {
+			String err = buildError(419, "The authenticated user is not authorized to perform this action. You can not peek at the overdraft limit of another person's bank account.");
+			return respondError(err, 500);
+		}
+		
+		HashMap<String, Object> resp = new HashMap<>();	
+		resp.put("overdraftLimit", Double.toString(bankAccount.getOverdraftLimit()));
+		
+		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
+		return respond(jResp.toJSONString());
+	}
+
+	/**
+	 * Extension 5: 'Overdraft' related.
+	 * Sets the overdraft limit of the given IBAN
+	 */
+	private static Response setOverdraftLimit(JSONRPC2Request jReq) {
+		HashMap<String, Object> params = (HashMap<String, Object>) jReq.getNamedParams();	
+		
+		// Check Request validity, return an error Response if the Request is invalid
+		Response invalidRequest = RequestValidator.isValidSetOverdraftLimitRequest(params);
+		if (invalidRequest != null) {
+			return invalidRequest;
+		}
+
+		String authToken = (String) params.get("authToken");
+		String IBAN = (String) params.get("iBAN");
+		Double overdraftLimit = Double.parseDouble((String) params.get("overdraftLimit"));
+		
+		CustomerAccount customerAccount = accounts.get(authToken);
+		BankAccount bankAccount;
+		try {
+			bankAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, IBAN);
+		} catch (ObjectDoesNotExistException e) {
+			String err = buildError(418, "One or more parameter has an invalid value. See message. \n" + e.toString());
+			return respondError(err, 500);
+		}
+		
+		// Check if the user actually owns the bank account
+		if (!RequestValidator.userOwnsBankAccount(customerAccount, bankAccount)) {
+			String err = buildError(419, "The authenticated user is not authorized to perform this action. You can not change the overdraft limit for someone else's bank account.");
+			return respondError(err, 500);
+		}
+		
+		if (overdraftLimit > 0f) {
+			String err = buildError(418, "One or more parameter has an invalid value. See message.", "The overdraft limit can't be greater than 0");
+			return respondError(err, 500);
+		} else if (overdraftLimit == bankAccount.getOverdraftLimit()) {
+			String err = buildError(420, "The action has no effect. See message.", "The bank account already has this overdraft limit.");
+			return respondError(err, 500);
+		} else if (overdraftLimit < -5000f) {
+			String err = buildError(418, "One or more parameter has an invalid value. See message.", "The overdraft limit go below -5000.00.");
+			return respondError(err, 500);
+		}
+		
+		bankAccount.setOverdraftLimit(overdraftLimit);
+		bankAccount.saveToDB();
+		
+		HashMap<String, Object> resp = new HashMap<>();		
+		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
+		return respond(jResp.toJSONString());
 	}
 	
 	/**
