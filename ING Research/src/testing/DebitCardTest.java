@@ -10,6 +10,7 @@ import accounts.BankAccount;
 import accounts.DebitCard;
 import accounts.Transaction;
 import database.DataManager;
+import exceptions.ExceedOverdraftLimitException;
 import exceptions.ExpiredCardException;
 import exceptions.InvalidPINException;
 import exceptions.ObjectDoesNotExistException;
@@ -51,6 +52,8 @@ public class DebitCardTest {
 			
 		} catch (ExpiredCardException e) {
 			
+		} catch (ExceedOverdraftLimitException e) {
+
 		}
 		try {
 			bAcc = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, bAcc.getIBAN());
@@ -66,6 +69,8 @@ public class DebitCardTest {
 			
 		} catch (ExpiredCardException e) {
 			
+		} catch (ExceedOverdraftLimitException e) {
+
 		}
 		try {
 			bAcc = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, bAcc.getIBAN());

@@ -9,6 +9,7 @@ import javax.persistence.Transient;
 
 import client.Client;
 import database.DataManager;
+import exceptions.ExceedOverdraftLimitException;
 import exceptions.ExpiredCardException;
 import exceptions.IllegalAmountException;
 import exceptions.IllegalTransferException;
@@ -190,8 +191,9 @@ public class DebitCard implements database.DBObject {
 	 * @param destination The destination IBAN
 	 * @throws InvalidPINException 
 	 * @throws ExpiredCardException 
+	 * @throws ExceedOverdraftLimitException 
 	 */
-	public void pinPayment(double amount, String PIN, BankAccount destination) throws InvalidPINException, ExpiredCardException {
+	public void pinPayment(double amount, String PIN, BankAccount destination) throws InvalidPINException, ExpiredCardException, ExceedOverdraftLimitException {
 		BankAccount ownAccount;
 		try {
 			ownAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, bankAccountIBAN);
@@ -216,7 +218,7 @@ public class DebitCard implements database.DBObject {
 		}
 	}
 	
-	public void pinPayment(double amount, String PIN, String destinationIBAN) throws IllegalAmountException, IllegalTransferException, InvalidPINException, ExpiredCardException, PinCardBlockedException {
+	public void pinPayment(double amount, String PIN, String destinationIBAN) throws IllegalAmountException, IllegalTransferException, InvalidPINException, ExpiredCardException, PinCardBlockedException, ExceedOverdraftLimitException {
 		BankAccount ownAccount;
 		try {
 			ownAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, bankAccountIBAN);

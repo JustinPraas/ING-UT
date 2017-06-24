@@ -23,6 +23,7 @@ import database.DataManager;
 import java.math.BigInteger;
 
 import exceptions.ClosedAccountTransferException;
+import exceptions.ExceedOverdraftLimitException;
 import exceptions.IllegalAmountException;
 import exceptions.IllegalTransferException;
 import exceptions.InsufficientFundsTransferException;
@@ -226,12 +227,13 @@ public class BankAccount implements database.DBObject {
 	 * Transfers a specific amount of money from this <code>BankAccount</code> to another.
 	 * @param destination The <code>BankAccount</code> to which the transferred money should go
 	 * @param amount The amount of money to be transferred from this <code>BankAccount</code> to the destination
+	 * @throws ExceedOverdraftLimitException 
 	 */
-	public void transfer(BankAccount destination, float amount) throws IllegalAmountException, IllegalTransferException {
+	public void transfer(BankAccount destination, float amount) throws IllegalAmountException, IllegalTransferException, ExceedOverdraftLimitException {
 		if (amount <= 0) {
 			throw new IllegalAmountException(amount);
-		} else if (balance < amount) {
-			throw new InsufficientFundsTransferException(balance, IBAN, amount);
+		} else if (balance - amount < overdraftLimit * -1 ) {
+			throw new ExceedOverdraftLimitException(overdraftLimit);
 		} else if (destination.getIBAN().equals(this.getIBAN())) {
 			throw new SameAccountTransferException();
 		} else if (this.closed || destination.getClosed()) {
@@ -259,11 +261,11 @@ public class BankAccount implements database.DBObject {
 	}
 	
 	public void transfer(String destinationIBAN, double amount, String description) throws IllegalAmountException, InsufficientFundsTransferException,
-		ClosedAccountTransferException, SameAccountTransferException {
+		ClosedAccountTransferException, SameAccountTransferException, ExceedOverdraftLimitException {
 		if (amount <= 0) {
 			throw new IllegalAmountException(amount);
-		} else if (balance < amount) {
-			throw new InsufficientFundsTransferException(balance, IBAN, amount);
+		} else if (balance - amount < overdraftLimit * -1 ) {
+			throw new ExceedOverdraftLimitException(overdraftLimit);
 		} else if (this.closed) {
 			throw new ClosedAccountTransferException();
 		}
@@ -316,12 +318,13 @@ public class BankAccount implements database.DBObject {
 	 * @param destination The <code>BankAccount</code> to which the transferred money should go
 	 * @param amount The amount of money to be transferred from this <code>BankAccount</code> to the destination
 	 * @param description Description of the transfer
+	 * @throws ExceedOverdraftLimitException 
 	 */
-	public void transfer(BankAccount destination, double amount, String description) throws IllegalAmountException, IllegalTransferException {
+	public void transfer(BankAccount destination, double amount, String description) throws IllegalAmountException, IllegalTransferException, ExceedOverdraftLimitException {
 		if (amount <= 0) {
 			throw new IllegalAmountException(amount);
-		} else if (balance < amount || destination.getClosed()) {
-			throw new InsufficientFundsTransferException(balance, IBAN, amount);
+		} else if (balance - amount < overdraftLimit * -1 ) {
+			throw new ExceedOverdraftLimitException(overdraftLimit);
 		} else if (destination.getIBAN().equals(this.getIBAN())) {
 			throw new SameAccountTransferException();
 		} else if (this.closed || destination.getClosed()) {
@@ -348,12 +351,11 @@ public class BankAccount implements database.DBObject {
 		destination.saveToDB();
 	}
 	
-	public void transfer(BankAccount destination, double amount, String description, String targetName) throws IllegalAmountException, IllegalTransferException {
+	public void transfer(BankAccount destination, double amount, String description, String targetName) throws IllegalAmountException, IllegalTransferException, ExceedOverdraftLimitException {
 		if (amount <= 0) {
 			throw new IllegalAmountException(amount);
-		} else if ((balance < amount && !description.equals("Fee for new pincard")) || destination.getClosed()) {
-			// Always subtract the fee, even if final balance will be negative ^
-			throw new InsufficientFundsTransferException(balance, IBAN, amount);
+		} else if (balance - amount < overdraftLimit * -1 ) {
+			throw new ExceedOverdraftLimitException(overdraftLimit);
 		} else if (destination.getIBAN().equals(this.getIBAN())) {
 			throw new SameAccountTransferException();
 		} else if (this.closed || destination.getClosed()) {
