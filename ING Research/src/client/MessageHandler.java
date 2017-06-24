@@ -149,7 +149,11 @@ public class MessageHandler {
 		System.out.println("\n");
 	}
 	
-	private void getOverdraftLimit(String parameters) {
+	/**
+	 * Extension 5: 'Overdraft' related.
+	 * Gets the overdraft limit of the given gank account
+	 */
+	private void setOverdraftLimit(String parameters) {
 		String parameterArray[] = parameters.split(":");
 		String method = "getOverdraftLimit";
 		HashMap<String, Object> params = new HashMap<>();
@@ -176,7 +180,7 @@ public class MessageHandler {
 		}		
 	}
 
-	private void setOverdraftLimit(String parameters) {
+	private void getOverdraftLimit(String parameters) {
 		String parameterArray[] = parameters.split(":");
 		String method = "setOverdraftLimit";
 		HashMap<String, Object> params = new HashMap<>();
@@ -203,8 +207,7 @@ public class MessageHandler {
 			System.out.println("Overdraft limit for " + parameterArray[0] + " is " + overdraftLimit + ".");
 		} catch (JSONRPC2ParseException e) {
 			System.out.println("Discarded invalid JSON-RPC response from server.");
-		}	
-		
+		}		
 	}
 
 	/**
