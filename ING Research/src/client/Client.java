@@ -1,14 +1,8 @@
 package client;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.Writer;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-
 import javax.swing.filechooser.FileSystemView;
+
+import server.rest.ServerModel;
 
 /**
  * TUI-based client.
@@ -17,48 +11,14 @@ import javax.swing.filechooser.FileSystemView;
 public class Client {
 	
 	public static final String DESKTOP_ING_FOLDER_PATH = FileSystemView.getFileSystemView().getHomeDirectory().getAbsolutePath() + "\\ING-UT Justin Praas\\";
-	public static final String SIMULATED_DAYS_FILE_PATH = DESKTOP_ING_FOLDER_PATH + "simulatedDays.txt";
-	private static int simulatedDays = 0;
-	
 	@SuppressWarnings("unused")
 	private static TUI tui;
 	
 	public static void main(String[] args) {
-		simulatedDays = getSimulatedDaysFromFile();
 		tui = new TUI();
 	}
 
 	public static int getSimulatedDays() {
-		return simulatedDays;
-	}
-
-	public static void setSimulatedDays(int simulatedDays, boolean write) {
-		Client.simulatedDays = Client.simulatedDays + simulatedDays;
-		
-		if (write) {
-			File simulatedDaysFile = new File(SIMULATED_DAYS_FILE_PATH);
-			System.out.println("Writing simulated days (" + Client.simulatedDays + ") to " + simulatedDaysFile.getAbsolutePath());
-			 
-			try {
-				Writer writer = new BufferedWriter(new FileWriter(SIMULATED_DAYS_FILE_PATH, false));
-				writer.write(Integer.toString(Client.simulatedDays));
-				writer.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}		
-	}
-
-	public static int getSimulatedDaysFromFile() {
-		try {
-			return Integer.parseInt(new String(Files.readAllBytes(Paths.get(SIMULATED_DAYS_FILE_PATH))));
-		} catch (IOException e) {	
-			e.printStackTrace();
-			return 0;
-		}			
-	}
-	
-	public static void resetSimulatedDays() {
-		setSimulatedDays(-1 * simulatedDays, true);
+		return ServerModel.getSimulatedDaysFromFile();
 	}
 }

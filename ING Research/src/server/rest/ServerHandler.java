@@ -7,6 +7,7 @@ import java.sql.Statement;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -32,7 +33,6 @@ import accounts.BankAccount;
 import accounts.CustomerAccount;
 import accounts.DebitCard;
 import accounts.Transaction;
-import client.Client;
 import database.DataManager;
 import database.SQLiteDB;
 import exceptions.ClosedAccountTransferException;
@@ -50,8 +50,11 @@ public class ServerHandler {
 	
 	private static HashMap<String, CustomerAccount> accounts = new HashMap<>();
 	
-	//Data-container for this server's session
+	// Data-container for this server's session
 	private static ServerModel serverModel = new ServerModel();
+	
+	// Handles the monthly interest
+	//private static InterestHandler interestHandler = new InterestHandler();
 	
 	@POST
 	@Path("/postRequest")
@@ -59,9 +62,6 @@ public class ServerHandler {
 	public static Response parseJSONRequest (String request) {
 		JSONRPC2Request jReq = null;
 		String method;
-		
-		// Update simulated time for further use
-		Client.setSimulatedDays(Client.getSimulatedDaysFromFile(), false);
 		
 		try {
 			jReq = JSONRPC2Request.parse(request);
@@ -283,12 +283,15 @@ public class ServerHandler {
 	 * Returns the real server time. (TODO to be changed)
 	 */
 	private static Response getDate(JSONRPC2Request jReq) {
+		Calendar c = Calendar.getInstance();
+		c.add(Calendar.DATE, ServerModel.getSimulatedDays());
+		Date date = c.getTime();		
 		DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-		Date date = new Date();
-		String systemDate = df.format(date);		
+		
+		String simulatedDateString = df.format(date);
 		
 		HashMap<String, Object> resp = new HashMap<>();
-		resp.put("date", systemDate);
+		resp.put("date", simulatedDateString);
 		
 		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
 		return respond(jResp.toJSONString());
@@ -303,7 +306,7 @@ public class ServerHandler {
 		
 		// Wipe all data from database
 		DataManager.wipeAllData(true);
-		Client.resetSimulatedDays();
+		ServerModel.resetSimulatedDays();
 		
 		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
 		return respond(jResp.toJSONString());
@@ -320,7 +323,9 @@ public class ServerHandler {
 		Response invalidRequest = RequestValidator.isValidSimulateTimeRequest(params);	
 		if (invalidRequest != null) {
 			return invalidRequest;
-		}		
+		}
+		
+		ServerModel.setSimulatedDays(Integer.parseInt((String) params.get("nrOfDays")), true);
 		
 		HashMap<String, Object> resp = new HashMap<>();
 		

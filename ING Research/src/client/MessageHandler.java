@@ -7,9 +7,6 @@ import com.thetransactioncompany.jsonrpc2.*;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 import org.apache.hc.client5.http.impl.sync.CloseableHttpClient;
@@ -264,22 +261,7 @@ public class MessageHandler {
 			
 			@SuppressWarnings("unchecked")
 			HashMap<String, Object> result = (HashMap<String, Object>) jResp.getResult();
-			System.out.println("The server's unsimulated date is: " + (String) result.get("date"));
-			
-			String simulatedDate = "";
-			
-			try {
-				DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-				Date date = df.parse((String) result.get("date"));	
-				Calendar c = Calendar.getInstance();
-				c.setTime(date);
-				c.add(Calendar.DATE, Client.getSimulatedDays());
-				simulatedDate = df.format(c.getTime());
-				System.out.println("The server's simulated date is: " + simulatedDate);
-			} catch (ParseException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			System.out.println("The server's date is: " + (String) result.get("date"));
 			
 		} catch (JSONRPC2ParseException e) {
 			System.out.println("Discarded invalid JSON-RPC response from server.");
@@ -302,11 +284,7 @@ public class MessageHandler {
 				}
 				return;
 			}
-			
-			// Reset Simulated Days
-			System.err.println("Resetting Database");
-			Client.resetSimulatedDays();
-			
+			System.out.println("Succesfully reset database and simulated time.");			
 		} catch (JSONRPC2ParseException e) {
 			System.out.println("Discarded invalid JSON-RPC response from server.");
 		}
@@ -341,9 +319,7 @@ public class MessageHandler {
 				}
 				return;
 			}
-			
-			Client.setSimulatedDays(Integer.parseInt(parameterArray[0]), true);
-			
+			System.out.println("Succesfully simulated " + parameterArray[0] + " days ahead.");		
 		} catch (JSONRPC2ParseException e) {
 			System.out.println("Discarded invalid JSON-RPC response from server.");
 		}
