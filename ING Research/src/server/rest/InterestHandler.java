@@ -21,8 +21,8 @@ import exceptions.SameAccountTransferException;
 
 public class InterestHandler extends Thread {
 
-	private Calendar previousInterestExecution;
-	private Calendar previousBalanceStoring;
+	private static Calendar previousInterestExecution;
+	private static Calendar previousBalanceStoring;
 	
 	private static final double INTEREST_RATE = 0.10;
 	
@@ -111,13 +111,13 @@ public class InterestHandler extends Thread {
 		setLowestDailyReachMap(newLowestDailyReachMap);
 	}
 	
-	private void setPreviousBalanceStoringDate(Calendar c) {
+	private static void setPreviousBalanceStoringDate(Calendar c) {
 		previousBalanceStoring = c;
 		ServerDataHandler.setServerPropertyValue(ServerDataHandler.PREVIOUS_BALANCE_STORE_LINE, 
 				Long.toString(previousInterestExecution.getTimeInMillis()));
 	}
 
-	private void setPreviousInterestExecutionDate(Calendar c) {
+	private static void setPreviousInterestExecutionDate(Calendar c) {
 		previousInterestExecution = c;
 		ServerDataHandler.setServerPropertyValue(ServerDataHandler.PREVIOUS_INTEREST_LINE, 
 				Long.toString(previousInterestExecution.getTimeInMillis()));
@@ -219,16 +219,15 @@ public class InterestHandler extends Thread {
 			try {
 				// Transfer the money to the ING account
 				bankAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, entry.getKey());
-				bankAccount.transfer(BankAccount.ING_BANK_ACCOUNT_IBAN, entry.getValue(), "Negative interest credit");
-			
-				// Remove this customer from the totalMonthlyInterestMap
-				currentTotalMonthlyInterestMap.remove(entry.getKey());
+				bankAccount.transfer(BankAccount.ING_BANK_ACCOUNT_IBAN, -1 * entry.getValue(), "Negative interest credit");
 				
 			} catch (ObjectDoesNotExistException | InsufficientFundsTransferException | ClosedAccountTransferException | SameAccountTransferException 
 					| IllegalAmountException | ExceedOverdraftLimitException e) {
 				e.printStackTrace();
 			}
 		}
+		
+		currentTotalMonthlyInterestMap = new HashMap<>();
 		
 		// SET: map
 		setTotalInterestMap(currentTotalMonthlyInterestMap);
@@ -290,6 +289,13 @@ public class InterestHandler extends Thread {
 		boolean storedBalances = previousBalanceStoring.get(Calendar.DATE) == c.getMaximum(Calendar.DATE);
 		
 		return lastOfMonth && !didTransferThisMonth && storedBalances;
+	}
+	
+	public static void reset() {
+		setTotalInterestMap(new HashMap<String, Double>());
+		setLowestDailyReachMap(new HashMap<String, Double>());
+		setPreviousBalanceStoringDate(Calendar.getInstance());
+		setPreviousInterestExecutionDate(Calendar.getInstance());
 	}
 
 }
