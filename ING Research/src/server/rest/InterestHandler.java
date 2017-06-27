@@ -187,7 +187,7 @@ public class InterestHandler extends Thread {
 	}
 
 	private double calculateInterest(double balance) {
-		return balance * (1 + INTEREST_RATE / 365);
+		return balance * (1 + INTEREST_RATE / 365) - balance;
 	}
 	
 	private void calculateTimeSimulatedInterest(int days) {
@@ -218,6 +218,7 @@ public class InterestHandler extends Thread {
 			BankAccount bankAccount;
 			try {
 				// Transfer the money to the ING account
+				System.out.println("INTEREST: Transfering " + entry.getValue() + " from " + entry.getKey());
 				bankAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, entry.getKey());
 				bankAccount.transfer(BankAccount.ING_BANK_ACCOUNT_IBAN, -1 * entry.getValue(), "Negative interest credit");
 				
@@ -249,6 +250,8 @@ public class InterestHandler extends Thread {
 				totalInterest = currentTotalInterestMap.get(entry.getKey()) + 
 						calculateInterest(entry.getValue());
 			}
+			
+			System.out.println("INTEREST: Total interest for " + IBAN + " is " + totalInterest);
 			currentTotalInterestMap.put(IBAN, totalInterest);
 		}
 		
