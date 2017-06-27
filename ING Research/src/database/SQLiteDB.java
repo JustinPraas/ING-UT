@@ -83,12 +83,11 @@ public class SQLiteDB {
 	public static Connection openConnection() {
 		Connection c = null;
 		try {
+			Class.forName("org.sqlite.JDBC");
 			c = DriverManager.getConnection("jdbc:sqlite:" + DBName);
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
+		} catch (SQLException | ClassNotFoundException e) {
 			e.printStackTrace();
 		}
-		
 		return c;
 	}
 }

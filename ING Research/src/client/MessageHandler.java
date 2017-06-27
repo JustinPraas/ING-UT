@@ -186,6 +186,11 @@ public class MessageHandler {
 		String method = "getOverdraftLimit";
 		HashMap<String, Object> params = new HashMap<>();
 		
+		if (parameterArray.length != 1) {
+			System.err.println("Please enter the requested parameters.");
+			return;
+		}
+		
 		params.put("authToken", AUTHTOKEN);
 		params.put("iBAN", parameterArray[0]);
 		
@@ -219,6 +224,11 @@ public class MessageHandler {
 		String parameterArray[] = parameters.split(":");
 		String method = "unblockCard";
 		HashMap<String, Object> params = new HashMap<>();
+		
+		if (parameterArray.length != 2) {
+			System.err.println("Please enter the requested parameters.");
+			return;
+		}
 
 		params.put("authToken", AUTHTOKEN);
 		params.put("iBAN", parameterArray[0]);

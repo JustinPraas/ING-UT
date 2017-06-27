@@ -54,7 +54,7 @@ public class ServerHandler {
 	private static ServerModel serverModel = new ServerModel();
 	
 	// Handles the monthly interest
-	//private static InterestHandler interestHandler = new InterestHandler();
+	private static InterestHandler interestHandler = new InterestHandler();
 	
 	@POST
 	@Path("/postRequest")
@@ -325,9 +325,13 @@ public class ServerHandler {
 			return invalidRequest;
 		}
 		
-		ServerModel.setSimulatedDays(Integer.parseInt((String) params.get("nrOfDays")), true);
+		int newlySimulatedDays = Integer.parseInt((String) params.get("nrOfDays"));
+		ServerModel.setSimulatedDays(newlySimulatedDays, true);
 		
 		HashMap<String, Object> resp = new HashMap<>();
+		
+		interestHandler.newlySimulatedDays = newlySimulatedDays;
+		interestHandler.interrupt();
 		
 		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
 		return respond(jResp.toJSONString());

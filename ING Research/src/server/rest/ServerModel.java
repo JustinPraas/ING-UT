@@ -1,15 +1,7 @@
 package server.rest;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.Writer;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.util.Calendar;
 import java.util.HashMap;
-
-import client.Client;
 
 /**
  * A model that stores transient (not-persistent) data on the server side. 
@@ -22,7 +14,6 @@ public class ServerModel {
 	private HashMap<String, Integer> previousPinAttempts = new HashMap<>();
 	
 	// Extension 4: 'Time simulation' related
-	public static final String SIMULATED_DAYS_FILE_PATH = Client.DESKTOP_ING_FOLDER_PATH + "simulatedDays.txt";
 	private static int simulatedDays = 0;
 	
 	public ServerModel() {
@@ -51,7 +42,11 @@ public class ServerModel {
 		return previousPinAttempts;
 	}
 	
-
+	public static Calendar getServerCalendar() {
+		Calendar c = Calendar.getInstance();
+		c.add(Calendar.DATE, simulatedDays);
+		return c;
+	}
 
 	public static int getSimulatedDays() {
 		return simulatedDays;
@@ -61,30 +56,20 @@ public class ServerModel {
 		ServerModel.simulatedDays = ServerModel.simulatedDays + simulatedDays;
 		
 		if (write) {
-			File simulatedDaysFile = new File(SIMULATED_DAYS_FILE_PATH);
-			System.out.println("Writing simulated days (" + ServerModel.simulatedDays + ") to " + simulatedDaysFile.getAbsolutePath());
-			 
-			try {
-				Writer writer = new BufferedWriter(new FileWriter(SIMULATED_DAYS_FILE_PATH, false));
-				writer.write(Integer.toString(ServerModel.simulatedDays));
-				writer.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+			ServerDataHandler.setServerPropertyValue(ServerDataHandler.SIMULATED_DAYS_LINE, 
+					Integer.toString(ServerModel.simulatedDays));
+			System.out.println("Writing simulated days: " + ServerModel.simulatedDays + ".");
+			
 		}		
 	}
 
 	public static int getSimulatedDaysFromFile() {
-		try {
-			return Integer.parseInt(new String(Files.readAllBytes(Paths.get(SIMULATED_DAYS_FILE_PATH))));
-		} catch (IOException e) {	
-			e.printStackTrace();
-			return 0;
-		}			
+		return Integer.parseInt(ServerDataHandler.getServerPropertyValue(ServerDataHandler.SIMULATED_DAYS_LINE));		
 	}
 	
 	public static void resetSimulatedDays() {
-		setSimulatedDays(-1 * simulatedDays, true);
+		ServerDataHandler.setServerPropertyValue(ServerDataHandler.SIMULATED_DAYS_LINE, "0");
+		simulatedDays = 0;
 	}
 
 }

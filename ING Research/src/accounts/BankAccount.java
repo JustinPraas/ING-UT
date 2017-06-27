@@ -2,6 +2,7 @@ package accounts;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -31,6 +32,8 @@ import exceptions.InsufficientFundsTransferException;
 import exceptions.ObjectDoesNotExistException;
 import exceptions.PinCardBlockedException;
 import exceptions.SameAccountTransferException;
+import server.rest.InterestHandler;
+import server.rest.ServerDataHandler;
 
 /**
  * A simple model of a bank account in an abstract currency.
@@ -41,6 +44,7 @@ import exceptions.SameAccountTransferException;
 public class BankAccount implements database.DBObject {
 	private final static String COUNTRY_CODE = "NL";
 	private final static String BANK_CODE = "INGB";
+	public final static String ING_BANK_ACCOUNT_IBAN = "NL36INGB8278309172";
 	
 	private float balance;
 	private String IBAN;
@@ -233,7 +237,7 @@ public class BankAccount implements database.DBObject {
 	public void transfer(BankAccount destination, float amount) throws IllegalAmountException, IllegalTransferException, ExceedOverdraftLimitException {
 		if (amount <= 0) {
 			throw new IllegalAmountException(amount);
-		} else if (balance - amount < overdraftLimit * -1 ) {
+		} else if (balance - amount < overdraftLimit * -1) {
 			throw new ExceedOverdraftLimitException(overdraftLimit);
 		} else if (destination.getIBAN().equals(this.getIBAN())) {
 			throw new SameAccountTransferException();
@@ -259,13 +263,14 @@ public class BankAccount implements database.DBObject {
 		t.saveToDB();
 		this.saveToDB();
 		destination.saveToDB();
+		InterestHandler.setLowestDailyReachMapEntry(IBAN, balance);
 	}
-	
+
 	public void transfer(String destinationIBAN, double amount, String description) throws IllegalAmountException, InsufficientFundsTransferException,
 		ClosedAccountTransferException, SameAccountTransferException, ExceedOverdraftLimitException {
 		if (amount <= 0) {
 			throw new IllegalAmountException(amount);
-		} else if (balance - amount < overdraftLimit * -1 ) {
+		} else if (balance - amount < overdraftLimit * -1 && !description.equals("Negative interest credit")) {
 			throw new ExceedOverdraftLimitException(overdraftLimit);
 		} else if (this.closed) {
 			throw new ClosedAccountTransferException();
@@ -312,6 +317,7 @@ public class BankAccount implements database.DBObject {
 			destination.debit(amount);
 			destination.saveToDB();
 		}
+		InterestHandler.setLowestDailyReachMapEntry(IBAN, balance);
 	}
 	
 	/**
@@ -324,7 +330,7 @@ public class BankAccount implements database.DBObject {
 	public void transfer(BankAccount destination, double amount, String description) throws IllegalAmountException, IllegalTransferException, ExceedOverdraftLimitException {
 		if (amount <= 0) {
 			throw new IllegalAmountException(amount);
-		} else if (balance - amount < overdraftLimit * -1 ) {
+		} else if (balance - amount < overdraftLimit * -1 && !description.equals("Negative interest credit")) {
 			throw new ExceedOverdraftLimitException(overdraftLimit);
 		} else if (destination.getIBAN().equals(this.getIBAN())) {
 			throw new SameAccountTransferException();
@@ -350,12 +356,13 @@ public class BankAccount implements database.DBObject {
 		t.saveToDB();
 		this.saveToDB();
 		destination.saveToDB();
+		InterestHandler.setLowestDailyReachMapEntry(IBAN, balance);
 	}
 	
 	public void transfer(BankAccount destination, double amount, String description, String targetName) throws IllegalAmountException, IllegalTransferException, ExceedOverdraftLimitException {
 		if (amount <= 0) {
 			throw new IllegalAmountException(amount);
-		} else if (balance - amount < overdraftLimit * -1 ) {
+		} else if (balance - amount < overdraftLimit * -1 && !description.equals("Negative interest credit")) {
 			throw new ExceedOverdraftLimitException(overdraftLimit);
 		} else if (destination.getIBAN().equals(this.getIBAN())) {
 			throw new SameAccountTransferException();
@@ -382,6 +389,7 @@ public class BankAccount implements database.DBObject {
 		t.saveToDB();
 		this.saveToDB();
 		destination.saveToDB();
+		InterestHandler.setLowestDailyReachMapEntry(IBAN, balance);
 	}
 	
 	@Column(name = "balance")
@@ -515,7 +523,7 @@ public class BankAccount implements database.DBObject {
 		System.out.println("Set up ING account");
 		CustomerAccount ingAccount = new CustomerAccount("ING", "BANK", "I.B", "00000000", "ING Street 1", "0600000000",
 				"ing@mail.com", "01-01-1950", "ing", "bank");
-		BankAccount ingBankAccount = new BankAccount("00000000", 1000000f, "NL36INGB8278309172");
+		BankAccount ingBankAccount = new BankAccount("00000000", 1000000f, ING_BANK_ACCOUNT_IBAN);
 		HashSet<BankAccount> bankAccountSet = new HashSet<>();
 		bankAccountSet.add(ingBankAccount);
 		ingAccount.setBankAccounts(bankAccountSet);
