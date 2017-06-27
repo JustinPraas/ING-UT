@@ -155,10 +155,6 @@ public class InterestHandler extends Thread {
 			}
 			
 			try {
-				long millis = calculateShortestSleep(c);
-				long hours = millis / (1000*3600);
-				long remainingMinutes = millis/(1000*60) - hours * 60;
-				System.out.println("INTEREST: Going to sleep for " + millis + "milliseconds (" + hours + " hours and " + remainingMinutes + " minutes)");
 				Thread.sleep(calculateShortestSleep(c));
 			} catch (InterruptedException e) {
 				System.out.println("INTEREST: interrupted");
@@ -184,6 +180,8 @@ public class InterestHandler extends Thread {
 		Date date = nextMidnight.getTime();
 		long dateMillis = date.getTime();
 		long millisUntilNextMidNight = dateMillis - nowMillis;
+		
+		System.out.println("INTEREST: Going to sleep for " + millisUntilNextMidNight + "milliseconds (" + date.toString() + ")");
 
 		return millisUntilNextMidNight;
 	}
