@@ -307,6 +307,7 @@ public class ServerHandler {
 		// Wipe all data from database
 		DataManager.wipeAllData(true);
 		ServerModel.resetSimulatedDays();
+		InterestHandler.reset();
 		
 		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
 		return respond(jResp.toJSONString());
