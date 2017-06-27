@@ -5,6 +5,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
@@ -155,9 +156,12 @@ public class InterestHandler extends Thread {
 			
 			try {
 				long millis = calculateShortestSleep(c);
-				System.out.println("INTEREST: Going to sleep for " + millis + "milliseconds (" + millis/(1000*3600) + "hours and " + millis/(1000*60) + "minutes");
+				long hours = millis / (1000*3600);
+				long remainingMinutes = millis/(1000*60) - hours * 60;
+				System.out.println("INTEREST: Going to sleep for " + millis + "milliseconds (" + hours + " hours and " + remainingMinutes + " minutes)");
 				Thread.sleep(calculateShortestSleep(c));
 			} catch (InterruptedException e) {
+				System.out.println("INTEREST: interrupted");
 				calculateTimeSimulatedInterest(newlySimulatedDays);
 				newlySimulatedDays = 0;
 			}					
@@ -165,13 +169,21 @@ public class InterestHandler extends Thread {
 	}
 	
 	private long calculateShortestSleep(Calendar c) {
+		Calendar now = c;
+		long nowMillis = now.getTimeInMillis();
 		
 		// Time until next midnight
 		Calendar nextMidnight = c;
-		nextMidnight.add(Calendar.DATE, 1);
+		
+		if (now.get(Calendar.HOUR_OF_DAY) >= 23 && now.get(Calendar.MINUTE) >= 44) {
+			nextMidnight.add(Calendar.DATE, 1);
+		}
+		
 		nextMidnight.set(Calendar.HOUR_OF_DAY, 23);
 		nextMidnight.set(Calendar.MINUTE, 46);
-		long millisUntilNextMidNight = nextMidnight.getTimeInMillis();
+		Date date = nextMidnight.getTime();
+		long dateMillis = date.getTime();
+		long millisUntilNextMidNight = dateMillis - nowMillis;
 
 		return millisUntilNextMidNight;
 	}
