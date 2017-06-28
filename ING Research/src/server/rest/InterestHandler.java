@@ -36,7 +36,7 @@ public class InterestHandler extends Thread {
 		start();		
 	}
 	
-	private void intializeData() {
+	public static void intializeData() {
 		// Set the previousInterestExecution
 		long previousInterestExecutionMillis = 0;
 
@@ -96,7 +96,7 @@ public class InterestHandler extends Thread {
 		}		
 	}
 	
-	private void initializeLowestDailyReachMap() {
+	public static void initializeLowestDailyReachMap() {
 		HashMap<String, Double> newLowestDailyReachMap = new HashMap<>();
 		try {
 			Connection c = SQLiteDB.openConnection();
@@ -111,25 +111,25 @@ public class InterestHandler extends Thread {
 		setLowestDailyReachMap(newLowestDailyReachMap);
 	}
 	
-	private static void setPreviousBalanceStoringDate(Calendar c) {
+	public static void setPreviousBalanceStoringDate(Calendar c) {
 		previousBalanceStoring = c;
 		ServerDataHandler.setServerPropertyValue(ServerDataHandler.PREVIOUS_BALANCE_STORE_LINE, 
 				Long.toString(previousInterestExecution.getTimeInMillis()));
 	}
 
-	private static void setPreviousInterestExecutionDate(Calendar c) {
+	public static void setPreviousInterestExecutionDate(Calendar c) {
 		previousInterestExecution = c;
 		ServerDataHandler.setServerPropertyValue(ServerDataHandler.PREVIOUS_INTEREST_LINE, 
 				Long.toString(previousInterestExecution.getTimeInMillis()));
 	}
 	
-	private void setPreviousBalanceStoringDate() {
+	public static void setPreviousBalanceStoringDate() {
 		previousBalanceStoring = ServerModel.getServerCalendar();
 		ServerDataHandler.setServerPropertyValue(ServerDataHandler.PREVIOUS_BALANCE_STORE_LINE, 
 				Long.toString(previousInterestExecution.getTimeInMillis()));
 	}
 	
-	private void setPreviousInterestExecutionDate() {
+	public static void setPreviousInterestExecutionDate() {
 		previousInterestExecution = ServerModel.getServerCalendar();
 		ServerDataHandler.setServerPropertyValue(ServerDataHandler.PREVIOUS_INTEREST_LINE, 
 				Long.toString(previousInterestExecution.getTimeInMillis()));
@@ -164,7 +164,7 @@ public class InterestHandler extends Thread {
 		}		
 	}
 	
-	private long calculateShortestSleep(Calendar c) {
+	public long calculateShortestSleep(Calendar c) {
 		Calendar now = c;
 		long nowMillis = now.getTimeInMillis();
 		
@@ -186,11 +186,11 @@ public class InterestHandler extends Thread {
 		return millisUntilNextMidNight;
 	}
 
-	private double calculateInterest(double balance) {
+	public double calculateInterest(double balance) {
 		return balance * (1 + INTEREST_RATE / 365) - balance;
 	}
 	
-	private void calculateTimeSimulatedInterest(int days) {
+	public void calculateTimeSimulatedInterest(int days) {
 		Calendar c = ServerModel.getServerCalendar();
 		
 		for (int i = 1; i <= days; i++) {
@@ -209,7 +209,7 @@ public class InterestHandler extends Thread {
 		}		
 	}
 
-	private void transferInterest() {
+	public void transferInterest() {
 		// FETCH: map
 		HashMap<String, Double> currentTotalMonthlyInterestMap = ServerDataHandler.getTotalInterestMap();
 		
@@ -234,7 +234,7 @@ public class InterestHandler extends Thread {
 		setTotalInterestMap(currentTotalMonthlyInterestMap);
 	}
 
-	private void addBalancesToTotalInterest() {
+	public void addBalancesToTotalInterest() {
 		// FETCH: maps
 		HashMap<String, Double> currentLowestDailyReachMap = ServerDataHandler.getLowestDailyReachMap();
 		HashMap<String, Double> currentTotalInterestMap = ServerDataHandler.getTotalInterestMap();
@@ -263,7 +263,7 @@ public class InterestHandler extends Thread {
 		initializeLowestDailyReachMap();		
 	}
 
-	private boolean isTimeToAddBalances(Calendar c) {
+	public boolean isTimeToAddBalances(Calendar c) {
 		// Check if it's between 11:45 PM and 11:59 AM (23:45-23:59)
 		int hourOfDay = c.get(Calendar.HOUR_OF_DAY);
 		int minute = c.get(Calendar.MINUTE);
@@ -278,7 +278,7 @@ public class InterestHandler extends Thread {
 		return isCorrectTime && !didBalanceStoreToday;
 	}
 
-	private boolean isTimeToTransfer(Calendar c) {
+	public boolean isTimeToTransfer(Calendar c) {
 		// Check if it is the last of the month
 		boolean lastOfMonth = c.get(Calendar.DATE) == c.getMaximum(Calendar.DATE);
 		
