@@ -118,7 +118,7 @@ public class InterestHandler extends Thread {
 	public static void setPreviousBalanceStoringDate(Calendar c) {
 		previousBalanceStoring = c;
 		ServerDataHandler.setServerPropertyValue(ServerDataHandler.PREVIOUS_BALANCE_STORE_LINE, 
-				Long.toString(previousInterestExecution.getTimeInMillis()));
+				Long.toString(previousBalanceStoring.getTimeInMillis()));
 	}
 
 	public static void setPreviousInterestExecutionDate(Calendar c) {
@@ -130,7 +130,7 @@ public class InterestHandler extends Thread {
 	public static void setPreviousBalanceStoringDate() {
 		previousBalanceStoring = ServerModel.getServerCalendar();
 		ServerDataHandler.setServerPropertyValue(ServerDataHandler.PREVIOUS_BALANCE_STORE_LINE, 
-				Long.toString(previousInterestExecution.getTimeInMillis()));
+				Long.toString(previousBalanceStoring.getTimeInMillis()));
 	}
 	
 	public static void setPreviousInterestExecutionDate() {
@@ -292,7 +292,6 @@ public class InterestHandler extends Thread {
 				c.get(Calendar.YEAR) == lastTransfer.get(Calendar.YEAR);
 		
 		// Check if we've already added the daily lowest balances to the lowestDailyReach map
-		//TODO nullpointer, check files and see if reading goes correctly. 
 		boolean storedBalances = previousBalanceStoring.get(Calendar.DATE) == c.getMaximum(Calendar.DATE);
 		
 		return lastOfMonth && !didTransferThisMonth && storedBalances;
@@ -301,8 +300,8 @@ public class InterestHandler extends Thread {
 	public static void reset() {
 		setTotalInterestMap(new HashMap<String, Double>());
 		setLowestDailyReachMap(new HashMap<String, Double>());
-		setPreviousBalanceStoringDate(Calendar.getInstance());
-		setPreviousInterestExecutionDate(Calendar.getInstance());
+		setPreviousBalanceStoringDate();
+		setPreviousInterestExecutionDate();
 	}
 
 }
