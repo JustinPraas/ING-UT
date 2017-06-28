@@ -91,6 +91,8 @@ public class InterestHandler extends Thread {
 			if (currentLowestBalance == null || currentLowestBalance > balance) {
 				HashMap<String, Double> map = ServerDataHandler.getLowestDailyReachMap();
 				map.put(IBAN, balance);
+				
+				// SET: map
 				setLowestDailyReachMap(currentLowestDailyReachMap);
 			}
 		}		
@@ -108,6 +110,8 @@ public class InterestHandler extends Thread {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+		
+		// SET: map
 		setLowestDailyReachMap(newLowestDailyReachMap);
 	}
 	
