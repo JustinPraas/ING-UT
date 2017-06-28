@@ -164,7 +164,7 @@ public class InterestHandler extends Thread {
 		}		
 	}
 	
-	public long calculateShortestSleep(Calendar c) {
+	public static long calculateShortestSleep(Calendar c) {
 		Calendar now = c;
 		long nowMillis = now.getTimeInMillis();
 		
@@ -186,11 +186,11 @@ public class InterestHandler extends Thread {
 		return millisUntilNextMidNight;
 	}
 
-	public double calculateInterest(double balance) {
+	public static double calculateInterest(double balance) {
 		return balance * (1 + INTEREST_RATE / 365) - balance;
 	}
 	
-	public void calculateTimeSimulatedInterest(int days) {
+	public static void calculateTimeSimulatedInterest(int days) {
 		Calendar c = ServerModel.getServerCalendar();
 		
 		for (int i = 1; i <= days; i++) {
@@ -209,7 +209,7 @@ public class InterestHandler extends Thread {
 		}		
 	}
 
-	public void transferInterest() {
+	public static void transferInterest() {
 		// FETCH: map
 		HashMap<String, Double> currentTotalMonthlyInterestMap = ServerDataHandler.getTotalInterestMap();
 		
@@ -234,7 +234,7 @@ public class InterestHandler extends Thread {
 		setTotalInterestMap(currentTotalMonthlyInterestMap);
 	}
 
-	public void addBalancesToTotalInterest() {
+	public static void addBalancesToTotalInterest() {
 		// FETCH: maps
 		HashMap<String, Double> currentLowestDailyReachMap = ServerDataHandler.getLowestDailyReachMap();
 		HashMap<String, Double> currentTotalInterestMap = ServerDataHandler.getTotalInterestMap();
@@ -263,7 +263,7 @@ public class InterestHandler extends Thread {
 		initializeLowestDailyReachMap();		
 	}
 
-	public boolean isTimeToAddBalances(Calendar c) {
+	public static boolean isTimeToAddBalances(Calendar c) {
 		// Check if it's between 11:45 PM and 11:59 AM (23:45-23:59)
 		int hourOfDay = c.get(Calendar.HOUR_OF_DAY);
 		int minute = c.get(Calendar.MINUTE);
@@ -278,7 +278,7 @@ public class InterestHandler extends Thread {
 		return isCorrectTime && !didBalanceStoreToday;
 	}
 
-	public boolean isTimeToTransfer(Calendar c) {
+	public static boolean isTimeToTransfer(Calendar c) {
 		// Check if it is the last of the month
 		boolean lastOfMonth = c.get(Calendar.DATE) == c.getMaximum(Calendar.DATE);
 		
