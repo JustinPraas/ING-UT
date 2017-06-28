@@ -83,19 +83,29 @@ public class InterestHandlerTest {
 		startOfYear.setTimeInMillis(1483310640000L);
 		actualMilliDifference = 1483397160000L - 1483310640000L;
 		calculatedMilliSleep = InterestHandler.calculateShortestSleep(startOfYear);
-		assertEquals(actualMilliDifference, calculatedMilliSleep);
-		
-		
+		assertEquals(actualMilliDifference, calculatedMilliSleep);		
 	}
 	
 	@Test
 	public void calculateInterestTest() {
+		double balance, interest;
+
+		balance = bAccount1.getBalance();
+		interest = InterestHandler.calculateInterest(balance);
+		assertTrue(Math.abs(interest) - Math.abs(0.273972602) < 0.0001);
+
+		balance = bAccount2.getBalance();
+		interest = InterestHandler.calculateInterest(balance);
+		assertTrue(Math.abs(interest) - Math.abs(0.54794521) < 0.0001);
 		
+		balance = bAccount2.getBalance();
+		interest = InterestHandler.calculateInterest(balance);
+		assertTrue(Math.abs(interest) - Math.abs(1.09589041) < 0.0001);
 	}
 	
 	@Test 
 	public void calculateTimeSimulatedInterest() {
-		
+
 	}
 	
 	@Test
