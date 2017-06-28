@@ -10,6 +10,7 @@ import org.junit.Test;
 import accounts.BankAccount;
 import accounts.CustomerAccount;
 import database.DataManager;
+import exceptions.ObjectDoesNotExistException;
 import server.rest.InterestHandler;
 import server.rest.ServerModel;
 
@@ -104,8 +105,35 @@ public class InterestHandlerTest {
 	}
 	
 	@Test 
-	public void calculateTimeSimulatedInterest() {
-
+	public void calculateTimeSimulatedInterestTest() {
+		int daysUntilNextYear = Calendar.getInstance().getMaximum(Calendar.DAY_OF_YEAR) - Calendar.getInstance().get(Calendar.DAY_OF_YEAR);
+		ServerModel.setSimulatedDays(daysUntilNextYear, true);
+		System.err.println("Servertime: " + ServerModel.getServerCalendar().getTime().toString());
+		InterestHandler interestHandler = new InterestHandler();
+		ServerModel.setSimulatedDays(365, true);
+		System.err.println("New server time: " + ServerModel.getServerCalendar().getTime().toString());
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e2) {
+			// TODO Auto-generated catch block
+			e2.printStackTrace();
+		}
+		interestHandler.newlySimulatedDays = 365;
+		interestHandler.interrupt();
+		try {
+			Thread.sleep(8000);
+		} catch (InterruptedException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		
+		double balance;
+		try {
+			balance = ((BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, bAccount1.getIBAN())).getBalance();
+			System.out.println(balance);
+		} catch (ObjectDoesNotExistException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	@Test
