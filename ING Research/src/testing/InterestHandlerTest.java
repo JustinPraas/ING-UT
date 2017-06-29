@@ -3,7 +3,9 @@ package testing;
 import static org.junit.Assert.*;
 
 import java.util.Calendar;
+import java.util.HashMap;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -12,6 +14,7 @@ import accounts.CustomerAccount;
 import database.DataManager;
 import exceptions.ObjectDoesNotExistException;
 import server.rest.InterestHandler;
+import server.rest.ServerDataHandler;
 import server.rest.ServerModel;
 
 /**
@@ -93,22 +96,21 @@ public class InterestHandlerTest {
 
 		balance = bAccount1.getBalance();
 		interest = InterestHandler.calculateInterest(balance, 31);		
-		assertTrue(Math.abs(interest) == 0.26);
+		assertEquals(0.26, Math.abs(interest), 0.01);
 
 		balance = bAccount2.getBalance();
 		interest = InterestHandler.calculateInterest(balance, 31);
-		assertTrue(Math.abs(interest) == 0.51);
+		assertEquals(0.51, Math.abs(interest), 0.01);
 		
 		balance = bAccount3.getBalance();
 		interest = InterestHandler.calculateInterest(balance, 31);
-		assertTrue(Math.abs(interest) == 1.03);
+		assertEquals(1.03, Math.abs(interest), 0.01);
 	}
 	
 	@Test 
 	public void calculateTimeSimulatedInterestTest() {
 		int daysUntilNextYear = Calendar.getInstance().getMaximum(Calendar.DAY_OF_YEAR) - Calendar.getInstance().get(Calendar.DAY_OF_YEAR);
-		ServerModel.setSimulatedDays(daysUntilNextYear + 365, true);
-		System.err.println("Servertime: " + ServerModel.getServerCalendar().getTime().toString());
+		ServerModel.setSimulatedDays(daysUntilNextYear, true);
 		InterestHandler interestHandler = new InterestHandler();
 		interestHandler.newlySimulatedDays = 365;
 		interestHandler.interrupt();
@@ -138,46 +140,149 @@ public class InterestHandlerTest {
 	
 	@Test
 	public void transferTest() {
+		int daysUntilNextYear = Calendar.getInstance().getMaximum(Calendar.DAY_OF_YEAR) - Calendar.getInstance().get(Calendar.DAY_OF_YEAR);
+		ServerModel.setSimulatedDays(daysUntilNextYear, true);
+		InterestHandler interestHandler = new InterestHandler();
+		interestHandler.newlySimulatedDays = 31;
+		interestHandler.interrupt();
 		
+		try {
+			Thread.sleep(2000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		
+		double balance1 = 0;
+		double balance2 = 0;
+		double balance3 = 0;
+		try {
+			balance1 = ((BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, bAccount1.getIBAN())).getBalance();
+			balance2 = ((BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, bAccount2.getIBAN())).getBalance();
+			balance3 = ((BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, bAccount3.getIBAN())).getBalance();		
+		} catch (ObjectDoesNotExistException e) {
+			e.printStackTrace();
+		}
+
+		assertEquals(-1007.97412109375, balance1, 0.00001);
+		assertEquals(-2015.9482421875, balance2, 0.00001);
+		assertEquals(-4031.896484375, balance3, 0.00001);
 	}
 	
 	@Test
 	public void addBalancesTest() {
+		int daysUntilNextYear = Calendar.getInstance().getMaximum(Calendar.DAY_OF_YEAR) - Calendar.getInstance().get(Calendar.DAY_OF_YEAR);
+		ServerModel.setSimulatedDays(daysUntilNextYear, true);
+		InterestHandler interestHandler = new InterestHandler();
+		interestHandler.newlySimulatedDays = 1;
+		interestHandler.interrupt();
 		
+		try {
+			Thread.sleep(500);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		
+		HashMap<String, Double> totalInterestMap = ServerDataHandler.getTotalInterestMap();
+		double amount1 = totalInterestMap.get(bAccount1.getIBAN());
+		double amount2 = totalInterestMap.get(bAccount2.getIBAN());
+		double amount3 = totalInterestMap.get(bAccount3.getIBAN());
+		
+		assertEquals(-0.25723033612903223, amount1, 0.00001);
+		assertEquals(-0.5144606722580645, amount2, 0.00001);
+		assertEquals(-1.028921344516129, amount3, 0.00001);
 	}
+
 	
 	@Test 
 	public void isTimeToTransferTest() {
+		Calendar c = Calendar.getInstance();
+
+		// 15:30, 01/01/2018
+		c.setTimeInMillis(1514817180000L);
+		assertFalse(InterestHandler.isTimeToTransfer(c));
+		
+		// 23:50, 01/01/2018
+		c.setTimeInMillis(1514847000000L);
+		assertFalse(InterestHandler.isTimeToTransfer(c));
+
+		// 23:50, 01/31/2018, didn't store balances balances
+		c.setTimeInMillis(1517439000000L);	
+		assertFalse(InterestHandler.isTimeToTransfer(c));
+		
+		// 23:50, 01/31/2018, stored balances
+		c.setTimeInMillis(1517439000000L);
+		InterestHandler.setPreviousBalanceStoringDate(c);		
+		assertTrue(InterestHandler.isTimeToTransfer(c));
+		
+		// 23:50, 02/01/2018 
+		c.setTimeInMillis(1520117400000L);
+		assertFalse(InterestHandler.isTimeToTransfer(c));
+		
 		
 	}
 	
 	@Test
 	public void isTimeToAddBalancesTest() {
-		
+		Calendar c = Calendar.getInstance();
+
+		// 15:30, 01/01/2018
+		c.setTimeInMillis(1514817180000L);
+		assertFalse(InterestHandler.isTimeToAddBalances(c));
+
+		// 23:44, 01/01/2018
+		c.setTimeInMillis(1514846640000L);
+		assertFalse(InterestHandler.isTimeToAddBalances(c));
+
+		// 23:46, 01/01/2018
+		c.setTimeInMillis(1514846760000L);
+		assertTrue(InterestHandler.isTimeToAddBalances(c));
+
+		// 0:00, 01/02/2018
+		c.setTimeInMillis(1514847600000L);
+		assertFalse(InterestHandler.isTimeToAddBalances(c));
 	}
 	
 	@Test
 	public void setTotalInterestMapTest() {
+		HashMap<String, Double> map = new HashMap<>();
+		map.put("test", 0.50);
+		InterestHandler.setTotalInterestMap(map);
 		
+		HashMap<String, Double> map2 = ServerDataHandler.getTotalInterestMap();
+		assertEquals(0.50, map2.get("test"), 0);
 	}
 	
 	@Test
 	public void setLowestDailyReachMapTest() {
+		HashMap<String, Double> map = new HashMap<>();
+		map.put("test", 0.50);
+		InterestHandler.setLowestDailyReachMap(map);
 		
+		HashMap<String, Double> map2 = ServerDataHandler.getLowestDailyReachMap();
+		assertEquals(0.50, map2.get("test"), 0);
 	}
 
 	@Test
 	public void setPreviousBalanceStoringDateTest() {
+		Calendar c = Calendar.getInstance();
+		InterestHandler.setPreviousBalanceStoringDate(c);
+		assertEquals(Long.toString(c.getTimeInMillis()), ServerDataHandler.getServerPropertyValue(ServerDataHandler.PREVIOUS_BALANCE_STORE_LINE));
 		
 	}
 	
 	@Test 
 	public void setPreviousInterestExecutionDateTest() {
+		Calendar c = Calendar.getInstance();
+		InterestHandler.setPreviousInterestExecutionDate(c);
+		assertEquals(Long.toString(c.getTimeInMillis()), ServerDataHandler.getServerPropertyValue(ServerDataHandler.PREVIOUS_INTEREST_LINE));
 		
 	}
 	
-	@Test
-	public void resetTest() {
-		
+	@After
+	public void reset() {	
+		// Reset all data
+		InterestHandler.reset();
+		ServerModel.resetSimulatedDays();
+		DataManager.wipeAllData(true);	
 	}
 }
