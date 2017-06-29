@@ -21,16 +21,44 @@ import exceptions.InsufficientFundsTransferException;
 import exceptions.ObjectDoesNotExistException;
 import exceptions.SameAccountTransferException;
 
+/**
+ * A class that handles the interest calculation for real time banking AND
+ * time simulated banking. 
+ * Since it supports real time, it needs to keep act upon time, hence the Thread extension.
+ * @author Justin Praas
+ */
 public class InterestHandler extends Thread {
 
+	/**
+	 * Indicates the time when we last deducted all customer's interest from their accounts.
+	 */
 	private static Calendar previousInterestExecution;
+	
+	/**
+	 * Indicates the time when we last stored the (lowest) balance of all customers into the
+	 * <code>totalMonthlyInterestMap</code>.
+	 */
 	private static Calendar previousBalanceStoring;
 	
+	/**
+	 * The monthly interest rate of this bank.
+	 */
 	private static final double MONTHLY_INTEREST_RATE = 0.00797414042;
 	
-	// Interest map for IBAN -> interest
+	/**
+	 * A map that keeps track of the lowest daily balances of accounts.
+	 */
 	private static HashMap<String, Double> lowestDailyReachMap = new HashMap<>();
+	
+	/**
+	 * A map that keeps track of the total interest of accounts.
+	 */
+	@SuppressWarnings("unused")
 	private static HashMap<String, Double> totalMonthlyInterestMap = new HashMap<>();
+	
+	/**
+	 * A variable that is used for when we simulate time.
+	 */
 	public int newlySimulatedDays = 0;
 	
 	public InterestHandler() {		
@@ -38,6 +66,11 @@ public class InterestHandler extends Thread {
 		start();		
 	}
 	
+	/**
+	 * Initialized the data needed for the interest handler.
+	 * If no data can be found in the files (See ServerDataHandler), then all data
+	 * is initialized with 'hard coded' values.
+	 */
 	public static void intializeData() {
 		// Set the previousInterestExecution
 		long previousInterestExecutionMillis = 0;
@@ -74,16 +107,30 @@ public class InterestHandler extends Thread {
 		
 	}
 
+	/**
+	 * Sets the map of total interest for the interest handler and stores it a file.
+	 * @param totalInterestMap the new map of total interest
+	 */
 	public static void setTotalInterestMap(HashMap<String, Double> totalInterestMap) {
 		totalMonthlyInterestMap = totalInterestMap;
 		ServerDataHandler.setTotalInterestMap(totalInterestMap);
 	}
 	
+	/**
+	 * Sets the map of lowest daily balances for the interest handler and stores it in a file.
+	 * @param lowestDailyMap the new map of lowest daily balances
+	 */
 	public static void setLowestDailyReachMap(HashMap<String, Double> lowestDailyMap) {
 		lowestDailyReachMap = lowestDailyMap;
 		ServerDataHandler.setLowestDailyReachMap(lowestDailyMap);
 	}
 	
+	/**
+	 * Sets the lowest daily balance of a specific bank account and then writes the map
+	 * like <code>setLowestDailyReachMap()</code> does.
+	 * @param IBAN the IBAN that has a new lower balance
+	 * @param balance the bank account's balance
+	 */
 	public static void setLowestDailyReachMapEntry(String IBAN, double balance) {
 		// FETCH: map
 		HashMap<String, Double> currentLowestDailyReachMap = ServerDataHandler.getLowestDailyReachMap();
@@ -100,6 +147,11 @@ public class InterestHandler extends Thread {
 		}		
 	}
 	
+	/**
+	 * Initialized the map of lowest daily balances (happens at the start of every month).
+	 * Simply checks which account has a negative balance and writes it to the file.
+	 * Uses <code>setLowestDailyReachMap</code> to write the map to the file.
+	 */
 	public static void initializeLowestDailyReachMap() {
 		HashMap<String, Double> newLowestDailyReachMap = new HashMap<>();
 		try {
@@ -117,30 +169,58 @@ public class InterestHandler extends Thread {
 		setLowestDailyReachMap(newLowestDailyReachMap);
 	}
 	
+	/**
+	 * Sets the previous balance storing date.
+	 * @param c the calendar that represents the date
+	 */
 	public static void setPreviousBalanceStoringDate(Calendar c) {
 		previousBalanceStoring = c;
 		ServerDataHandler.setServerPropertyValue(ServerDataHandler.PREVIOUS_BALANCE_STORE_LINE, 
 				Long.toString(previousBalanceStoring.getTimeInMillis()));
 	}
 
+	/**
+	 * Sets the previous interest execution date.
+	 * @param c the calendar that represents the date
+	 */
 	public static void setPreviousInterestExecutionDate(Calendar c) {
 		previousInterestExecution = c;
 		ServerDataHandler.setServerPropertyValue(ServerDataHandler.PREVIOUS_INTEREST_LINE, 
 				Long.toString(previousInterestExecution.getTimeInMillis()));
 	}
 	
+	/**
+	 * Sets the previous balance storing date to the (perhaps simulated) server-time.
+	 */
 	public static void setPreviousBalanceStoringDate() {
 		previousBalanceStoring = ServerModel.getServerCalendar();
 		ServerDataHandler.setServerPropertyValue(ServerDataHandler.PREVIOUS_BALANCE_STORE_LINE, 
 				Long.toString(previousBalanceStoring.getTimeInMillis()));
 	}
 	
+	/**
+	 * Sets the previous interest execution date to the (perhaps simulated) server-time.
+	 */
 	public static void setPreviousInterestExecutionDate() {
 		previousInterestExecution = ServerModel.getServerCalendar();
 		ServerDataHandler.setServerPropertyValue(ServerDataHandler.PREVIOUS_INTEREST_LINE, 
 				Long.toString(previousInterestExecution.getTimeInMillis()));
 	}
 	
+	/**
+	 * The Thread that runs as if it constantly watches the time (unless it doesn't need to do
+	 * anything). There are two situations:
+	 * Situation 1: The server is running real time (or real time ON simulated time)...
+	 * 		- What this means is that, when we wait for the clock to strike nearly midnight,
+	 * 		  it will calculate the interest or even transfer money if the Server's date is the last
+	 * 		  day of the month.
+	 * 		  The thread is put to sleep as long as it doesn't need to do anything, see
+	 * 		  <code>calculateShortestSleep()</code>.
+	 * Situation 2: Time is simulated and this Thread is interrupted.
+	 * 		- The <code>newlySimulatedDays</code> is set by the 'interrupter' and the method 
+	 * 		  to calculate interest over simulated time is executed. Afterwards continues with the 
+	 * 		  real time checking (situation 1).
+	 */
 	@Override
 	public void run() {		
 		boolean continues = true;
@@ -170,6 +250,12 @@ public class InterestHandler extends Thread {
 		}		
 	}
 	
+	/**
+	 * Calculates how long the InterestHandler thread needs to sleep until it either needs to
+	 * transfer and/or add balances to the total interest map.
+	 * @param c the calendar representation of the server's time
+	 * @return the milliseconds of time that the InterestHandler needs to sleep.
+	 */
 	public static long calculateShortestSleep(Calendar c) {
 		Calendar now = c;
 		long nowMillis = now.getTimeInMillis();
@@ -192,12 +278,24 @@ public class InterestHandler extends Thread {
 		return millisUntilNextMidNight;
 	}
 
+	/**
+	 * Calculates the interest for a balance for one day in a specific month.
+	 * @param balance the balance on which interest needs to be calculated
+	 * @param maxDateOfMonth the date of the last day of the month (e.g. 30, 28, 31, 29)
+	 * @return the interest on the given balance
+	 */
 	public static double calculateInterest(double balance, int maxDateOfMonth) {
-		double interest = balance * MONTHLY_INTEREST_RATE / maxDateOfMonth; 
-		System.out.println("Interest: " + interest);
-		return interest;
+		return balance * MONTHLY_INTEREST_RATE / maxDateOfMonth; 
 	}
 	
+	/**
+	 * Accurately rounds a double to the given number of decimals. Used for transferring money from
+	 * the bank accounts.
+	 * SOURCE: https://stackoverflow.com/a/2808648/7133329
+	 * @param value the value that needs to be rounded to the given number of decimals
+	 * @param places the number of decimals 
+	 * @return the same value representation with the precision of the given number of decimals
+	 */
 	public static double round(double value, int places) {
 	    if (places < 0) throw new IllegalArgumentException();
 
@@ -206,6 +304,10 @@ public class InterestHandler extends Thread {
 	    return bd.doubleValue();
 	}
 	
+	/**
+	 * Calculates the interest on all bank accounts for the given number of days.
+	 * @param days the number of days on which all bank accounts need to be simulated
+	 */
 	public static void calculateTimeSimulatedInterest(int days) {
 		Calendar c = ServerModel.getServerCalendar();
 		
@@ -225,6 +327,10 @@ public class InterestHandler extends Thread {
 		}		
 	}
 
+	/**
+	 * Transfers the interest values of all bank accounts that are in the map of total interest 
+	 * to the ING bank account.
+	 */
 	public static void transferInterest() {
 		// FETCH: map
 		HashMap<String, Double> currentTotalMonthlyInterestMap = ServerDataHandler.getTotalInterestMap();
@@ -256,6 +362,11 @@ public class InterestHandler extends Thread {
 		initializeLowestDailyReachMap();
 	}
 
+	/**
+	 * Adds the lowest daily balances of all bank accounts that have a negative balance to the
+	 * total interest map.
+	 * @param c the calendar that is used to set the previousBalanceStoring variable.
+	 */
 	public static void addBalancesToTotalInterest(Calendar c) {
 		// FETCH: maps
 		HashMap<String, Double> currentLowestDailyReachMap = ServerDataHandler.getLowestDailyReachMap();
@@ -289,6 +400,12 @@ public class InterestHandler extends Thread {
 		initializeLowestDailyReachMap();		
 	}
 
+	/**
+	 * Checks if it is time to add balances to the total interest map.
+	 * (Check skipped if we simulate time)
+	 * @param c the Calendar that is used to check if it is the time to add balances
+	 * @return true if it is the time, false otherwise
+	 */
 	public static boolean isTimeToAddBalances(Calendar c) {
 		// Check if it's between 11:45 PM and 11:59 AM (23:45-23:59)
 		int hourOfDay = c.get(Calendar.HOUR_OF_DAY);
@@ -304,6 +421,12 @@ public class InterestHandler extends Thread {
 		return isCorrectTime && !didBalanceStoreToday;
 	}
 
+	/**
+	 * Checks if it is time to deduct the interest from the total interest map to the ING account.
+	 * (Check skipped if we simulate time)
+	 * @param c the Calendar that is used to check if it is the time to transfer the money
+	 * @return true if it is the time, false otherwise
+	 */
 	public static boolean isTimeToTransfer(Calendar c) {
 		// Check if it is the last of the month
 		boolean lastOfMonth = c.get(Calendar.DATE) == c.getMaximum(Calendar.DATE);
@@ -319,6 +442,9 @@ public class InterestHandler extends Thread {
 		return lastOfMonth && !didTransferThisMonth && storedBalances;
 	}
 	
+	/**
+	 * Resets the system to the initial state.
+	 */
 	public static void reset() {
 		setTotalInterestMap(new HashMap<String, Double>());
 		setLowestDailyReachMap(new HashMap<String, Double>());
