@@ -1,6 +1,5 @@
 package server.rest;
 
-import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -15,6 +14,10 @@ import java.util.List;
 
 import client.Client;
 
+/**
+ * A class that handles the writing and reading of config files or object files.
+ * @author Justin Praas
+ */
 public class ServerDataHandler {
 
 	private static final String CONFIG_PATH = Client.DESKTOP_ING_FOLDER_PATH + "config.txt";
@@ -25,6 +28,11 @@ public class ServerDataHandler {
 	private static final String LOWEST_DAILY_REACH_MAP_PATH = Client.DESKTOP_ING_FOLDER_PATH + "daily_lowest.ser";
 	private static final String TOTAL_INTEREST_MAP_PATH = Client.DESKTOP_ING_FOLDER_PATH + "total_interest.ser";
 
+	/**
+	 * Gets the property by reading the given line (position) in the config file.
+	 * @param position the position of the line that needs to be read.
+	 * @return a String representation of the property
+	 */
 	public static String getServerPropertyValue(int position) {
 		initIfRequired();
 		try {
@@ -40,6 +48,11 @@ public class ServerDataHandler {
 		return "";			
 	}
 	
+	/**
+	 * Sets the property of the given line (position) in the config file.
+	 * @param position the position of the line that needs to be written to
+	 * @param value the value that needs to be written
+	 */
 	public static void setServerPropertyValue(int position, String value) {
 		try {
 			List<String> lines = Files.readAllLines(Paths.get(CONFIG_PATH));
@@ -55,6 +68,10 @@ public class ServerDataHandler {
 		}
 	}
 
+	/**
+	 * Writes the map of lowest daily balance reaches to the <code>daily_lowest.ser</code> file.
+	 * @param lowestReachMap the map to be written
+	 */
 	public static void setLowestDailyReachMap(HashMap<String, Double> lowestReachMap) {
 		try {
 			ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(LOWEST_DAILY_REACH_MAP_PATH, false));
@@ -65,6 +82,10 @@ public class ServerDataHandler {
 		}		
 	}
 	
+	/**
+	 * Reads the map of lowest daily balance reaches from the <code>daily_lowest.ser</code> file.
+	 * @return a map of lowest daily balance reaches
+	 */
 	@SuppressWarnings("unchecked")
 	public static HashMap<String, Double> getLowestDailyReachMap() {
 		initIfRequired();
@@ -81,6 +102,11 @@ public class ServerDataHandler {
 		return null;
 	}
 
+
+	/**
+	 * Writes the map of total interests to the <code>total_interest.ser</code> file.
+	 * @param lowestReachMap the map to be written
+	 */
 	public static void setTotalInterestMap(HashMap<String, Double> totalInterest) {
 		try {
 			ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(TOTAL_INTEREST_MAP_PATH, false));
@@ -91,6 +117,10 @@ public class ServerDataHandler {
 		}		
 	}
 	
+	/**
+	 * Reads the map of total interest from the <code>total_interest.ser</code> file.
+	 * @return a map of total interests
+	 */
 	@SuppressWarnings("unchecked")
 	public static HashMap<String, Double> getTotalInterestMap() {
 		initIfRequired();
@@ -107,6 +137,9 @@ public class ServerDataHandler {
 		return null;
 	}
 
+	/**
+	 * Checks if the necessary files exists and if not, create them.
+	 */
 	private static void initIfRequired() {
 		File lowestReachMapFile = new File(LOWEST_DAILY_REACH_MAP_PATH);
 		if (!lowestReachMapFile.exists()) {
