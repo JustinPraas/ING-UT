@@ -263,17 +263,17 @@ public class InterestHandler extends Thread {
 		// Time until next midnight
 		Calendar nextMidnight = c;
 		
-		if (now.get(Calendar.HOUR_OF_DAY) >= 23 && now.get(Calendar.MINUTE) >= 44) {
+		if (now.get(Calendar.HOUR_OF_DAY) >= 0 && now.get(Calendar.MINUTE) >= 1) {
 			nextMidnight.add(Calendar.DATE, 1);
 		}
 		
-		nextMidnight.set(Calendar.HOUR_OF_DAY, 23);
-		nextMidnight.set(Calendar.MINUTE, 46);
+		nextMidnight.set(Calendar.HOUR_OF_DAY, 0);
+		nextMidnight.set(Calendar.MINUTE, 0);
 		Date date = nextMidnight.getTime();
 		long dateMillis = date.getTime();
 		long millisUntilNextMidNight = dateMillis - nowMillis;
 		
-		//System.out.println("INTEREST: Going to sleep for " + millisUntilNextMidNight + "milliseconds (" + date.toString() + ")");
+		System.out.println("INTEREST: Going to sleep for " + millisUntilNextMidNight + "milliseconds (" + date.toString() + ")");
 
 		return millisUntilNextMidNight;
 	}
@@ -314,15 +314,15 @@ public class InterestHandler extends Thread {
 		before.add(Calendar.DATE, -1 * days);
 		
 		for (int i = 1; i <= days; i++) {
-			System.out.println("========= " + before.getTime().toString() + " ==================================");
+			System.out.println("========= " + c.getTime().toString() + " ==================================");
+			// Transfer the money
+			if (c.get(Calendar.DATE) == 1) {
+				transferInterest();
+			}
 			
 			// Add balances
 			addBalancesToTotalInterest(c);
 			
-			// Transfer the money
-			if (c.get(Calendar.DATE) == c.getActualMaximum(Calendar.DATE)) {
-				transferInterest();
-			}
 			
 			// Add a day to the calendar
 			c.add(Calendar.DATE, 1);
@@ -410,10 +410,10 @@ public class InterestHandler extends Thread {
 	 * @return true if it is the time, false otherwise
 	 */
 	public static boolean isTimeToAddBalances(Calendar c) {
-		// Check if it's between 11:45 PM and 11:59 AM (23:45-23:59)
+		// Check if it's between 12:00 AM and 12:15 AM (midnight)
 		int hourOfDay = c.get(Calendar.HOUR_OF_DAY);
 		int minute = c.get(Calendar.MINUTE);
-		boolean isCorrectTime = hourOfDay > 11 && minute >= 45 && minute <= 59;
+		boolean isCorrectTime = hourOfDay == 0 && minute >= 0 && minute < 1;
 		
 		// Check if we haven't added the balances today already
 		Calendar lastBalanceStore = previousBalanceStoring;
@@ -432,7 +432,7 @@ public class InterestHandler extends Thread {
 	 */
 	public static boolean isTimeToTransfer(Calendar c) {
 		// Check if it is the last of the month
-		boolean lastOfMonth = c.get(Calendar.DATE) == c.getMaximum(Calendar.DATE);
+		boolean firstOfMonth = c.get(Calendar.DATE) == 1;
 		
 		// Check if we haven't transfered this month 
 		Calendar lastTransfer = previousInterestExecution;
@@ -440,9 +440,9 @@ public class InterestHandler extends Thread {
 				c.get(Calendar.YEAR) == lastTransfer.get(Calendar.YEAR);
 		
 		// Check if we've already added the daily lowest balances to the lowestDailyReach map
-		boolean storedBalances = previousBalanceStoring.get(Calendar.DATE) == c.getMaximum(Calendar.DATE);
+		boolean storedBalances = previousBalanceStoring.get(Calendar.DATE) == 1;
 		
-		return lastOfMonth && !didTransferThisMonth && storedBalances;
+		return firstOfMonth && !didTransferThisMonth && storedBalances;
 	}
 	
 	/**

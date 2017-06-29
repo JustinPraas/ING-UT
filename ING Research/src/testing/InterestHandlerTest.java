@@ -42,7 +42,7 @@ public class InterestHandlerTest {
 		DataManager.wipeAllData(true);	
 		
 		// Set up necessary data
-		startOfYear.setTimeInMillis(1483225200000L);
+		startOfYear.setTimeInMillis(1483225320000L);
 		startValue1 = -1000;
 		startValue2 = -2000;
 		startValue3 = -4000;
@@ -66,26 +66,26 @@ public class InterestHandlerTest {
 		long actualMilliDifference;
 		long calculatedMilliSleep;
 		
-		// Milli seconds of difference between 2017-01-01 00:00 and 2017-01-01 23:46
-		actualMilliDifference = 1483310760000L - 1483225200000L;
+		// Milli seconds of difference between 2017-01-02 00:02 and 2017-01-01 0:00
+		actualMilliDifference = 1483311600000L - 1483225320000L;
 		calculatedMilliSleep = InterestHandler.calculateShortestSleep(startOfYear);
 		assertEquals(actualMilliDifference, calculatedMilliSleep);
 
 		// Milli seconds of difference between 2017-01-01 13:46 and 2017-01-01 23:46
-		startOfYear.setTimeInMillis(1483274580000L);
-		actualMilliDifference = 1483310760000L - 1483274580000L;
+		startOfYear.setTimeInMillis(1483274760000L);
+		actualMilliDifference = 1483311600000L - 1483274760000L;
 		calculatedMilliSleep = InterestHandler.calculateShortestSleep(startOfYear);
 		assertEquals(actualMilliDifference, calculatedMilliSleep);
 
 		// Milli seconds of difference between 2017-01-01 23:43 and 2017-01-01 23:46
 		startOfYear.setTimeInMillis(1483310580000L);
-		actualMilliDifference = 1483310760000L - 1483310580000L;
+		actualMilliDifference = 1483311600000L - 1483310580000L;
 		calculatedMilliSleep = InterestHandler.calculateShortestSleep(startOfYear);
 		assertEquals(actualMilliDifference, calculatedMilliSleep);
 		
 		// Milli seconds of difference between 2017-01-01 23:44 and 2017-01-02 23:46
-		startOfYear.setTimeInMillis(1483310640000L);
-		actualMilliDifference = 1483397160000L - 1483310640000L;
+		startOfYear.setTimeInMillis(1483311540000L);
+		actualMilliDifference = 1483311600000L - 1483311540000L;
 		calculatedMilliSleep = InterestHandler.calculateShortestSleep(startOfYear);
 		assertEquals(actualMilliDifference, calculatedMilliSleep);		
 	}
@@ -112,7 +112,7 @@ public class InterestHandlerTest {
 		int daysUntilNextYear = Calendar.getInstance().getMaximum(Calendar.DAY_OF_YEAR) - Calendar.getInstance().get(Calendar.DAY_OF_YEAR);
 		ServerModel.setSimulatedDays(daysUntilNextYear, true);
 		InterestHandler interestHandler = new InterestHandler();
-		interestHandler.newlySimulatedDays = 365;
+		interestHandler.newlySimulatedDays = 366;
 		interestHandler.interrupt();
 		
 		// Wait for the interest handler to finish...
@@ -143,11 +143,11 @@ public class InterestHandlerTest {
 		int daysUntilNextYear = Calendar.getInstance().getMaximum(Calendar.DAY_OF_YEAR) - Calendar.getInstance().get(Calendar.DAY_OF_YEAR);
 		ServerModel.setSimulatedDays(daysUntilNextYear, true);
 		InterestHandler interestHandler = new InterestHandler();
-		interestHandler.newlySimulatedDays = 31;
+		interestHandler.newlySimulatedDays = 32;
 		interestHandler.interrupt();
 		
 		try {
-			Thread.sleep(2000);
+			Thread.sleep(3000);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
@@ -197,27 +197,24 @@ public class InterestHandlerTest {
 	public void isTimeToTransferTest() {
 		Calendar c = Calendar.getInstance();
 
-		// 15:30, 01/01/2018
-		c.setTimeInMillis(1514817180000L);
-		assertFalse(InterestHandler.isTimeToTransfer(c));
-		
-		// 23:50, 01/01/2018
-		c.setTimeInMillis(1514847000000L);
+		// 23:50, 01/01/2018, didn't store balances balances
+		c.setTimeInMillis(1514810700000L);	
 		assertFalse(InterestHandler.isTimeToTransfer(c));
 
-		// 23:50, 01/31/2018, didn't store balances balances
-		c.setTimeInMillis(1517439000000L);	
+		// 15:30, 01/02/2018
+		c.setTimeInMillis(1514897100000L);
+		InterestHandler.setPreviousBalanceStoringDate(c);
 		assertFalse(InterestHandler.isTimeToTransfer(c));
 		
-		// 23:50, 01/31/2018, stored balances
-		c.setTimeInMillis(1517439000000L);
+		// 23:50, 12/31/2017
+		c.setTimeInMillis(1514761140000L);
+		InterestHandler.setPreviousBalanceStoringDate(c);
+		assertFalse(InterestHandler.isTimeToTransfer(c));
+		
+		// 23:50, 01/01/2018, stored balances
+		c.setTimeInMillis(1514810700000L);
 		InterestHandler.setPreviousBalanceStoringDate(c);		
-		assertTrue(InterestHandler.isTimeToTransfer(c));
-		
-		// 23:50, 02/01/2018 
-		c.setTimeInMillis(1520117400000L);
-		assertFalse(InterestHandler.isTimeToTransfer(c));
-		
+		assertTrue(InterestHandler.isTimeToTransfer(c));		
 		
 	}
 	
@@ -235,11 +232,11 @@ public class InterestHandlerTest {
 
 		// 23:46, 01/01/2018
 		c.setTimeInMillis(1514846760000L);
-		assertTrue(InterestHandler.isTimeToAddBalances(c));
+		assertFalse(InterestHandler.isTimeToAddBalances(c));
 
 		// 0:00, 01/02/2018
 		c.setTimeInMillis(1514847600000L);
-		assertFalse(InterestHandler.isTimeToAddBalances(c));
+		assertTrue(InterestHandler.isTimeToAddBalances(c));
 	}
 	
 	@Test
