@@ -310,23 +310,19 @@ public class InterestHandler extends Thread {
 	 */
 	public static void calculateTimeSimulatedInterest(int days) {
 		Calendar c = ServerModel.getServerCalendar();
-		Calendar before = ServerModel.getServerCalendar();
-		before.add(Calendar.DATE, -1 * days);
 		
-		for (int i = 1; i <= days; i++) {
+		for (int i = 1; i <= days; i++) {			
+			// Add balances
+			addBalancesToTotalInterest(c);	
+			
+			// Add a day to the calendar
+			c.add(Calendar.DATE, 1);
+			
 			System.out.println("========= " + c.getTime().toString() + " ==================================");
 			// Transfer the money
 			if (c.get(Calendar.DATE) == 1) {
 				transferInterest();
 			}
-			
-			// Add balances
-			addBalancesToTotalInterest(c);
-			
-			
-			// Add a day to the calendar
-			c.add(Calendar.DATE, 1);
-			before.add(Calendar.DATE, 1);
 		}		
 	}
 

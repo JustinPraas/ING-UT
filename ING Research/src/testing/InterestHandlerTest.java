@@ -112,7 +112,7 @@ public class InterestHandlerTest {
 		int daysUntilNextYear = Calendar.getInstance().getMaximum(Calendar.DAY_OF_YEAR) - Calendar.getInstance().get(Calendar.DAY_OF_YEAR);
 		ServerModel.setSimulatedDays(daysUntilNextYear, true);
 		InterestHandler interestHandler = new InterestHandler();
-		interestHandler.newlySimulatedDays = 366;
+		interestHandler.newlySimulatedDays = 365;
 		interestHandler.interrupt();
 		
 		// Wait for the interest handler to finish...
@@ -143,7 +143,7 @@ public class InterestHandlerTest {
 		int daysUntilNextYear = Calendar.getInstance().getMaximum(Calendar.DAY_OF_YEAR) - Calendar.getInstance().get(Calendar.DAY_OF_YEAR);
 		ServerModel.setSimulatedDays(daysUntilNextYear, true);
 		InterestHandler interestHandler = new InterestHandler();
-		interestHandler.newlySimulatedDays = 32;
+		interestHandler.newlySimulatedDays = 31;
 		interestHandler.interrupt();
 		
 		try {
