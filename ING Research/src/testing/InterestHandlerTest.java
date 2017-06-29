@@ -92,48 +92,48 @@ public class InterestHandlerTest {
 		double balance, interest;
 
 		balance = bAccount1.getBalance();
-		interest = InterestHandler.calculateInterest(balance);
-		assertTrue(Math.abs(interest) - Math.abs(0.273972602) < 0.0001);
+		interest = InterestHandler.calculateInterest(balance, 31);		
+		assertTrue(Math.abs(interest) == 0.26);
 
 		balance = bAccount2.getBalance();
-		interest = InterestHandler.calculateInterest(balance);
-		assertTrue(Math.abs(interest) - Math.abs(0.54794521) < 0.0001);
+		interest = InterestHandler.calculateInterest(balance, 31);
+		assertTrue(Math.abs(interest) == 0.51);
 		
-		balance = bAccount2.getBalance();
-		interest = InterestHandler.calculateInterest(balance);
-		assertTrue(Math.abs(interest) - Math.abs(1.09589041) < 0.0001);
+		balance = bAccount3.getBalance();
+		interest = InterestHandler.calculateInterest(balance, 31);
+		assertTrue(Math.abs(interest) == 1.03);
 	}
 	
 	@Test 
 	public void calculateTimeSimulatedInterestTest() {
 		int daysUntilNextYear = Calendar.getInstance().getMaximum(Calendar.DAY_OF_YEAR) - Calendar.getInstance().get(Calendar.DAY_OF_YEAR);
-		ServerModel.setSimulatedDays(daysUntilNextYear, true);
+		ServerModel.setSimulatedDays(daysUntilNextYear + 365, true);
 		System.err.println("Servertime: " + ServerModel.getServerCalendar().getTime().toString());
 		InterestHandler interestHandler = new InterestHandler();
-		ServerModel.setSimulatedDays(365, true);
-		System.err.println("New server time: " + ServerModel.getServerCalendar().getTime().toString());
-		try {
-			Thread.sleep(1000);
-		} catch (InterruptedException e2) {
-			// TODO Auto-generated catch block
-			e2.printStackTrace();
-		}
 		interestHandler.newlySimulatedDays = 365;
 		interestHandler.interrupt();
+		
+		// Wait for the interest handler to finish...
 		try {
-			Thread.sleep(8000);
+			Thread.sleep(12000);
 		} catch (InterruptedException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 		
-		double balance;
+		double balance1 = 0;
+		double balance2 = 0;
+		double balance3 = 0;
 		try {
-			balance = ((BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, bAccount1.getIBAN())).getBalance();
-			System.out.println(balance);
+			balance1 = ((BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, bAccount1.getIBAN())).getBalance();
+			balance2 = ((BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, bAccount2.getIBAN())).getBalance();
+			balance3 = ((BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, bAccount3.getIBAN())).getBalance();		
 		} catch (ObjectDoesNotExistException e) {
 			e.printStackTrace();
 		}
+
+		assertEquals(-1100.000, balance1, 0.001);
+		assertEquals(-2200.000, balance2, 0.001);
+		assertEquals(-4400.000, balance3, 0.001);
 	}
 	
 	@Test
