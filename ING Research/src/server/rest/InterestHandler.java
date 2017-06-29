@@ -1,5 +1,7 @@
 package server.rest;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -24,7 +26,7 @@ public class InterestHandler extends Thread {
 	private static Calendar previousInterestExecution;
 	private static Calendar previousBalanceStoring;
 	
-	private static final double INTEREST_RATE = 0.10;
+	private static final double MONTHLY_INTEREST_RATE = 0.00797414042;
 	
 	// Interest map for IBAN -> interest
 	private static HashMap<String, Double> lowestDailyReachMap = new HashMap<>();
@@ -151,11 +153,11 @@ public class InterestHandler extends Thread {
 			// the interest to the ING account:
 			if (isTimeToTransfer(c)) {
 				System.out.println("INTEREST: Time to transfer interest");
-				addBalancesToTotalInterest();
+				addBalancesToTotalInterest(c);
 				transferInterest();
 			} else if (isTimeToAddBalances(c)) {
 				System.out.println("INTEREST: Time to add balances");
-				addBalancesToTotalInterest();				
+				addBalancesToTotalInterest(c);				
 			}
 			
 			try {
@@ -185,31 +187,41 @@ public class InterestHandler extends Thread {
 		long dateMillis = date.getTime();
 		long millisUntilNextMidNight = dateMillis - nowMillis;
 		
-		System.out.println("INTEREST: Going to sleep for " + millisUntilNextMidNight + "milliseconds (" + date.toString() + ")");
+		//System.out.println("INTEREST: Going to sleep for " + millisUntilNextMidNight + "milliseconds (" + date.toString() + ")");
 
 		return millisUntilNextMidNight;
 	}
 
-	public static double calculateInterest(double balance) {
-		return balance * (1 + INTEREST_RATE / 365) - balance;
+	public static double calculateInterest(double balance, int maxDateOfMonth) {
+		double interest = balance * MONTHLY_INTEREST_RATE / maxDateOfMonth; 
+		System.out.println("Interest: " + interest);
+		return interest;
+	}
+	
+	public static double round(double value, int places) {
+	    if (places < 0) throw new IllegalArgumentException();
+
+	    BigDecimal bd = new BigDecimal(value);
+	    bd = bd.setScale(places, RoundingMode.HALF_UP);
+	    return bd.doubleValue();
 	}
 	
 	public static void calculateTimeSimulatedInterest(int days) {
 		Calendar c = ServerModel.getServerCalendar();
 		
 		for (int i = 1; i <= days; i++) {
-			System.out.println("INTEREST: calculating interest for simulated day " + i);
+			System.out.println("========= " + c.getTime().toString() + " ==================================");
+			
+			// Add balances
+			addBalancesToTotalInterest(c);
+			
+			// Transfer the money
+			if (c.get(Calendar.DATE) == c.getActualMaximum(Calendar.DATE)) {
+				transferInterest();
+			}
 			
 			// Add a day to the calendar
 			c.add(Calendar.DATE, 1);
-			
-			// Add balances
-			addBalancesToTotalInterest();
-			
-			// Transfer the money
-			if (c.get(Calendar.DATE) == c.getMaximum(Calendar.DATE)) {
-				transferInterest();
-			}
 		}		
 	}
 
@@ -217,14 +229,19 @@ public class InterestHandler extends Thread {
 		// FETCH: map
 		HashMap<String, Double> currentTotalMonthlyInterestMap = ServerDataHandler.getTotalInterestMap();
 		
-		System.out.println("INTEREST: transfering interest from " + currentTotalMonthlyInterestMap.size() + " customers");
+		//System.out.println("INTEREST: transfering interest from " + currentTotalMonthlyInterestMap.size() + " customers");
 		for (Entry<String, Double> entry : currentTotalMonthlyInterestMap.entrySet()) {
 			BankAccount bankAccount;
 			try {
 				// Transfer the money to the ING account
-				System.out.println("INTEREST: Transfering " + entry.getValue() + " from " + entry.getKey());
+				double rounded = round(entry.getValue(), 2);
+				System.out.println(entry.getKey() + ": transfering " + rounded);
 				bankAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, entry.getKey());
+				double currentBalance = bankAccount.getBalance();
 				bankAccount.transfer(BankAccount.ING_BANK_ACCOUNT_IBAN, -1 * entry.getValue(), "Negative interest credit");
+				double newBalance = bankAccount.getBalance();
+				
+				System.out.println(bankAccount.getIBAN() + ": old balance is " + currentBalance + ", new balance is " + newBalance);
 				
 			} catch (ObjectDoesNotExistException | InsufficientFundsTransferException | ClosedAccountTransferException | SameAccountTransferException 
 					| IllegalAmountException | ExceedOverdraftLimitException e) {
@@ -236,26 +253,31 @@ public class InterestHandler extends Thread {
 		
 		// SET: map
 		setTotalInterestMap(currentTotalMonthlyInterestMap);
+		initializeLowestDailyReachMap();
 	}
 
-	public static void addBalancesToTotalInterest() {
+	public static void addBalancesToTotalInterest(Calendar c) {
 		// FETCH: maps
 		HashMap<String, Double> currentLowestDailyReachMap = ServerDataHandler.getLowestDailyReachMap();
 		HashMap<String, Double> currentTotalInterestMap = ServerDataHandler.getTotalInterestMap();
 		
-		System.out.println("INTEREST: adding balances for " + currentLowestDailyReachMap.size() + " customers");
+		//System.out.println("INTEREST: adding balances for " + currentLowestDailyReachMap.size() + " customers");
 		// For all IBAN entries, add the interest to the total interest map 
 		for (Entry<String, Double> entry : currentLowestDailyReachMap.entrySet()) {
 			String IBAN = entry.getKey();
+			double currentInterest;
 			double totalInterest; 
 			if (!currentTotalInterestMap.containsKey(IBAN)) {
-				totalInterest = calculateInterest(entry.getValue());
+				currentInterest = 0;
+				totalInterest = calculateInterest(entry.getValue(), c.getActualMaximum(Calendar.DATE));
 			} else {
-				totalInterest = currentTotalInterestMap.get(entry.getKey()) + 
-						calculateInterest(entry.getValue());
+				currentInterest = currentTotalInterestMap.get(IBAN);
+				totalInterest = currentInterest + calculateInterest(entry.getValue(), c.getActualMaximum(Calendar.DATE));
 			}
 			
-			System.out.println("INTEREST: Total interest for " + IBAN + " is " + totalInterest);
+			System.out.println(IBAN + ": daily low: " + entry.getValue());
+			System.out.println(IBAN + ": current total interest " + currentInterest + ", new total interest" + totalInterest);
+			
 			currentTotalInterestMap.put(IBAN, totalInterest);
 		}
 		
