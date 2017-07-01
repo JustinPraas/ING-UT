@@ -68,7 +68,7 @@ public class SavingsAccount implements database.DBObject {
 		t.setSourceIBAN(IBAN + "S");
 		t.setDestinationIBAN(bankAccount.getIBAN());
 		t.setAmount(amount);
-		t.setDescription("Transfer to " + bankAccount.getIBAN() + ".");
+		t.setDescription("Transfer from savings account to main account.");
 		t.saveToDB();
 		this.saveToDB();
 		bankAccount.saveToDB();
