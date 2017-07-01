@@ -264,6 +264,8 @@ public class ServerDataHandler {
 			setServerPropertyValue(SIMULATED_DAYS_LINE, Integer.toString(ServerModel.getSimulatedDays()));
 			setServerPropertyValue(PREVIOUS_NEGATIVE_INTEREST_LINE, "0");
 			setServerPropertyValue(PREVIOUS_NEGATIVE_BALANCE_STORE_LINE, "0");
+			setServerPropertyValue(PREVIOUS_POSITIVE_INTEREST_LINE, "0");
+			setServerPropertyValue(PREVIOUS_POSITIVE_BALANCE_STORE_LINE, "0");
 		}
 		
 	}

@@ -149,10 +149,10 @@ public class InterestHandler extends Thread {
 		// Set the lowestPositiveDailyReachMap
 		lowestPositiveDailyReachMap = ServerDataHandler.getPositiveLowestDailyReachMap();
 		if (lowestPositiveDailyReachMap.size() == 0) {
-			initializeLowestNegativeDailyReachMap();
+			initializeLowestPositiveDailyReachMap();
 		}
 		
-		// Set the totalMonthlyInterestMap 
+		// Set the totalYearlyInterestMap 
 		totalYearlyPositiveInterestMap = ServerDataHandler.getTotalPositiveInterestMap();
 		
 	}
@@ -182,7 +182,7 @@ public class InterestHandler extends Thread {
 	
 	public static void setPositiveLowestDailyReachMap(HashMap<String, Double> lowestPositiveDailyMap) {
 		lowestPositiveDailyReachMap = lowestPositiveDailyMap;
-		ServerDataHandler.setNegativeLowestDailyReachMap(lowestPositiveDailyReachMap);
+		ServerDataHandler.setPositiveLowestDailyReachMap(lowestPositiveDailyReachMap);
 	}
 
 	/**
