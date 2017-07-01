@@ -236,6 +236,43 @@ public class BankAccount implements database.DBObject {
 	}
 	
 	/**
+	 * Transfers money to the savings account
+	 * @param amount
+	 * @throws IllegalAmountException 
+	 * @throws ExceedOverdraftLimitException 
+	 * @throws ClosedAccountTransferException 
+	 */
+	public void transfer(double amount) throws IllegalAmountException, ExceedOverdraftLimitException, ClosedAccountTransferException {
+		if (amount <= 0) {
+			throw new IllegalAmountException(amount);
+		} else if (balance - amount < overdraftLimit * -1) {
+			throw new ExceedOverdraftLimitException(overdraftLimit);
+		} else if (this.closed || savingsAccount.isClosed()) {
+			throw new ClosedAccountTransferException();
+		}
+		
+		this.credit(amount);
+		savingsAccount.debit(amount);
+		
+		Calendar c = Calendar.getInstance();		
+		// Add simulated days 
+		c.add(Calendar.DATE, Client.getSimulatedDays());
+		
+		String date = c.getTime().toString();
+		Transaction t = new Transaction();
+		t.setDateTime(date);
+		t.setDateTimeMilis(c.getTimeInMillis());
+		t.setSourceIBAN(this.getIBAN());
+		t.setDestinationIBAN(savingsAccount.getIBAN());
+		t.setAmount(amount);
+		t.setDescription("Transfer to savings account.");
+		t.saveToDB();
+		this.saveToDB();
+		savingsAccount.saveToDB();
+		
+	}
+
+	/**
 	 * Transfers a specific amount of money from this <code>BankAccount</code> to another.
 	 * @param destination The <code>BankAccount</code> to which the transferred money should go
 	 * @param amount The amount of money to be transferred from this <code>BankAccount</code> to the destination
