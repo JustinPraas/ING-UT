@@ -132,6 +132,12 @@ public class MessageHandler {
 			case "UNBLOCK_PINCARD":
 				unblockCard(parameters);
 				break;
+			case "OPEN_SAVINGS_ACCOUNT":
+				openSavingsAccount(parameters);
+				break;
+			case "CLOSE_SAVINGS_ACCOUNT":
+				closeSavingsAccount(parameters);
+				break;
 			case "SET_OVERDRAFT_LIMIT":
 				setOverdraftLimit(parameters);
 				break;
@@ -147,6 +153,74 @@ public class MessageHandler {
 	}
 	
 	/**
+	 * Extension 6: 'Savings account' related.
+	 * Opens a savings account for the given bank account.
+	 */
+	private void openSavingsAccount(String parameters) {
+		String parameterArray[] = parameters.split(":");
+		String method = "openSavingsAccount";
+		HashMap<String, Object> params = new HashMap<>();
+
+		if (parameterArray.length != 1) {
+			System.err.println("Please enter the requested parameters.");
+			return;
+		}
+		params.put("authToken", AUTHTOKEN);
+		params.put("iBAN", parameterArray[0]);
+		
+		JSONRPC2Request request = new JSONRPC2Request(method, params,
+				"request-" + java.lang.System.currentTimeMillis());
+		String resp = sendToServer(request);
+		try {
+			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
+			if (!jResp.indicatesSuccess()) {
+				System.out.printf("Error " + jResp.getError().getCode() + ": " + jResp.getError().getMessage());
+				if (jResp.getError().getData() != null) {
+					System.out.println((String) jResp.getError().getData());
+				}
+				return;
+			}
+			System.out.println("Succesfully opened savings account for " + parameterArray[0]);
+		} catch (JSONRPC2ParseException e) {
+			System.out.println("Discarded invalid JSON-RPC response from server.");
+		}		
+	}
+	
+	/**
+	 * Extension 6: 'Savings account' related.
+	 * Closes a savings account for the given bank account.
+	 */
+	private void closeSavingsAccount(String parameters) {
+		String parameterArray[] = parameters.split(":");
+		String method = "closeSavingsAccount";
+		HashMap<String, Object> params = new HashMap<>();
+
+		if (parameterArray.length != 1) {
+			System.err.println("Please enter the requested parameters.");
+			return;
+		}
+		params.put("authToken", AUTHTOKEN);
+		params.put("iBAN", parameterArray[0]);
+		
+		JSONRPC2Request request = new JSONRPC2Request(method, params,
+				"request-" + java.lang.System.currentTimeMillis());
+		String resp = sendToServer(request);
+		try {
+			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
+			if (!jResp.indicatesSuccess()) {
+				System.out.printf("Error " + jResp.getError().getCode() + ": " + jResp.getError().getMessage());
+				if (jResp.getError().getData() != null) {
+					System.out.println((String) jResp.getError().getData());
+				}
+				return;
+			}
+			System.out.println("Succesfully closed the savings account for " + parameterArray[0]);
+		} catch (JSONRPC2ParseException e) {
+			System.out.println("Discarded invalid JSON-RPC response from server.");
+		}		
+	}
+	
+	/**
 	 * Extension 5: 'Overdraft' related.
 	 * Sets the overdraft limit of the given bank account
 	 */
@@ -154,6 +228,11 @@ public class MessageHandler {
 		String parameterArray[] = parameters.split(":");
 		String method = "setOverdraftLimit";
 		HashMap<String, Object> params = new HashMap<>();
+		
+		if (parameterArray.length != 2) {
+			System.err.println("Please enter the requested parameters.");
+			return;
+		}
 
 		params.put("authToken", AUTHTOKEN);
 		params.put("iBAN", parameterArray[0]);
