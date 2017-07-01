@@ -241,7 +241,7 @@ public class ServerDataHandler {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			//InterestHandler.setPositiveLowestDailyReachMap(new HashMap<String, Double>());
+			InterestHandler.setPositiveLowestDailyReachMap(new HashMap<String, Double>());
 		}
 		
 		File totalPositiveInterestMap = new File(TOTAL_POSITIVE_INTEREST_MAP_PATH);
@@ -251,7 +251,7 @@ public class ServerDataHandler {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			//InterestHandler.setTotalPositiveInterestMap(new HashMap<String, Double>());
+			InterestHandler.setTotalPositiveInterestMap(new HashMap<String, Double>());
 		}		
 		
 		File configFile = new File(CONFIG_PATH);

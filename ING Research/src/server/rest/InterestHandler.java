@@ -32,13 +32,17 @@ public class InterestHandler extends Thread {
 	/**
 	 * Indicates the time when we last deducted all customer's interest from their accounts.
 	 */
-	private static Calendar previousInterestExecution;
+	private static Calendar previousNegativeInterestExecution;
+	
+	private static Calendar previousPositiveInterestExecution;
 	
 	/**
 	 * Indicates the time when we last stored the (lowest) balance of all customers into the
 	 * <code>totalMonthlyInterestMap</code>.
 	 */
-	private static Calendar previousBalanceStoring;
+	private static Calendar previousNegativeBalanceStoring;
+	
+	private static Calendar previousPositiveBalanceStoring;
 	
 	/**
 	 * The monthly interest rate of this bank.
@@ -48,14 +52,19 @@ public class InterestHandler extends Thread {
 	/**
 	 * A map that keeps track of the lowest daily balances of accounts.
 	 */
-	private static HashMap<String, Double> lowestDailyReachMap = new HashMap<>();
+	private static HashMap<String, Double> lowestNegativeDailyReachMap = new HashMap<>();
 	
+	private static HashMap<String, Double> lowestPositiveDailyReachMap = new HashMap<>();
+
 	/**
 	 * A map that keeps track of the total interest of accounts.
 	 */
 	@SuppressWarnings("unused")
 	private static HashMap<String, Double> totalMonthlyInterestMap = new HashMap<>();
 	
+	@SuppressWarnings("unused")
+	private static HashMap<String, Double> totalYearlyPositiveInterestMap = new HashMap<>();
+
 	/**
 	 * A variable that is used for when we simulate time.
 	 */
@@ -72,38 +81,71 @@ public class InterestHandler extends Thread {
 	 * is initialized with 'hard coded' values.
 	 */
 	public static void intializeData() {
-		// Set the previousInterestExecution
-		long previousInterestExecutionMillis = 0;
+		// Set the previousNegativeInterestExecution
+		long previousNegativeInterestExecutionMillis = 0;
 
-		String prevIntrstExecMillisString = ServerDataHandler.getServerPropertyValue(ServerDataHandler.PREVIOUS_NEGATIVE_INTEREST_LINE);
-		if (prevIntrstExecMillisString.equals("") || prevIntrstExecMillisString == null || prevIntrstExecMillisString.equals("0")) {
+		String prevNegativeIntrstExecMillisString = ServerDataHandler.getServerPropertyValue(ServerDataHandler.PREVIOUS_NEGATIVE_INTEREST_LINE);
+		if (prevNegativeIntrstExecMillisString.equals("") || prevNegativeIntrstExecMillisString == null || prevNegativeIntrstExecMillisString.equals("0")) {
 			setPreviousInterestExecutionDate();
 		} else {
-			previousInterestExecutionMillis = Long.parseLong(prevIntrstExecMillisString);
-			previousInterestExecution = Calendar.getInstance();
-			previousInterestExecution.setTimeInMillis(previousInterestExecutionMillis);
+			previousNegativeInterestExecutionMillis = Long.parseLong(prevNegativeIntrstExecMillisString);
+			previousNegativeInterestExecution = Calendar.getInstance();
+			previousNegativeInterestExecution.setTimeInMillis(previousNegativeInterestExecutionMillis);
 		}		
 
-		// Set the previousBalanceExecution
-		long previousBalanceStoringMillis = 0;
+		// Set the previousNegativeBalanceExecution
+		long previousNegativeBalanceStoringMillis = 0;
 
-		String prevBalanceStoringMillisString = ServerDataHandler.getServerPropertyValue(ServerDataHandler.PREVIOUS_NEGATIVE_BALANCE_STORE_LINE);
-		if (prevBalanceStoringMillisString.equals("") || prevBalanceStoringMillisString == null || prevBalanceStoringMillisString.equals("0")) {
+		String prevNegativeBalanceStoringMillisString = ServerDataHandler.getServerPropertyValue(ServerDataHandler.PREVIOUS_NEGATIVE_BALANCE_STORE_LINE);
+		if (prevNegativeBalanceStoringMillisString.equals("") || prevNegativeBalanceStoringMillisString == null || prevNegativeBalanceStoringMillisString.equals("0")) {
 			setPreviousBalanceStoringDate();
 		} else {
-			previousBalanceStoringMillis = Long.parseLong(prevBalanceStoringMillisString);
-			previousBalanceStoring = Calendar.getInstance();
-			previousBalanceStoring.setTimeInMillis(previousBalanceStoringMillis);
-		}	
+			previousNegativeBalanceStoringMillis = Long.parseLong(prevNegativeBalanceStoringMillisString);
+			previousNegativeBalanceStoring = Calendar.getInstance();
+			previousNegativeBalanceStoring.setTimeInMillis(previousNegativeBalanceStoringMillis);
+		}
 		
-		// Set the lowestDailyReachMap
-		lowestDailyReachMap = ServerDataHandler.getNegativeLowestDailyReachMap();
-		if (lowestDailyReachMap.size() == 0) {
+		// Set the previousPositiveInterestExecution
+		long previousPositiveInterestExecutionMillis = 0;
+
+		String prevPositiveIntrstExecMillisString = ServerDataHandler.getServerPropertyValue(ServerDataHandler.PREVIOUS_NEGATIVE_INTEREST_LINE);
+		if (prevPositiveIntrstExecMillisString.equals("") || prevPositiveIntrstExecMillisString == null || prevPositiveIntrstExecMillisString.equals("0")) {
+			setPreviousInterestExecutionDate();
+		} else {
+			previousPositiveInterestExecutionMillis = Long.parseLong(prevPositiveIntrstExecMillisString);
+			previousNegativeInterestExecution = Calendar.getInstance();
+			previousNegativeInterestExecution.setTimeInMillis(previousPositiveInterestExecutionMillis);
+		}		
+
+		// Set the previousPositiveBalanceExecution
+		long previousPositiveBalanceStoringMillis = 0;
+
+		String prevPositiveBalanceStoringMillisString = ServerDataHandler.getServerPropertyValue(ServerDataHandler.PREVIOUS_NEGATIVE_BALANCE_STORE_LINE);
+		if (prevPositiveBalanceStoringMillisString.equals("") || prevPositiveBalanceStoringMillisString == null || prevPositiveBalanceStoringMillisString.equals("0")) {
+			setPreviousBalanceStoringDate();
+		} else {
+			previousPositiveBalanceStoringMillis = Long.parseLong(prevPositiveBalanceStoringMillisString);
+			previousNegativeBalanceStoring = Calendar.getInstance();
+			previousNegativeBalanceStoring.setTimeInMillis(previousPositiveBalanceStoringMillis);
+		}
+		
+		// Set the lowestNegativeDailyReachMap
+		lowestNegativeDailyReachMap = ServerDataHandler.getNegativeLowestDailyReachMap();
+		if (lowestNegativeDailyReachMap.size() == 0) {
 			initializeLowestDailyReachMap();
 		}
 		
 		// Set the totalMonthlyInterestMap 
-		totalMonthlyInterestMap = ServerDataHandler.getTotalNegativeInterestMap();
+		totalMonthlyInterestMap = ServerDataHandler.getTotalNegativeInterestMap();	
+
+		// Set the lowestPositiveDailyReachMap
+		lowestPositiveDailyReachMap = ServerDataHandler.getPositiveLowestDailyReachMap();
+		if (lowestPositiveDailyReachMap.size() == 0) {
+			initializeLowestDailyReachMap();
+		}
+		
+		// Set the totalMonthlyInterestMap 
+		totalYearlyPositiveInterestMap = ServerDataHandler.getTotalPositiveInterestMap();
 		
 	}
 
@@ -116,15 +158,25 @@ public class InterestHandler extends Thread {
 		ServerDataHandler.setTotalNegativeInterestMap(totalInterestMap);
 	}
 	
+	public static void setTotalPositiveInterestMap(HashMap<String, Double> totalInterstMap) {
+		totalYearlyPositiveInterestMap = totalInterstMap;
+		ServerDataHandler.setTotalPositiveInterestMap(totalInterstMap);
+	}
+
 	/**
 	 * Sets the map of lowest daily balances for the interest handler and stores it in a file.
-	 * @param lowestDailyMap the new map of lowest daily balances
+	 * @param lowestNegativeDailyMap the new map of lowest daily balances
 	 */
-	public static void setNegativeLowestDailyReachMap(HashMap<String, Double> lowestDailyMap) {
-		lowestDailyReachMap = lowestDailyMap;
-		ServerDataHandler.setNegativeLowestDailyReachMap(lowestDailyMap);
+	public static void setNegativeLowestDailyReachMap(HashMap<String, Double> lowestNegativeDailyMap) {
+		lowestNegativeDailyReachMap = lowestNegativeDailyMap;
+		ServerDataHandler.setNegativeLowestDailyReachMap(lowestNegativeDailyMap);
 	}
 	
+	public static void setPositiveLowestDailyReachMap(HashMap<String, Double> lowestPositiveDailyMap) {
+		lowestPositiveDailyReachMap = lowestPositiveDailyMap;
+		ServerDataHandler.setNegativeLowestDailyReachMap(lowestPositiveDailyReachMap);
+	}
+
 	/**
 	 * Sets the lowest daily balance of a specific bank account and then writes the map
 	 * like <code>setLowestDailyReachMap()</code> does.
@@ -174,9 +226,9 @@ public class InterestHandler extends Thread {
 	 * @param c the calendar that represents the date
 	 */
 	public static void setPreviousBalanceStoringDate(Calendar c) {
-		previousBalanceStoring = c;
+		previousNegativeBalanceStoring = c;
 		ServerDataHandler.setServerPropertyValue(ServerDataHandler.PREVIOUS_NEGATIVE_BALANCE_STORE_LINE, 
-				Long.toString(previousBalanceStoring.getTimeInMillis()));
+				Long.toString(previousNegativeBalanceStoring.getTimeInMillis()));
 	}
 
 	/**
@@ -184,27 +236,27 @@ public class InterestHandler extends Thread {
 	 * @param c the calendar that represents the date
 	 */
 	public static void setPreviousInterestExecutionDate(Calendar c) {
-		previousInterestExecution = c;
+		previousNegativeInterestExecution = c;
 		ServerDataHandler.setServerPropertyValue(ServerDataHandler.PREVIOUS_NEGATIVE_INTEREST_LINE, 
-				Long.toString(previousInterestExecution.getTimeInMillis()));
+				Long.toString(previousNegativeInterestExecution.getTimeInMillis()));
 	}
 	
 	/**
 	 * Sets the previous balance storing date to the (perhaps simulated) server-time.
 	 */
 	public static void setPreviousBalanceStoringDate() {
-		previousBalanceStoring = ServerModel.getServerCalendar();
+		previousNegativeBalanceStoring = ServerModel.getServerCalendar();
 		ServerDataHandler.setServerPropertyValue(ServerDataHandler.PREVIOUS_NEGATIVE_BALANCE_STORE_LINE, 
-				Long.toString(previousBalanceStoring.getTimeInMillis()));
+				Long.toString(previousNegativeBalanceStoring.getTimeInMillis()));
 	}
 	
 	/**
 	 * Sets the previous interest execution date to the (perhaps simulated) server-time.
 	 */
 	public static void setPreviousInterestExecutionDate() {
-		previousInterestExecution = ServerModel.getServerCalendar();
+		previousNegativeInterestExecution = ServerModel.getServerCalendar();
 		ServerDataHandler.setServerPropertyValue(ServerDataHandler.PREVIOUS_NEGATIVE_INTEREST_LINE, 
-				Long.toString(previousInterestExecution.getTimeInMillis()));
+				Long.toString(previousNegativeInterestExecution.getTimeInMillis()));
 	}
 	
 	/**
@@ -412,7 +464,7 @@ public class InterestHandler extends Thread {
 		boolean isCorrectTime = hourOfDay == 0 && minute >= 0 && minute < 1;
 		
 		// Check if we haven't added the balances today already
-		Calendar lastBalanceStore = previousBalanceStoring;
+		Calendar lastBalanceStore = previousNegativeBalanceStoring;
 		boolean didBalanceStoreToday = c.get(Calendar.DATE) == lastBalanceStore.get(Calendar.DATE) &&
 				c.get(Calendar.MONTH) == lastBalanceStore.get(Calendar.MONTH) &&
 				c.get(Calendar.YEAR) == lastBalanceStore.get(Calendar.YEAR);
@@ -431,12 +483,12 @@ public class InterestHandler extends Thread {
 		boolean firstOfMonth = c.get(Calendar.DATE) == 1;
 		
 		// Check if we haven't transfered this month 
-		Calendar lastTransfer = previousInterestExecution;
+		Calendar lastTransfer = previousNegativeInterestExecution;
 		boolean didTransferThisMonth = c.get(Calendar.MONTH) == lastTransfer.get(Calendar.MONTH) &&
 				c.get(Calendar.YEAR) == lastTransfer.get(Calendar.YEAR);
 		
 		// Check if we've already added the daily lowest balances to the lowestDailyReach map
-		boolean storedBalances = previousBalanceStoring.get(Calendar.DATE) == 1;
+		boolean storedBalances = previousNegativeBalanceStoring.get(Calendar.DATE) == 1;
 		
 		return firstOfMonth && !didTransferThisMonth && storedBalances;
 	}
