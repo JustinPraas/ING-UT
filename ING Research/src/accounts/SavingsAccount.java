@@ -70,7 +70,7 @@ public class SavingsAccount implements database.DBObject {
 		t.setAmount(amount);
 		t.setDescription("Transfer to " + bankAccount.getIBAN() + ".");
 		t.saveToDB();
-		saveToDB();
+		this.saveToDB();
 		bankAccount.saveToDB();
 	}
 	
@@ -81,6 +81,18 @@ public class SavingsAccount implements database.DBObject {
 		balance -= amount;
 	}
 	
+	/**
+	 * Debits a <code>SavingsAccount</code> with a specific amount of money
+	 * @param amount The amount of money to debit the <code>SavingsAccount</code> with
+	 * @throws Thrown when the specified amount is 0 or negative
+	 */
+	public void debit(double amount) throws IllegalAmountException {
+		if (amount <= 0) {
+			throw new IllegalAmountException(amount);
+		}
+		balance += amount;
+	}
+
 	@Column(name = "balance")
 	public float getBalance() {
 		return balance;
