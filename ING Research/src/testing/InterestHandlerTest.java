@@ -182,7 +182,7 @@ public class InterestHandlerTest {
 			e.printStackTrace();
 		}
 		
-		HashMap<String, Double> totalInterestMap = ServerDataHandler.getTotalInterestMap();
+		HashMap<String, Double> totalInterestMap = ServerDataHandler.getTotalNegativeInterestMap();
 		double amount1 = totalInterestMap.get(bAccount1.getIBAN());
 		double amount2 = totalInterestMap.get(bAccount2.getIBAN());
 		double amount3 = totalInterestMap.get(bAccount3.getIBAN());
@@ -243,9 +243,9 @@ public class InterestHandlerTest {
 	public void setTotalInterestMapTest() {
 		HashMap<String, Double> map = new HashMap<>();
 		map.put("test", 0.50);
-		InterestHandler.setTotalInterestMap(map);
+		InterestHandler.setTotalNegativeInterestMap(map);
 		
-		HashMap<String, Double> map2 = ServerDataHandler.getTotalInterestMap();
+		HashMap<String, Double> map2 = ServerDataHandler.getTotalNegativeInterestMap();
 		assertEquals(0.50, map2.get("test"), 0);
 	}
 	
@@ -253,9 +253,9 @@ public class InterestHandlerTest {
 	public void setLowestDailyReachMapTest() {
 		HashMap<String, Double> map = new HashMap<>();
 		map.put("test", 0.50);
-		InterestHandler.setLowestDailyReachMap(map);
+		InterestHandler.setNegativeLowestDailyReachMap(map);
 		
-		HashMap<String, Double> map2 = ServerDataHandler.getLowestDailyReachMap();
+		HashMap<String, Double> map2 = ServerDataHandler.getNegativeLowestDailyReachMap();
 		assertEquals(0.50, map2.get("test"), 0);
 	}
 
@@ -263,7 +263,7 @@ public class InterestHandlerTest {
 	public void setPreviousBalanceStoringDateTest() {
 		Calendar c = Calendar.getInstance();
 		InterestHandler.setPreviousBalanceStoringDate(c);
-		assertEquals(Long.toString(c.getTimeInMillis()), ServerDataHandler.getServerPropertyValue(ServerDataHandler.PREVIOUS_BALANCE_STORE_LINE));
+		assertEquals(Long.toString(c.getTimeInMillis()), ServerDataHandler.getServerPropertyValue(ServerDataHandler.PREVIOUS_NEGATIVE_BALANCE_STORE_LINE));
 		
 	}
 	
@@ -271,7 +271,7 @@ public class InterestHandlerTest {
 	public void setPreviousInterestExecutionDateTest() {
 		Calendar c = Calendar.getInstance();
 		InterestHandler.setPreviousInterestExecutionDate(c);
-		assertEquals(Long.toString(c.getTimeInMillis()), ServerDataHandler.getServerPropertyValue(ServerDataHandler.PREVIOUS_INTEREST_LINE));
+		assertEquals(Long.toString(c.getTimeInMillis()), ServerDataHandler.getServerPropertyValue(ServerDataHandler.PREVIOUS_NEGATIVE_INTEREST_LINE));
 		
 	}
 	

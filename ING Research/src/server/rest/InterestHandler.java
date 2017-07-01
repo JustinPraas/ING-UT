@@ -75,7 +75,7 @@ public class InterestHandler extends Thread {
 		// Set the previousInterestExecution
 		long previousInterestExecutionMillis = 0;
 
-		String prevIntrstExecMillisString = ServerDataHandler.getServerPropertyValue(ServerDataHandler.PREVIOUS_INTEREST_LINE);
+		String prevIntrstExecMillisString = ServerDataHandler.getServerPropertyValue(ServerDataHandler.PREVIOUS_NEGATIVE_INTEREST_LINE);
 		if (prevIntrstExecMillisString.equals("") || prevIntrstExecMillisString == null || prevIntrstExecMillisString.equals("0")) {
 			setPreviousInterestExecutionDate();
 		} else {
@@ -87,7 +87,7 @@ public class InterestHandler extends Thread {
 		// Set the previousBalanceExecution
 		long previousBalanceStoringMillis = 0;
 
-		String prevBalanceStoringMillisString = ServerDataHandler.getServerPropertyValue(ServerDataHandler.PREVIOUS_BALANCE_STORE_LINE);
+		String prevBalanceStoringMillisString = ServerDataHandler.getServerPropertyValue(ServerDataHandler.PREVIOUS_NEGATIVE_BALANCE_STORE_LINE);
 		if (prevBalanceStoringMillisString.equals("") || prevBalanceStoringMillisString == null || prevBalanceStoringMillisString.equals("0")) {
 			setPreviousBalanceStoringDate();
 		} else {
@@ -97,13 +97,13 @@ public class InterestHandler extends Thread {
 		}	
 		
 		// Set the lowestDailyReachMap
-		lowestDailyReachMap = ServerDataHandler.getLowestDailyReachMap();
+		lowestDailyReachMap = ServerDataHandler.getNegativeLowestDailyReachMap();
 		if (lowestDailyReachMap.size() == 0) {
 			initializeLowestDailyReachMap();
 		}
 		
 		// Set the totalMonthlyInterestMap 
-		totalMonthlyInterestMap = ServerDataHandler.getTotalInterestMap();
+		totalMonthlyInterestMap = ServerDataHandler.getTotalNegativeInterestMap();
 		
 	}
 
@@ -111,18 +111,18 @@ public class InterestHandler extends Thread {
 	 * Sets the map of total interest for the interest handler and stores it a file.
 	 * @param totalInterestMap the new map of total interest
 	 */
-	public static void setTotalInterestMap(HashMap<String, Double> totalInterestMap) {
+	public static void setTotalNegativeInterestMap(HashMap<String, Double> totalInterestMap) {
 		totalMonthlyInterestMap = totalInterestMap;
-		ServerDataHandler.setTotalInterestMap(totalInterestMap);
+		ServerDataHandler.setTotalNegativeInterestMap(totalInterestMap);
 	}
 	
 	/**
 	 * Sets the map of lowest daily balances for the interest handler and stores it in a file.
 	 * @param lowestDailyMap the new map of lowest daily balances
 	 */
-	public static void setLowestDailyReachMap(HashMap<String, Double> lowestDailyMap) {
+	public static void setNegativeLowestDailyReachMap(HashMap<String, Double> lowestDailyMap) {
 		lowestDailyReachMap = lowestDailyMap;
-		ServerDataHandler.setLowestDailyReachMap(lowestDailyMap);
+		ServerDataHandler.setNegativeLowestDailyReachMap(lowestDailyMap);
 	}
 	
 	/**
@@ -133,16 +133,16 @@ public class InterestHandler extends Thread {
 	 */
 	public static void setLowestDailyReachMapEntry(String IBAN, double balance) {
 		// FETCH: map
-		HashMap<String, Double> currentLowestDailyReachMap = ServerDataHandler.getLowestDailyReachMap();
+		HashMap<String, Double> currentLowestDailyReachMap = ServerDataHandler.getNegativeLowestDailyReachMap();
 		Double currentLowestBalance = currentLowestDailyReachMap.get(IBAN);
 		
 		if (balance < 0) {
 			if (currentLowestBalance == null || currentLowestBalance > balance) {
-				HashMap<String, Double> map = ServerDataHandler.getLowestDailyReachMap();
+				HashMap<String, Double> map = ServerDataHandler.getNegativeLowestDailyReachMap();
 				map.put(IBAN, balance);
 				
 				// SET: map
-				setLowestDailyReachMap(currentLowestDailyReachMap);
+				setNegativeLowestDailyReachMap(currentLowestDailyReachMap);
 			}
 		}		
 	}
@@ -166,7 +166,7 @@ public class InterestHandler extends Thread {
 		}
 		
 		// SET: map
-		setLowestDailyReachMap(newLowestDailyReachMap);
+		setNegativeLowestDailyReachMap(newLowestDailyReachMap);
 	}
 	
 	/**
@@ -175,7 +175,7 @@ public class InterestHandler extends Thread {
 	 */
 	public static void setPreviousBalanceStoringDate(Calendar c) {
 		previousBalanceStoring = c;
-		ServerDataHandler.setServerPropertyValue(ServerDataHandler.PREVIOUS_BALANCE_STORE_LINE, 
+		ServerDataHandler.setServerPropertyValue(ServerDataHandler.PREVIOUS_NEGATIVE_BALANCE_STORE_LINE, 
 				Long.toString(previousBalanceStoring.getTimeInMillis()));
 	}
 
@@ -185,7 +185,7 @@ public class InterestHandler extends Thread {
 	 */
 	public static void setPreviousInterestExecutionDate(Calendar c) {
 		previousInterestExecution = c;
-		ServerDataHandler.setServerPropertyValue(ServerDataHandler.PREVIOUS_INTEREST_LINE, 
+		ServerDataHandler.setServerPropertyValue(ServerDataHandler.PREVIOUS_NEGATIVE_INTEREST_LINE, 
 				Long.toString(previousInterestExecution.getTimeInMillis()));
 	}
 	
@@ -194,7 +194,7 @@ public class InterestHandler extends Thread {
 	 */
 	public static void setPreviousBalanceStoringDate() {
 		previousBalanceStoring = ServerModel.getServerCalendar();
-		ServerDataHandler.setServerPropertyValue(ServerDataHandler.PREVIOUS_BALANCE_STORE_LINE, 
+		ServerDataHandler.setServerPropertyValue(ServerDataHandler.PREVIOUS_NEGATIVE_BALANCE_STORE_LINE, 
 				Long.toString(previousBalanceStoring.getTimeInMillis()));
 	}
 	
@@ -203,7 +203,7 @@ public class InterestHandler extends Thread {
 	 */
 	public static void setPreviousInterestExecutionDate() {
 		previousInterestExecution = ServerModel.getServerCalendar();
-		ServerDataHandler.setServerPropertyValue(ServerDataHandler.PREVIOUS_INTEREST_LINE, 
+		ServerDataHandler.setServerPropertyValue(ServerDataHandler.PREVIOUS_NEGATIVE_INTEREST_LINE, 
 				Long.toString(previousInterestExecution.getTimeInMillis()));
 	}
 	
@@ -332,7 +332,7 @@ public class InterestHandler extends Thread {
 	 */
 	public static void transferInterest() {
 		// FETCH: map
-		HashMap<String, Double> currentTotalMonthlyInterestMap = ServerDataHandler.getTotalInterestMap();
+		HashMap<String, Double> currentTotalMonthlyInterestMap = ServerDataHandler.getTotalNegativeInterestMap();
 		
 		//System.out.println("INTEREST: transfering interest from " + currentTotalMonthlyInterestMap.size() + " customers");
 		for (Entry<String, Double> entry : currentTotalMonthlyInterestMap.entrySet()) {
@@ -357,7 +357,7 @@ public class InterestHandler extends Thread {
 		currentTotalMonthlyInterestMap = new HashMap<>();
 		
 		// SET: map
-		setTotalInterestMap(currentTotalMonthlyInterestMap);
+		setTotalNegativeInterestMap(currentTotalMonthlyInterestMap);
 		initializeLowestDailyReachMap();
 	}
 
@@ -368,8 +368,8 @@ public class InterestHandler extends Thread {
 	 */
 	public static void addBalancesToTotalInterest(Calendar c) {
 		// FETCH: maps
-		HashMap<String, Double> currentLowestDailyReachMap = ServerDataHandler.getLowestDailyReachMap();
-		HashMap<String, Double> currentTotalInterestMap = ServerDataHandler.getTotalInterestMap();
+		HashMap<String, Double> currentLowestDailyReachMap = ServerDataHandler.getNegativeLowestDailyReachMap();
+		HashMap<String, Double> currentTotalInterestMap = ServerDataHandler.getTotalNegativeInterestMap();
 		
 		//System.out.println("INTEREST: adding balances for " + currentLowestDailyReachMap.size() + " customers");
 		// For all IBAN entries, add the interest to the total interest map 
@@ -392,7 +392,7 @@ public class InterestHandler extends Thread {
 		}
 		
 		// SET: maps
-		setTotalInterestMap(currentTotalInterestMap);
+		setTotalNegativeInterestMap(currentTotalInterestMap);
 		
 		// Update the daily lowest reach map to the values that the customers 
 		// currently have on the account (monthly reset)
@@ -445,8 +445,8 @@ public class InterestHandler extends Thread {
 	 * Resets the system to the initial state.
 	 */
 	public static void reset() {
-		setTotalInterestMap(new HashMap<String, Double>());
-		setLowestDailyReachMap(new HashMap<String, Double>());
+		setTotalNegativeInterestMap(new HashMap<String, Double>());
+		setNegativeLowestDailyReachMap(new HashMap<String, Double>());
 		setPreviousBalanceStoringDate();
 		setPreviousInterestExecutionDate();
 	}

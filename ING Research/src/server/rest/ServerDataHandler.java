@@ -22,11 +22,16 @@ public class ServerDataHandler {
 
 	private static final String CONFIG_PATH = Client.DESKTOP_ING_FOLDER_PATH + "config.txt";
 	public static final int SIMULATED_DAYS_LINE = 0;
-	public static final int PREVIOUS_INTEREST_LINE = 1;
-	public static final int PREVIOUS_BALANCE_STORE_LINE = 2;
+	public static final int PREVIOUS_NEGATIVE_INTEREST_LINE = 1;
+	public static final int PREVIOUS_NEGATIVE_BALANCE_STORE_LINE = 2;
+	public static final int PREVIOUS_POSITIVE_INTEREST_LINE = 3;
+	public static final int PREVIOUS_POSITIVE_BALANCE_STORE_LINE= 4;
+
+	private static final String NEGATIVE_LOWEST_DAILY_REACH_MAP_PATH = Client.DESKTOP_ING_FOLDER_PATH + "negative_daily_lowest.ser";
+	private static final String POSITIVE_LOWEST_DAILY_REACH_MAP_PATH = Client.DESKTOP_ING_FOLDER_PATH + "positive_daily_lowest.ser";
+	private static final String TOTAL_NEGATIVE_INTEREST_MAP_PATH = Client.DESKTOP_ING_FOLDER_PATH + "negative_interest.ser";
+	private static final String TOTAL_POSITIVE_INTEREST_MAP_PATH = Client.DESKTOP_ING_FOLDER_PATH + "positive_interest.ser";
 	
-	private static final String LOWEST_DAILY_REACH_MAP_PATH = Client.DESKTOP_ING_FOLDER_PATH + "daily_lowest.ser";
-	private static final String TOTAL_INTEREST_MAP_PATH = Client.DESKTOP_ING_FOLDER_PATH + "total_interest.ser";
 
 	/**
 	 * Gets the property by reading the given line (position) in the config file.
@@ -70,12 +75,12 @@ public class ServerDataHandler {
 
 	/**
 	 * Writes the map of lowest daily balance reaches to the <code>daily_lowest.ser</code> file.
-	 * @param lowestReachMap the map to be written
+	 * @param negativeLowestReachMap the map to be written
 	 */
-	public static void setLowestDailyReachMap(HashMap<String, Double> lowestReachMap) {
+	public static void setNegativeLowestDailyReachMap(HashMap<String, Double> negativeLowestReachMap) {
 		try {
-			ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(LOWEST_DAILY_REACH_MAP_PATH, false));
-			oos.writeObject(lowestReachMap);
+			ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(NEGATIVE_LOWEST_DAILY_REACH_MAP_PATH, false));
+			oos.writeObject(negativeLowestReachMap);
 			oos.close();
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -87,13 +92,47 @@ public class ServerDataHandler {
 	 * @return a map of lowest daily balance reaches
 	 */
 	@SuppressWarnings("unchecked")
-	public static HashMap<String, Double> getLowestDailyReachMap() {
+	public static HashMap<String, Double> getNegativeLowestDailyReachMap() {
 		initIfRequired();
 		try {
-			ObjectInputStream ois = new ObjectInputStream(new FileInputStream(LOWEST_DAILY_REACH_MAP_PATH));
-			HashMap<String, Double> lowestDailyReachMap = (HashMap<String, Double>) ois.readObject();
+			ObjectInputStream ois = new ObjectInputStream(new FileInputStream(NEGATIVE_LOWEST_DAILY_REACH_MAP_PATH));
+			HashMap<String, Double> negativeLowestDailyReachMap = (HashMap<String, Double>) ois.readObject();
 			ois.close();
-			return lowestDailyReachMap;
+			return negativeLowestDailyReachMap;
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * Writes the map of lowest daily balance reaches to the <code>daily_lowest.ser</code> file.
+	 * @param positiveLowestReachMap the map to be written
+	 */
+	public static void setPositiveLowestDailyReachMap(HashMap<String, Double> positiveLowestReachMap) {
+		try {
+			ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(POSITIVE_LOWEST_DAILY_REACH_MAP_PATH, false));
+			oos.writeObject(positiveLowestReachMap);
+			oos.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}		
+	}
+	
+	/**
+	 * Reads the map of lowest daily balance reaches from the <code>daily_lowest.ser</code> file.
+	 * @return a map of lowest daily balance reaches
+	 */
+	@SuppressWarnings("unchecked")
+	public static HashMap<String, Double> getPositiveLowestDailyReachMap() {
+		initIfRequired();
+		try {
+			ObjectInputStream ois = new ObjectInputStream(new FileInputStream(POSITIVE_LOWEST_DAILY_REACH_MAP_PATH));
+			HashMap<String, Double> positiveLowestDailyReachMap = (HashMap<String, Double>) ois.readObject();
+			ois.close();
+			return positiveLowestDailyReachMap;
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (ClassNotFoundException e) {
@@ -104,12 +143,12 @@ public class ServerDataHandler {
 
 
 	/**
-	 * Writes the map of total interests to the <code>total_interest.ser</code> file.
+	 * Writes the map of total interests to the <code>negative_interest.ser</code> file.
 	 * @param lowestReachMap the map to be written
 	 */
-	public static void setTotalInterestMap(HashMap<String, Double> totalInterest) {
+	public static void setTotalNegativeInterestMap(HashMap<String, Double> totalInterest) {
 		try {
-			ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(TOTAL_INTEREST_MAP_PATH, false));
+			ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(TOTAL_NEGATIVE_INTEREST_MAP_PATH, false));
 			oos.writeObject(totalInterest);
 			oos.close();
 		} catch (IOException e) {
@@ -118,14 +157,48 @@ public class ServerDataHandler {
 	}
 	
 	/**
-	 * Reads the map of total interest from the <code>total_interest.ser</code> file.
+	 * Reads the map of total interest from the <code>negative_interest.ser</code> file.
 	 * @return a map of total interests
 	 */
 	@SuppressWarnings("unchecked")
-	public static HashMap<String, Double> getTotalInterestMap() {
+	public static HashMap<String, Double> getTotalNegativeInterestMap() {
 		initIfRequired();
 		try {
-			ObjectInputStream ois = new ObjectInputStream(new FileInputStream(TOTAL_INTEREST_MAP_PATH));
+			ObjectInputStream ois = new ObjectInputStream(new FileInputStream(TOTAL_NEGATIVE_INTEREST_MAP_PATH));
+			HashMap<String, Double> totalInterestMap = (HashMap<String, Double>) ois.readObject();
+			ois.close();
+			return totalInterestMap;
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	/**
+	 * Writes the map of total interests to the <code>positive_interest.ser</code> file.
+	 * @param lowestReachMap the map to be written
+	 */
+	public static void setTotalPositiveInterestMap(HashMap<String, Double> totalInterest) {
+		try {
+			ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(TOTAL_POSITIVE_INTEREST_MAP_PATH, false));
+			oos.writeObject(totalInterest);
+			oos.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}		
+	}
+	
+	/**
+	 * Reads the map of total interest from the <code>positive_interest.ser</code> file.
+	 * @return a map of total interests
+	 */
+	@SuppressWarnings("unchecked")
+	public static HashMap<String, Double> getTotalPositiveInterestMap() {
+		initIfRequired();
+		try {
+			ObjectInputStream ois = new ObjectInputStream(new FileInputStream(TOTAL_POSITIVE_INTEREST_MAP_PATH));
 			HashMap<String, Double> totalInterestMap = (HashMap<String, Double>) ois.readObject();
 			ois.close();
 			return totalInterestMap;
@@ -141,25 +214,45 @@ public class ServerDataHandler {
 	 * Checks if the necessary files exists and if not, create them.
 	 */
 	private static void initIfRequired() {
-		File lowestReachMapFile = new File(LOWEST_DAILY_REACH_MAP_PATH);
-		if (!lowestReachMapFile.exists()) {
+		File negativeLowestReachMapFile = new File(NEGATIVE_LOWEST_DAILY_REACH_MAP_PATH);
+		if (!negativeLowestReachMapFile.exists()) {
 			try {
-				lowestReachMapFile.createNewFile();
+				negativeLowestReachMapFile.createNewFile();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			InterestHandler.setLowestDailyReachMap(new HashMap<String, Double>());
+			InterestHandler.setNegativeLowestDailyReachMap(new HashMap<String, Double>());
 		}
 		
-		File totalInterestMap = new File(TOTAL_INTEREST_MAP_PATH);
-		if (!totalInterestMap.exists()) {
+		File totalNegativeInterestMap = new File(TOTAL_NEGATIVE_INTEREST_MAP_PATH);
+		if (!totalNegativeInterestMap.exists()) {
 			try {
-				totalInterestMap.createNewFile();
+				totalNegativeInterestMap.createNewFile();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			InterestHandler.setTotalInterestMap(new HashMap<String, Double>());
+			InterestHandler.setTotalNegativeInterestMap(new HashMap<String, Double>());
 		}
+		
+		File positiveLowestReachMapFile = new File(POSITIVE_LOWEST_DAILY_REACH_MAP_PATH);
+		if (!positiveLowestReachMapFile.exists()) {
+			try {
+				positiveLowestReachMapFile.createNewFile();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			//InterestHandler.setPositiveLowestDailyReachMap(new HashMap<String, Double>());
+		}
+		
+		File totalPositiveInterestMap = new File(TOTAL_POSITIVE_INTEREST_MAP_PATH);
+		if (!totalPositiveInterestMap.exists()) {
+			try {
+				totalPositiveInterestMap.createNewFile();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			//InterestHandler.setTotalPositiveInterestMap(new HashMap<String, Double>());
+		}		
 		
 		File configFile = new File(CONFIG_PATH);
 		if (!configFile.exists()) {
@@ -169,8 +262,8 @@ public class ServerDataHandler {
 				e.printStackTrace();
 			}
 			setServerPropertyValue(SIMULATED_DAYS_LINE, Integer.toString(ServerModel.getSimulatedDays()));
-			setServerPropertyValue(PREVIOUS_INTEREST_LINE, "0");
-			setServerPropertyValue(PREVIOUS_BALANCE_STORE_LINE, "0");
+			setServerPropertyValue(PREVIOUS_NEGATIVE_INTEREST_LINE, "0");
+			setServerPropertyValue(PREVIOUS_NEGATIVE_BALANCE_STORE_LINE, "0");
 		}
 		
 	}
