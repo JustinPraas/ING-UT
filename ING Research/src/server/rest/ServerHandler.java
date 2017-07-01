@@ -227,7 +227,15 @@ public class ServerHandler {
 			return respondError(err, 500);
 		} else {
 			// Transfer the balance of the savings account to the real account
-			//TODO
+			double savingsBalance = bankAccount.getSavingsAccount().getBalance();
+			if (savingsBalance != 0) {
+				try {
+					bankAccount.getSavingsAccount().transfer(savingsBalance);
+				} catch (IllegalAmountException | IllegalTransferException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
 			
 			// Close account 
 			bankAccount.getSavingsAccount().setClosed(true);
@@ -1122,36 +1130,64 @@ public class ServerHandler {
 		}		
 		
 		String authToken = (String) params.get("authToken");
+		
 		String sourceIBAN = (String) params.get("sourceIBAN");
+		boolean isSourceSavingsAccount = sourceIBAN.charAt(sourceIBAN.length() - 1) == 'S' ? true : false;
+		if (isSourceSavingsAccount) {
+			sourceIBAN = sourceIBAN.substring(0, sourceIBAN.length() - 1);
+		}
+		
 		String targetIBAN = (String) params.get("targetIBAN");
+		boolean isTargetSavingsAccount = targetIBAN.charAt(targetIBAN.length() - 1) == 'S' ? true : false;
+		if (isTargetSavingsAccount) {
+			targetIBAN = targetIBAN.substring(0, targetIBAN.length() - 1);
+		}		
+		
 		String targetName = (String) params.get("targetName");
 		String description = (String) params.get("description");
-		double amount = Double.parseDouble((String) params.get("amount"));
+		double amount = Double.parseDouble((String) params.get("amount"));		
 		
-		
-		CustomerAccount cAcc = null;
+		CustomerAccount customerAccount = null;
 		BankAccount source = null;
 		BankAccount destination = null;
-		boolean authorized = false;
+		boolean authorized = false;		
 		
-		
-		cAcc = accounts.get(authToken);
-		
+		customerAccount = accounts.get(authToken);		
 		try {
 			source = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, sourceIBAN);
+			destination = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, targetIBAN);
 		} catch (ObjectDoesNotExistException e) {
 			String err = buildError(418, "One or more parameter has an invalid value. See message. \n" + e.toString());
 			return respondError(err, 500);
 		}
 		
-		if (cAcc.getBSN().equals(source.getMainHolderBSN())) {
+		// Check if the transferer owns the source bank account
+		if (customerAccount.getBSN().equals(source.getMainHolderBSN())) {
 			authorized = true;
 		} else {
 			for (CustomerAccount c : source.getOwners()) {
-				if (c.getBSN().equals(cAcc.getBSN())) {
+				if (c.getBSN().equals(customerAccount.getBSN())) {
 					authorized = true;
 				}
 			}
+		}
+		
+		// Check if savings account A -> main account B
+		if (isSourceSavingsAccount && !sourceIBAN.equals(targetIBAN)) {
+			String err = buildError(419, "The authenticated user is not authorized to perform this action. You can not transfer money from your savings account to some other main bank account/savings account.");
+			return respondError(err, 500);
+		}
+		
+		// Check if main account A -> savings account B
+		if (isTargetSavingsAccount && !targetIBAN.equals(sourceIBAN)) {
+			String err = buildError(419, "The authenticated user is not authorized to perform this action. You can not transfer money from your main bank account to some other bank account/savings account.");
+			return respondError(err, 500);
+		}
+		
+		// Check if savings account A -> savings account A/B
+		if (isTargetSavingsAccount && isSourceSavingsAccount) {
+			String err = buildError(419, "The authenticated user is not authorized to perform this action. You can not transfer money between savings accounts.");
+			return respondError(err, 500);
 		}
 		
 		// If the client is trying to transfer money from someone else's account, send an error
@@ -1160,16 +1196,16 @@ public class ServerHandler {
 			return respondError(err, 500);
 		}
 		
-		try {
-			destination = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, targetIBAN);
-		} catch (ObjectDoesNotExistException e) {
-			String err = buildError(418, "One or more parameter has an invalid value. See message. \n" + e.toString());
-			return respondError(err, 500);
-		}
-		
 		// If something goes wrong with the transfer, stop and report it
 		try {
-			source.transfer(destination, amount, description, targetName);
+			if (!isSourceSavingsAccount && !isTargetSavingsAccount) {
+				source.transfer(destination, amount, description, targetName);
+			} else if (isSourceSavingsAccount) {
+				source.getSavingsAccount().transfer(amount);
+			} else if (isTargetSavingsAccount) {
+				destination.transfer(amount);
+			}
+			
 		} catch (IllegalAmountException | IllegalTransferException | ExceedOverdraftLimitException e) {
 			String err = buildError(500, "An unexpected error occured, see error details.", e.toString());
 			return respondError(err, 500);
@@ -1283,6 +1319,11 @@ public class ServerHandler {
 		
 		HashMap<String, Object> resp = new HashMap<>();
 		resp.put("result", new Double(source.getBalance()));
+		
+		// If there's a savings account open, send the balance of it
+		if (!source.getSavingsAccount().isClosed()) {
+			resp.put("savingAccountBalance", source.getSavingsAccount().getBalance());
+		}
 		
 		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
 		return respond(jResp.toJSONString());

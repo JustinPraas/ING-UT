@@ -771,6 +771,10 @@ public class MessageHandler {
 			@SuppressWarnings("unchecked")
 			HashMap<String, Object> results = (HashMap<String, Object>) jResp.getResult();
 			System.out.println("Balance for account " + params.get("iBAN") + " is " + results.get("result"));
+			
+			if (results.containsKey("savingAccountBalance")) {
+				System.out.println("Balance for savings account is " + results.get("savingAccountBalance"));				
+			}
 
 		} catch (JSONRPC2ParseException e) {
 			System.out.println("Discarded invalid JSON-RPC response from server.");
