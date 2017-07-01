@@ -11,6 +11,7 @@ import org.junit.Test;
 
 import accounts.BankAccount;
 import accounts.CustomerAccount;
+import accounts.SavingsAccount;
 import database.DataManager;
 import exceptions.ObjectDoesNotExistException;
 import server.rest.InterestHandler;
@@ -48,17 +49,18 @@ public class InterestHandlerTest {
 		startValue3 = -4000;
 		
 		bAccount1 = cAccount.openBankAccount();
-		bAccount2 = cAccount.openBankAccount();
-		bAccount3 = cAccount.openBankAccount();
-		
-		bAccount1.setBalance((float) startValue1);
-		bAccount2.setBalance((float) startValue2);
-		bAccount3.setBalance((float) startValue3);
-		
-		cAccount.saveToDB();
 		bAccount1.saveToDB();
+		bAccount2 = cAccount.openBankAccount();
 		bAccount2.saveToDB();
-		bAccount3.saveToDB();	
+		bAccount3 = cAccount.openBankAccount();
+		bAccount3.saveToDB();
+		
+		int daysUntilNextYear = Calendar.getInstance().getMaximum(Calendar.DAY_OF_YEAR) - Calendar.getInstance().get(Calendar.DAY_OF_YEAR);
+		ServerModel.setSimulatedDays(daysUntilNextYear, true);
+		
+		InterestHandler.setPreviousPositiveInterestExecutionDate();
+		InterestHandler.setPreviousNegativeInterestExecutionDate();
+		InterestHandler.setPreviousPositiveInterestExecutionDate();
 	}
 	
 	@Test
@@ -107,10 +109,66 @@ public class InterestHandlerTest {
 		assertEquals(1.03, Math.abs(interest), 0.01);
 	}
 	
+	@Test
+	public void calculateTimeSimulatedPositiveInterestTest() {
+		
+		// Wait for the interest handler to finish...
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e1) {
+			e1.printStackTrace();
+		}
+		
+		SavingsAccount savings1 = bAccount1.getSavingsAccount();
+		savings1.setBalance(1000);
+		savings1.saveToDB();
+		
+		SavingsAccount savings2 = bAccount2.getSavingsAccount();
+		savings2.setBalance(30000);
+		savings2.saveToDB();
+		
+		SavingsAccount savings3 = bAccount3.getSavingsAccount();
+		savings3.setBalance(100000);
+		savings3.saveToDB();
+		
+		InterestHandler interestHandler = new InterestHandler();
+		interestHandler.newlySimulatedDays = 365;
+		interestHandler.interrupt();
+		
+		// Wait for the interest handler to finish...
+		try {
+			Thread.sleep(10000);
+		} catch (InterruptedException e1) {
+			e1.printStackTrace();
+		}
+		
+		double balance1 = 0;
+		double balance2 = 0;
+		double balance3 = 0;
+		try {
+			balance1 = ((BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, bAccount1.getIBAN())).getSavingsAccount().getBalance();
+			balance2 = ((BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, bAccount2.getIBAN())).getSavingsAccount().getBalance();
+			balance3 = ((BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, bAccount3.getIBAN())).getSavingsAccount().getBalance();		
+		} catch (ObjectDoesNotExistException e) {
+			e.printStackTrace();
+		}
+
+		assertEquals(1001.50, balance1, 0.1);
+		assertEquals(30045.00, balance2, 0.1);
+		assertEquals(100200.00, balance3, 0.1);
+	}
+	
 	@Test 
-	public void calculateTimeSimulatedInterestTest() {
-		int daysUntilNextYear = Calendar.getInstance().getMaximum(Calendar.DAY_OF_YEAR) - Calendar.getInstance().get(Calendar.DAY_OF_YEAR);
-		ServerModel.setSimulatedDays(daysUntilNextYear, true);
+	public void calculateTimeSimulatedNegativeInterestTest() {
+		bAccount1.setBalance((float) startValue1);
+		bAccount2.setBalance((float) startValue2);
+		bAccount3.setBalance((float) startValue3);
+		
+		cAccount.saveToDB();
+		bAccount1.saveToDB();
+		bAccount2.saveToDB();
+		bAccount3.saveToDB();
+		
 		InterestHandler interestHandler = new InterestHandler();
 		interestHandler.newlySimulatedDays = 365;
 		interestHandler.interrupt();
@@ -140,9 +198,24 @@ public class InterestHandlerTest {
 	
 	@Test
 	public void transferTest() {
-		int daysUntilNextYear = Calendar.getInstance().getMaximum(Calendar.DAY_OF_YEAR) - Calendar.getInstance().get(Calendar.DAY_OF_YEAR);
-		ServerModel.setSimulatedDays(daysUntilNextYear, true);
+		bAccount1.setBalance((float) startValue1);
+		bAccount2.setBalance((float) startValue2);
+		bAccount3.setBalance((float) startValue3);
+		
+		cAccount.saveToDB();
+		bAccount1.saveToDB();
+		bAccount2.saveToDB();
+		bAccount3.saveToDB();
+		
 		InterestHandler interestHandler = new InterestHandler();
+		
+		// Sleep to give interestHandler some time to set up
+		try {
+			Thread.sleep(500);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		
 		interestHandler.newlySimulatedDays = 31;
 		interestHandler.interrupt();
 		

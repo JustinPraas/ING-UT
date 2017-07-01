@@ -166,6 +166,10 @@ public class InputValidator {
 		
 		boolean isValid = true;
 		
+		if (toIBAN.length() < "NL68INGB7785029937".length()) {
+			return false;
+		}
+		
 		String countryCode = toIBAN.substring(0, 1);
 		String controlCode = toIBAN.substring(2, 3);
 		String bankCode = toIBAN.substring(4,7);

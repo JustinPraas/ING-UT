@@ -51,11 +51,11 @@ public class InterestHandler extends Thread {
 	 */
 	private static final double MONTHLY_INTEREST_RATE = 0.00797414042;
 
-	private static final double DAILY_INTEREST_RATE_RANGE_1 = 0.00000410651;
+	private static final double DAILY_INTEREST_RATE_RANGE_1 = 0.00000411;
 	
-	private static final double DAILY_INTEREST_RATE_RANGE_2 = 0.00000410651;
+	private static final double DAILY_INTEREST_RATE_RANGE_2 = 0.00000411;
 	
-	private static final double DAILY_INTEREST_RATE_RANGE_3 = 0.00000547399;
+	private static final double DAILY_INTEREST_RATE_RANGE_3 = 0.000005479;
 	
 	/**
 	 * A map that keeps track of the lowest daily balances of accounts.
@@ -121,8 +121,8 @@ public class InterestHandler extends Thread {
 			setPreviousPositiveInterestExecutionDate();
 		} else {
 			previousPositiveInterestExecutionMillis = Long.parseLong(prevPositiveIntrstExecMillisString);
-			previousNegativeInterestExecution = Calendar.getInstance();
-			previousNegativeInterestExecution.setTimeInMillis(previousPositiveInterestExecutionMillis);
+			previousPositiveInterestExecution = Calendar.getInstance();
+			previousPositiveInterestExecution.setTimeInMillis(previousPositiveInterestExecutionMillis);
 		}		
 
 		// Set the previousPositiveBalanceExecution
@@ -133,8 +133,8 @@ public class InterestHandler extends Thread {
 			setPreviousPositiveBalanceStoringDate();
 		} else {
 			previousPositiveBalanceStoringMillis = Long.parseLong(prevPositiveBalanceStoringMillisString);
-			previousNegativeBalanceStoring = Calendar.getInstance();
-			previousNegativeBalanceStoring.setTimeInMillis(previousPositiveBalanceStoringMillis);
+			previousPositiveBalanceStoring = Calendar.getInstance();
+			previousPositiveBalanceStoring.setTimeInMillis(previousPositiveBalanceStoringMillis);
 		}
 		
 		// Set the lowestNegativeDailyReachMap
@@ -305,14 +305,14 @@ public class InterestHandler extends Thread {
 				Long.toString(previousNegativeInterestExecution.getTimeInMillis()));
 	}
 	
-	private static void setPreviousPositiveBalanceStoringDate() {
+	public static void setPreviousPositiveBalanceStoringDate() {
 		previousPositiveBalanceStoring = ServerModel.getServerCalendar();
 		ServerDataHandler.setServerPropertyValue(ServerDataHandler.PREVIOUS_POSITIVE_BALANCE_STORE_LINE, 
 				Long.toString(previousPositiveBalanceStoring.getTimeInMillis()));
 		
 	}
 
-	private static void setPreviousPositiveInterestExecutionDate() {
+	public static void setPreviousPositiveInterestExecutionDate() {
 		previousPositiveInterestExecution = ServerModel.getServerCalendar();
 		ServerDataHandler.setServerPropertyValue(ServerDataHandler.PREVIOUS_POSITIVE_INTEREST_LINE, 
 				Long.toString(previousPositiveInterestExecution.getTimeInMillis()));
@@ -343,6 +343,7 @@ public class InterestHandler extends Thread {
 			// If it's the time to add the daily lowest reaches to the total interest AND transfer
 			// the interest to the ING account:
 			if (isTimeToTransferPositiveInterest(c)) {
+				System.out.println("is time to transfer positive interest");
 				// Do everything
 				addNegativeBalancesToTotalNegativeInterest(c);
 				addPositiveBalancesToTotalPositiveInterest(c);
@@ -441,13 +442,16 @@ public class InterestHandler extends Thread {
 	public static void calculateTimeSimulatedInterest(int days) {
 		Calendar c = ServerModel.getServerCalendar();
 		
-		for (int i = 1; i <= days; i++) {			
+		for (int i = 1; i <= days; i++) {	
+			System.out.println("============" + c.getTime().toString() + "===========");			
+			
 			// Add balances
-			addNegativeBalancesToTotalNegativeInterest(c);	
+			addNegativeBalancesToTotalNegativeInterest(c);
 			addPositiveBalancesToTotalPositiveInterest(c);	
 			
 			// Add a day to the calendar
 			c.add(Calendar.DATE, 1);
+			
 			
 			// Transfer the money
 			if (c.get(Calendar.DATE) == 1) {
@@ -508,6 +512,7 @@ public class InterestHandler extends Thread {
 				double rounded = round(entry.getValue(), 2);
 				bankAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, entry.getKey());
 				ingBankAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, BankAccount.ING_BANK_ACCOUNT_IBAN);
+				System.out.println("Transfering " + rounded + " to " + bankAccount.getIBAN());
 				ingBankAccount.transfer(bankAccount.getIBAN(), entry.getValue());
 			} catch (ObjectDoesNotExistException e) {
 				e.printStackTrace();
@@ -577,6 +582,7 @@ public class InterestHandler extends Thread {
 				currentInterest = currentTotalPositiveInterestMap.get(IBAN);
 				totalInterest = currentInterest + calculatePositiveInterest(entry.getValue());
 			}
+			System.out.println("Current total positive interest for " + IBAN + " is " + totalInterest);
 			currentTotalPositiveInterestMap.put(IBAN, totalInterest);
 		}
 		

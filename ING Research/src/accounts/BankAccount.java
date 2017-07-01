@@ -104,8 +104,11 @@ public class BankAccount implements database.DBObject {
 		this.balance = balance;
 		this.IBAN = IBAN;
 		this.overdraftLimit = 0;
-		this.savingsAccount = new SavingsAccount(this);
-		this.savingsAccount.saveToDB();
+		
+		if (!IBAN.equals(ING_BANK_ACCOUNT_IBAN)) {
+			this.savingsAccount = new SavingsAccount(this);
+			this.savingsAccount.saveToDB();			
+		}
 	}
 	
 	public void addOwner(CustomerAccount owner) {
@@ -299,7 +302,7 @@ public class BankAccount implements database.DBObject {
 		t.setDateTime(date);
 		t.setDateTimeMilis(c.getTimeInMillis());
 		t.setSourceIBAN(this.getIBAN());
-		t.setDestinationIBAN(savingsAccount.getIBAN() + "S");
+		t.setDestinationIBAN(IBAN + "S");
 		t.setAmount(amount);
 		t.setDescription("Interest on savings account.");
 		t.saveToDB();
