@@ -32,7 +32,6 @@ import org.hibernate.criterion.Restrictions;
 import accounts.BankAccount;
 import accounts.CustomerAccount;
 import accounts.DebitCard;
-import accounts.SavingsAccount;
 import accounts.Transaction;
 import database.DataManager;
 import database.SQLiteDB;
@@ -655,17 +654,13 @@ public class ServerHandler {
 					String err = buildError(420, "The action has no effect. See message.", "Account " + IBAN + " is already closed");
 					return respondError(err, 500);
 				}
+				found = true;
 				try {
-					b.close();
-					b.saveToDB();
-					acc.saveToDB();
-					found = true;
-					target = b;
-					break;
-				} catch (IllegalAccountCloseException e) {
-					String err = buildError(500, "An unexpected error occured, see error details.", e.toString());
-					return respondError(err, 500);
+					target = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, IBAN);
+				} catch (ObjectDoesNotExistException e) {
+					e.printStackTrace();
 				}
+				break;
 			}
 		}
 		
@@ -678,6 +673,14 @@ public class ServerHandler {
 		// If the target account is not owned by the user, stop and notify the client
 		if (!acc.getBSN().equals(target.getMainHolderBSN()) ) {
 			String err = buildError(419, "The authenticated user is not authorized to perform this action. User does not own this account.");
+			return respondError(err, 500);
+		}		
+
+		try {
+			target.close();
+			target.saveToDB();
+		} catch (IllegalAccountCloseException e1) {
+			String err = buildError(419, "The authenticated user is not authorized to perform this action. " + e1.toString());
 			return respondError(err, 500);
 		}
 		

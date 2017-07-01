@@ -10,13 +10,20 @@ public class IllegalAccountCloseException extends Exception {
 	
 	private String IBAN;
 	private double balance;
+	private boolean isSavingsAccount;
 	
-	public IllegalAccountCloseException(String IBAN, double balance) {
+	public IllegalAccountCloseException(String IBAN, double balance, boolean isSavingsAccount) {
 		this.IBAN = IBAN;
 		this.balance = balance;
+		this.isSavingsAccount = isSavingsAccount;
 	}
 
 	public String toString() {
-		return "Can not close account with IBAN " + IBAN + ". Account has a non-zero balance of " + balance + ".";
+		if (!isSavingsAccount) {
+			return "Can not close account with IBAN " + IBAN + ". Account has a non-zero balance of " + balance + ".";
+		} else {
+			return "Can not close account with IBAN " + IBAN + ". Savings account contains money.";
+		}
+		
 	}
 }
