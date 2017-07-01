@@ -169,7 +169,14 @@ public class InputValidator {
 		String countryCode = toIBAN.substring(0, 1);
 		String controlCode = toIBAN.substring(2, 3);
 		String bankCode = toIBAN.substring(4,7);
-		String bankNumber = toIBAN.substring(8);
+
+		// Avoid disallowing savings account IBANs
+		String bankNumber;
+		if (toIBAN.charAt(toIBAN.length() - 1) == 'S') {
+			bankNumber = toIBAN.substring(8, toIBAN.length() - 1);
+		} else {
+			bankNumber = toIBAN.substring(8);
+		}
 		
 		if (!isAlphabeticalOnly(countryCode)) {
 			isValid = false;
