@@ -263,7 +263,7 @@ public class BankAccount implements database.DBObject {
 		t.setDateTime(date);
 		t.setDateTimeMilis(c.getTimeInMillis());
 		t.setSourceIBAN(this.getIBAN());
-		t.setDestinationIBAN(savingsAccount.getIBAN());
+		t.setDestinationIBAN(savingsAccount.getIBAN() + "S");
 		t.setAmount(amount);
 		t.setDescription("Transfer to savings account.");
 		t.saveToDB();
