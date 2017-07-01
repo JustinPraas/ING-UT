@@ -65,7 +65,7 @@ public class SavingsAccount implements database.DBObject {
 		Transaction t = new Transaction();
 		t.setDateTime(date);
 		t.setDateTimeMilis(c.getTimeInMillis());
-		t.setSourceIBAN(IBAN);
+		t.setSourceIBAN(IBAN + "S");
 		t.setDestinationIBAN(bankAccount.getIBAN());
 		t.setAmount(amount);
 		t.setDescription("Transfer to " + bankAccount.getIBAN() + ".");
