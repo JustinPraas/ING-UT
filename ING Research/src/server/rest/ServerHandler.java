@@ -1386,7 +1386,7 @@ public class ServerHandler {
 		}
 		
 		ArrayList<Criterion> cr = new ArrayList<>();
-		cr.add(Restrictions.or(Restrictions.eq("sourceIBAN", IBAN), Restrictions.eq("destinationIBAN", IBAN)));
+		cr.add(Restrictions.or(Restrictions.eq("sourceIBAN", IBAN + "S"), Restrictions.eq("destinationIBAN", IBAN + "S"), Restrictions.eq("sourceIBAN", IBAN), Restrictions.eq("destinationIBAN", IBAN)));
 		List<Transaction> transactions = (List<Transaction>) DataManager.getObjectsFromDB(Transaction.CLASSNAME, cr);
 		Collections.sort(transactions);
 		Collections.reverse(transactions);
