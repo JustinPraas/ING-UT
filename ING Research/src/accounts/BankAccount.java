@@ -2,16 +2,18 @@ package accounts;
 
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
+import javax.persistence.OneToOne;
+import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
@@ -33,7 +35,6 @@ import exceptions.ObjectDoesNotExistException;
 import exceptions.PinCardBlockedException;
 import exceptions.SameAccountTransferException;
 import server.rest.InterestHandler;
-import server.rest.ServerDataHandler;
 
 /**
  * A simple model of a bank account in an abstract currency.
@@ -50,8 +51,10 @@ public class BankAccount implements database.DBObject {
 	private String IBAN;
 	private String mainHolderBSN;
 	private Set<CustomerAccount> owners = new HashSet<CustomerAccount>();
-	boolean closed;
-	double overdraftLimit;
+	private SavingsAccount savingsAccount;
+
+	private boolean closed;
+	private double overdraftLimit;
 	public static final String CLASSNAME = "accounts.BankAccount";
 	public static final String PRIMARYKEYNAME = "IBAN";
 	
@@ -84,6 +87,8 @@ public class BankAccount implements database.DBObject {
 		this.IBAN = generateIBAN(COUNTRY_CODE, BANK_CODE, randomPAN());
 		this.mainHolderBSN = mainHolderBSN;
 		this.overdraftLimit = 0;
+		this.savingsAccount = new SavingsAccount(this);
+		this.savingsAccount.saveToDB();
 	}
 	
 	/**
@@ -99,6 +104,8 @@ public class BankAccount implements database.DBObject {
 		this.balance = balance;
 		this.IBAN = IBAN;
 		this.overdraftLimit = 0;
+		this.savingsAccount = new SavingsAccount(this);
+		this.savingsAccount.saveToDB();
 	}
 	
 	public void addOwner(CustomerAccount owner) {
@@ -458,7 +465,16 @@ public class BankAccount implements database.DBObject {
 	public void setClosed(boolean closed) {
 		this.closed = closed;
 	}
+
+	public void setSavingsAccount(SavingsAccount savingsAccount) {
+		this.savingsAccount = savingsAccount;
+	}
 	
+	@OneToOne(fetch = FetchType.LAZY, mappedBy = "bankAccount", cascade = CascadeType.ALL)
+	public SavingsAccount getSavingsAccount() {
+		return savingsAccount;
+	}
+
 	@Column(name = "balance")
 	public float getBalance() {
 		return balance;
