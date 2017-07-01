@@ -476,10 +476,13 @@ public class BankAccount implements database.DBObject {
 	
 	public void close() throws IllegalAccountCloseException {
 		if (balance != 0) {
-			throw new IllegalAccountCloseException(IBAN, balance);
+			throw new IllegalAccountCloseException(IBAN, balance, false);
+		} else if (savingsAccount.getBalance() != 0) {
+			throw new IllegalAccountCloseException(IBAN, balance, true);
 		}
 		
 		setClosed(true);
+		savingsAccount.setClosed(true);
 		
 	}
 
