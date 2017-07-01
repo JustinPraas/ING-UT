@@ -15,6 +15,7 @@ import org.hibernate.query.Query;
 import accounts.BankAccount;
 import accounts.CustomerAccount;
 import accounts.DebitCard;
+import accounts.SavingsAccount;
 import exceptions.ObjectDoesNotExistException;
 
 /**
@@ -38,6 +39,7 @@ public class DataManager {
     	cfg.addAnnotatedClass(DebitCard.class);
     	cfg.addAnnotatedClass(BankAccount.class);
     	cfg.addAnnotatedClass(CustomerAccount.class);
+    	cfg.addAnnotatedClass(SavingsAccount.class);
     	cfg.addAnnotatedClass(accounts.Transaction.class);
     	factory = cfg.buildSessionFactory();
     }
