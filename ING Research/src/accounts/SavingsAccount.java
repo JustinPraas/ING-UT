@@ -1,10 +1,15 @@
 package accounts;
 
-import java.beans.Transient;
 import java.util.Calendar;
 
 import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.Id;
+import javax.persistence.OneToOne;
+import javax.persistence.PrimaryKeyJoinColumn;
+import javax.persistence.Table;
+import javax.persistence.Transient;
 
 import database.DataManager;
 import exceptions.ClosedAccountTransferException;
@@ -13,20 +18,34 @@ import exceptions.IllegalTransferException;
 import exceptions.ObjectDoesNotExistException;
 import server.rest.ServerModel;
 
+@Entity
+@Table(name = "savingsaccounts")
 public class SavingsAccount implements database.DBObject {
 	
 	private float balance;
 	private String IBAN;
-	private BankAccount bankAccount;
+	private BankAccount bankAccount;	
 	private boolean closed;
 	
 	public static final String CLASSNAME = "accounts.SavingsAccount";
 	public static final String PRIMARYKEYNAME = "IBAN";
 	
+	public SavingsAccount() {
+		
+	}
+	
 	public SavingsAccount(BankAccount bankAccount) {
 		this.bankAccount = bankAccount;
 		this.IBAN = bankAccount.getIBAN();
 		this.balance = 0;
+		this.closed = true;
+	}
+	
+	public SavingsAccount(String IBAN) throws ObjectDoesNotExistException {
+		this.bankAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, IBAN);
+		this.IBAN = IBAN;
+		this.balance = 0;
+		this.closed = true;
 	}
 	
 	public void transfer(double amount) throws IllegalAmountException, IllegalTransferException {
@@ -81,9 +100,10 @@ public class SavingsAccount implements database.DBObject {
 		IBAN = iBAN;
 	}
 
-	@Transient
-	public BankAccount getBankAccount() throws ObjectDoesNotExistException {
-		return (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, IBAN);
+	@OneToOne(fetch = FetchType.LAZY)
+	@PrimaryKeyJoinColumn
+	public BankAccount getBankAccount() {
+		return bankAccount;
 	}
 
 	public void setBankAccount(BankAccount bankAccount) {
@@ -99,17 +119,17 @@ public class SavingsAccount implements database.DBObject {
 		this.closed = closed;
 	}
 
-	@Override
+	@Transient
 	public String getPrimaryKeyName() {
 		return PRIMARYKEYNAME;
 	}
 
-	@Override
+	@Transient
 	public Object getPrimaryKeyVal() {
 		return IBAN;
 	}
 
-	@Override
+	@Transient
 	public String getClassName() {
 		return CLASSNAME;
 	}
