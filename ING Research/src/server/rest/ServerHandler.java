@@ -32,6 +32,7 @@ import org.hibernate.criterion.Restrictions;
 import accounts.BankAccount;
 import accounts.CustomerAccount;
 import accounts.DebitCard;
+import accounts.SavingsAccount;
 import accounts.Transaction;
 import database.DataManager;
 import database.SQLiteDB;
@@ -109,6 +110,10 @@ public class ServerHandler {
 			return getDate(jReq);
 		case "unblockCard":
 			return unblockCard(jReq);
+		case "openSavingsAccount":
+			return openSavingsAccount(jReq);
+		case "closeSavingsAccount":
+			return closeSavingsAccount(jReq);
 		case "setOverdraftLimit":
 			return setOverdraftLimit(jReq);
 		case "getOverdraftLimit":
@@ -131,12 +136,128 @@ public class ServerHandler {
 		return jResp.toJSONString();
 	}
 	
+	private static Response sendEmptyResult() {
+		HashMap<String, Object> resp = new HashMap<>();			
+		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
+		return respond(jResp.toJSONString());
+	}
+
 	public  static Response respond(String jResp) {
 		return Response.status(200).entity(jResp).build();
 	}
 	
 	public static Response respondError(String jResp, int code) {
 		return Response.status(500).entity(jResp).build();	
+	}
+	
+	private static Response openSavingsAccount(JSONRPC2Request jReq) {
+		HashMap<String, Object> params = (HashMap<String, Object>) jReq.getNamedParams();	
+		
+		// Check Request validity, return an error Response if the Request is invalid
+		Response invalidRequest = RequestValidator.isValidSavingsAccountRequest(params);
+		if (invalidRequest != null) {
+			return invalidRequest;
+		}
+
+		String authToken = (String) params.get("authToken");
+		String IBAN = (String) params.get("iBAN");
+		
+		// Check if the customer has a bank account with this IBAN
+		CustomerAccount customerAccount = accounts.get(authToken);
+		BankAccount bankAccount;
+		try {
+			bankAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, IBAN);
+		} catch (ObjectDoesNotExistException e) {
+			String err = buildError(500, "An unexpected error occured, see error details", "A bank account with the given IBAN does not exist.");
+			return respondError(err, 500);
+		}
+		
+		if (!RequestValidator.userOwnsBankAccount(customerAccount, bankAccount)) {
+			String err = buildError(419, "The authenticated user is not authorized to perform this action. You can not peek at the overdraft limit of another person's bank account.");
+			return respondError(err, 500);
+		}
+		
+		// Check if the bank account exist and if it is closed
+		if (bankAccount.getClosed()) {
+			String err = buildError(419, "The authenticated user is not authorized to perform this action. The main bank account is closed.");
+			return respondError(err, 500);	
+		}		
+		
+		// Check if the user already has a savings account
+		try {
+			SavingsAccount savingsAccount = (SavingsAccount) DataManager.getObjectByPrimaryKey(SavingsAccount.CLASSNAME, IBAN);
+			
+			// Savings account exists, check if it is already open
+			if (!savingsAccount.isClosed()) {
+				String err = buildError(420, "The action has no effect. See message.", "The savings account is already open.");
+				return respondError(err, 500);
+			}
+			
+			// Else open the savings account
+			savingsAccount.setClosed(false);
+			savingsAccount.saveToDB();
+			return sendEmptyResult();
+		} catch (ObjectDoesNotExistException e) {
+			// Savings account does not exist, so we can make one
+			SavingsAccount savingsAccount = new SavingsAccount(bankAccount);
+			savingsAccount.saveToDB();			
+			return sendEmptyResult();
+		}
+	}
+
+	private static Response closeSavingsAccount(JSONRPC2Request jReq) {
+		HashMap<String, Object> params = (HashMap<String, Object>) jReq.getNamedParams();	
+		
+		// Check Request validity, return an error Response if the Request is invalid
+		Response invalidRequest = RequestValidator.isValidSavingsAccountRequest(params);
+		if (invalidRequest != null) {
+			return invalidRequest;
+		}
+		
+		String authToken = (String) params.get("authToken");
+		String IBAN = (String) params.get("iBAN");
+		
+		// Check if the customer has a bank account with this IBAN
+		CustomerAccount customerAccount = accounts.get(authToken);
+		BankAccount bankAccount;
+		try {
+			bankAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, IBAN);
+		} catch (ObjectDoesNotExistException e) {
+			String err = buildError(500, "An unexpected error occured, see error details", "A bank account with the given IBAN does not exist.");
+			return respondError(err, 500);
+		}
+		
+		if (!RequestValidator.userOwnsBankAccount(customerAccount, bankAccount)) {
+			String err = buildError(419, "The authenticated user is not authorized to perform this action. You can not peek at the overdraft limit of another person's bank account.");
+			return respondError(err, 500);
+		}
+		
+		// Check if the user has a savings account
+		try {
+			SavingsAccount savingsAccount = (SavingsAccount) DataManager.getObjectByPrimaryKey(SavingsAccount.CLASSNAME, IBAN);
+			
+			// Savings account exists, proceed...
+			
+			// Check if savings account is closed 
+			if (savingsAccount.isClosed()) {
+				String err = buildError(420, "The action has no effect. See message.", "The savings account is already closed.");
+				return respondError(err, 500);
+			}
+			
+			// Check if balance is non-zero
+			if (savingsAccount.getBalance() == 0) {
+				savingsAccount.setClosed(true);
+				savingsAccount.saveToDB();
+				return sendEmptyResult();
+			} else {
+				String err = buildError(419, "The authenticated user is not authorized to perform this action. Savings account balance is a non zero balance.");
+				return respondError(err, 500);
+			}
+		} catch (ObjectDoesNotExistException e) {
+			// Savings account does not exist, a.k.a. it is closed (since the bank account with the IBAN DOES exist)
+			String err = buildError(420, "The action has no effect. See message.", "The savings account is already closed.");
+			return respondError(err, 500);
+		}
 	}
 
 	private static Response getOverdraftLimit(JSONRPC2Request jReq) {

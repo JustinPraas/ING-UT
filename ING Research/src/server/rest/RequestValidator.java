@@ -393,6 +393,20 @@ public class RequestValidator {
 		return null;
 	}
 	
+	public static Response isValidSavingsAccountRequest(HashMap<String, Object> params) {
+		// If we're missing required parameters, stop and notify the client
+		if (!(params.containsKey("authToken") && params.containsKey("iBAN"))) {
+			return invalidMethodParametersResponse();
+		}
+		
+		// If the IBAN is invalid, stop and notify the client
+		if (!InputValidator.isValidIBAN((String) params.get("iBAN"))) {
+			return invalidIBANResponse((String) params.get("iBAN"));
+		}
+		
+		return null;
+	}
+
 	public static boolean userOwnsBankAccount(CustomerAccount customerAccount, BankAccount bankAccount) {
 		for (BankAccount b : customerAccount.getBankAccounts()) {
 			if (b.getIBAN().equals(bankAccount.getIBAN())) {
