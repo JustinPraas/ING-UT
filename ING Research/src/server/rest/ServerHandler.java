@@ -177,31 +177,20 @@ public class ServerHandler {
 			return respondError(err, 500);
 		}
 		
-		// Check if the bank account exist and if it is closed
+		// Check if the bank account is closed
 		if (bankAccount.getClosed()) {
 			String err = buildError(419, "The authenticated user is not authorized to perform this action. The main bank account is closed.");
 			return respondError(err, 500);	
-		}		
-		
-		// Check if the user already has a savings account
-		try {
-			SavingsAccount savingsAccount = (SavingsAccount) DataManager.getObjectByPrimaryKey(SavingsAccount.CLASSNAME, IBAN);
-			
-			// Savings account exists, check if it is already open
-			if (!savingsAccount.isClosed()) {
+		} else {
+			// Check if savings account is closed
+			if (bankAccount.getSavingsAccount().isClosed()) {
+				bankAccount.getSavingsAccount().setClosed(false);
+				bankAccount.getSavingsAccount().saveToDB();
+				return sendEmptyResult();
+			} else {
 				String err = buildError(420, "The action has no effect. See message.", "The savings account is already open.");
 				return respondError(err, 500);
-			}
-			
-			// Else open the savings account
-			savingsAccount.setClosed(false);
-			savingsAccount.saveToDB();
-			return sendEmptyResult();
-		} catch (ObjectDoesNotExistException e) {
-			// Savings account does not exist, so we can make one
-			SavingsAccount savingsAccount = new SavingsAccount(bankAccount);
-			savingsAccount.saveToDB();			
-			return sendEmptyResult();
+			}			
 		}
 	}
 
@@ -232,31 +221,18 @@ public class ServerHandler {
 			return respondError(err, 500);
 		}
 		
-		// Check if the user has a savings account
-		try {
-			SavingsAccount savingsAccount = (SavingsAccount) DataManager.getObjectByPrimaryKey(SavingsAccount.CLASSNAME, IBAN);
-			
-			// Savings account exists, proceed...
-			
-			// Check if savings account is closed 
-			if (savingsAccount.isClosed()) {
-				String err = buildError(420, "The action has no effect. See message.", "The savings account is already closed.");
-				return respondError(err, 500);
-			}
-			
-			// Check if balance is non-zero
-			if (savingsAccount.getBalance() == 0) {
-				savingsAccount.setClosed(true);
-				savingsAccount.saveToDB();
-				return sendEmptyResult();
-			} else {
-				String err = buildError(419, "The authenticated user is not authorized to perform this action. Savings account balance is a non zero balance.");
-				return respondError(err, 500);
-			}
-		} catch (ObjectDoesNotExistException e) {
-			// Savings account does not exist, a.k.a. it is closed (since the bank account with the IBAN DOES exist)
+		// Check if the savings account is already closed
+		if (bankAccount.getSavingsAccount().isClosed()) {
 			String err = buildError(420, "The action has no effect. See message.", "The savings account is already closed.");
 			return respondError(err, 500);
+		} else {
+			// Transfer the balance of the savings account to the real account
+			//TODO
+			
+			// Close account 
+			bankAccount.getSavingsAccount().setClosed(true);
+			bankAccount.getSavingsAccount().saveToDB();
+			return sendEmptyResult();
 		}
 	}
 
