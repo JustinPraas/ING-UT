@@ -392,11 +392,6 @@ public class BankAccount implements database.DBObject {
 		InterestHandler.setLowestDailyReachMapEntry(IBAN, balance);
 	}
 	
-	@Column(name = "balance")
-	public float getBalance() {
-		return balance;
-	}
-	
 	/**
 	 * Credits a <code>BankAccount</code> with a specific amount of money
 	 * @param amount The amount of money to credit the <code>BankAccount</code> with
@@ -464,6 +459,11 @@ public class BankAccount implements database.DBObject {
 		this.closed = closed;
 	}
 	
+	@Column(name = "balance")
+	public float getBalance() {
+		return balance;
+	}
+
 	@Id
 	@Column(name = "IBAN")
 	public String getIBAN() {
