@@ -16,6 +16,7 @@ import exceptions.ClosedAccountTransferException;
 import exceptions.IllegalAmountException;
 import exceptions.IllegalTransferException;
 import exceptions.ObjectDoesNotExistException;
+import server.rest.InterestHandler;
 import server.rest.ServerModel;
 
 @Entity
@@ -72,6 +73,7 @@ public class SavingsAccount implements database.DBObject {
 		t.saveToDB();
 		this.saveToDB();
 		bankAccount.saveToDB();
+		InterestHandler.setLowestPositiveDailyReachMapEntry(IBAN, balance);
 	}
 	
 	public void credit(double amount) throws IllegalAmountException {

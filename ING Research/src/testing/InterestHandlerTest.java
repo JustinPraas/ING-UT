@@ -95,15 +95,15 @@ public class InterestHandlerTest {
 		double balance, interest;
 
 		balance = bAccount1.getBalance();
-		interest = InterestHandler.calculateInterest(balance, 31);		
+		interest = InterestHandler.calculateNegativeInterest(balance, 31);		
 		assertEquals(0.26, Math.abs(interest), 0.01);
 
 		balance = bAccount2.getBalance();
-		interest = InterestHandler.calculateInterest(balance, 31);
+		interest = InterestHandler.calculateNegativeInterest(balance, 31);
 		assertEquals(0.51, Math.abs(interest), 0.01);
 		
 		balance = bAccount3.getBalance();
-		interest = InterestHandler.calculateInterest(balance, 31);
+		interest = InterestHandler.calculateNegativeInterest(balance, 31);
 		assertEquals(1.03, Math.abs(interest), 0.01);
 	}
 	
@@ -199,22 +199,22 @@ public class InterestHandlerTest {
 
 		// 23:50, 01/01/2018, didn't store balances balances
 		c.setTimeInMillis(1514810700000L);	
-		assertFalse(InterestHandler.isTimeToTransfer(c));
+		assertFalse(InterestHandler.isTimeToTransferNegativeInterest(c));
 
 		// 15:30, 01/02/2018
 		c.setTimeInMillis(1514897100000L);
 		InterestHandler.setPreviousBalanceStoringDate(c);
-		assertFalse(InterestHandler.isTimeToTransfer(c));
+		assertFalse(InterestHandler.isTimeToTransferNegativeInterest(c));
 		
 		// 23:50, 12/31/2017
 		c.setTimeInMillis(1514761140000L);
 		InterestHandler.setPreviousBalanceStoringDate(c);
-		assertFalse(InterestHandler.isTimeToTransfer(c));
+		assertFalse(InterestHandler.isTimeToTransferNegativeInterest(c));
 		
 		// 23:50, 01/01/2018, stored balances
 		c.setTimeInMillis(1514810700000L);
 		InterestHandler.setPreviousBalanceStoringDate(c);		
-		assertTrue(InterestHandler.isTimeToTransfer(c));		
+		assertTrue(InterestHandler.isTimeToTransferNegativeInterest(c));		
 		
 	}
 	

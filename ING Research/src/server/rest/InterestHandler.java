@@ -11,6 +11,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
+import javax.xml.crypto.Data;
+
 import accounts.BankAccount;
 import database.DataManager;
 import database.SQLiteDB;
@@ -48,6 +50,12 @@ public class InterestHandler extends Thread {
 	 * The monthly interest rate of this bank.
 	 */
 	private static final double MONTHLY_INTEREST_RATE = 0.00797414042;
+
+	private static final double DAILY_INTEREST_RATE_RANGE_1 = 0.00000410651;
+	
+	private static final double DAILY_INTEREST_RATE_RANGE_2 = 0.00000410651;
+	
+	private static final double DAILY_INTEREST_RATE_RANGE_3 = 0.00000547399;
 	
 	/**
 	 * A map that keeps track of the lowest daily balances of accounts.
@@ -86,7 +94,7 @@ public class InterestHandler extends Thread {
 
 		String prevNegativeIntrstExecMillisString = ServerDataHandler.getServerPropertyValue(ServerDataHandler.PREVIOUS_NEGATIVE_INTEREST_LINE);
 		if (prevNegativeIntrstExecMillisString.equals("") || prevNegativeIntrstExecMillisString == null || prevNegativeIntrstExecMillisString.equals("0")) {
-			setPreviousInterestExecutionDate();
+			setPreviousNegativeInterestExecutionDate();
 		} else {
 			previousNegativeInterestExecutionMillis = Long.parseLong(prevNegativeIntrstExecMillisString);
 			previousNegativeInterestExecution = Calendar.getInstance();
@@ -98,7 +106,7 @@ public class InterestHandler extends Thread {
 
 		String prevNegativeBalanceStoringMillisString = ServerDataHandler.getServerPropertyValue(ServerDataHandler.PREVIOUS_NEGATIVE_BALANCE_STORE_LINE);
 		if (prevNegativeBalanceStoringMillisString.equals("") || prevNegativeBalanceStoringMillisString == null || prevNegativeBalanceStoringMillisString.equals("0")) {
-			setPreviousBalanceStoringDate();
+			setPreviousNegativeBalanceStoringDate();
 		} else {
 			previousNegativeBalanceStoringMillis = Long.parseLong(prevNegativeBalanceStoringMillisString);
 			previousNegativeBalanceStoring = Calendar.getInstance();
@@ -110,7 +118,7 @@ public class InterestHandler extends Thread {
 
 		String prevPositiveIntrstExecMillisString = ServerDataHandler.getServerPropertyValue(ServerDataHandler.PREVIOUS_NEGATIVE_INTEREST_LINE);
 		if (prevPositiveIntrstExecMillisString.equals("") || prevPositiveIntrstExecMillisString == null || prevPositiveIntrstExecMillisString.equals("0")) {
-			setPreviousInterestExecutionDate();
+			setPreviousPositiveInterestExecutionDate();
 		} else {
 			previousPositiveInterestExecutionMillis = Long.parseLong(prevPositiveIntrstExecMillisString);
 			previousNegativeInterestExecution = Calendar.getInstance();
@@ -122,7 +130,7 @@ public class InterestHandler extends Thread {
 
 		String prevPositiveBalanceStoringMillisString = ServerDataHandler.getServerPropertyValue(ServerDataHandler.PREVIOUS_NEGATIVE_BALANCE_STORE_LINE);
 		if (prevPositiveBalanceStoringMillisString.equals("") || prevPositiveBalanceStoringMillisString == null || prevPositiveBalanceStoringMillisString.equals("0")) {
-			setPreviousBalanceStoringDate();
+			setPreviousPositiveBalanceStoringDate();
 		} else {
 			previousPositiveBalanceStoringMillis = Long.parseLong(prevPositiveBalanceStoringMillisString);
 			previousNegativeBalanceStoring = Calendar.getInstance();
@@ -132,7 +140,7 @@ public class InterestHandler extends Thread {
 		// Set the lowestNegativeDailyReachMap
 		lowestNegativeDailyReachMap = ServerDataHandler.getNegativeLowestDailyReachMap();
 		if (lowestNegativeDailyReachMap.size() == 0) {
-			initializeLowestDailyReachMap();
+			initializeLowestNegativeDailyReachMap();
 		}
 		
 		// Set the totalMonthlyInterestMap 
@@ -141,7 +149,7 @@ public class InterestHandler extends Thread {
 		// Set the lowestPositiveDailyReachMap
 		lowestPositiveDailyReachMap = ServerDataHandler.getPositiveLowestDailyReachMap();
 		if (lowestPositiveDailyReachMap.size() == 0) {
-			initializeLowestDailyReachMap();
+			initializeLowestNegativeDailyReachMap();
 		}
 		
 		// Set the totalMonthlyInterestMap 
@@ -183,7 +191,7 @@ public class InterestHandler extends Thread {
 	 * @param IBAN the IBAN that has a new lower balance
 	 * @param balance the bank account's balance
 	 */
-	public static void setLowestDailyReachMapEntry(String IBAN, double balance) {
+	public static void setLowestNegativeDailyReachMapEntry(String IBAN, double balance) {
 		// FETCH: map
 		HashMap<String, Double> currentLowestDailyReachMap = ServerDataHandler.getNegativeLowestDailyReachMap();
 		Double currentLowestBalance = currentLowestDailyReachMap.get(IBAN);
@@ -199,12 +207,28 @@ public class InterestHandler extends Thread {
 		}		
 	}
 	
+	public static void setLowestPositiveDailyReachMapEntry(String IBAN, double balance) {
+		// FETCH: map
+		HashMap<String, Double> currentLowestPositiveDailyReachMap = ServerDataHandler.getPositiveLowestDailyReachMap();
+		Double currentLowestBalance = currentLowestPositiveDailyReachMap.get(IBAN);
+		
+		if (balance < 0) {
+			if (currentLowestBalance == null || currentLowestBalance > balance) {
+				HashMap<String, Double> map = ServerDataHandler.getPositiveLowestDailyReachMap();
+				map.put(IBAN, balance);
+				
+				// SET: map
+				setPositiveLowestDailyReachMap(currentLowestPositiveDailyReachMap);
+			}
+		}	
+	}
+
 	/**
 	 * Initialized the map of lowest daily balances (happens at the start of every month).
 	 * Simply checks which account has a negative balance and writes it to the file.
 	 * Uses <code>setLowestDailyReachMap</code> to write the map to the file.
 	 */
-	public static void initializeLowestDailyReachMap() {
+	public static void initializeLowestNegativeDailyReachMap() {
 		HashMap<String, Double> newLowestDailyReachMap = new HashMap<>();
 		try {
 			Connection c = SQLiteDB.openConnection();
@@ -219,6 +243,28 @@ public class InterestHandler extends Thread {
 		
 		// SET: map
 		setNegativeLowestDailyReachMap(newLowestDailyReachMap);
+	}
+	
+	/**
+	 * Initialized the map of lowest daily balances (happens at the start of every month).
+	 * Simply checks which account has a negative balance and writes it to the file.
+	 * Uses <code>setLowestDailyReachMap</code> to write the map to the file.
+	 */
+	public static void initializeLowestPositiveDailyReachMap() {
+		HashMap<String, Double> newLowestPositiveDailyReachMap = new HashMap<>();
+		try {
+			Connection c = SQLiteDB.openConnection();
+			Statement s = c.createStatement();
+			ResultSet rs = s.executeQuery("SELECT IBAN, balance FROM savingsaccounts WHERE balance > 0;");
+			while (rs.next()) {
+				newLowestPositiveDailyReachMap.put(rs.getString("IBAN"), rs.getDouble("balance"));
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+		// SET: map
+		setPositiveLowestDailyReachMap(newLowestPositiveDailyReachMap);
 	}
 	
 	/**
@@ -244,7 +290,7 @@ public class InterestHandler extends Thread {
 	/**
 	 * Sets the previous balance storing date to the (perhaps simulated) server-time.
 	 */
-	public static void setPreviousBalanceStoringDate() {
+	public static void setPreviousNegativeBalanceStoringDate() {
 		previousNegativeBalanceStoring = ServerModel.getServerCalendar();
 		ServerDataHandler.setServerPropertyValue(ServerDataHandler.PREVIOUS_NEGATIVE_BALANCE_STORE_LINE, 
 				Long.toString(previousNegativeBalanceStoring.getTimeInMillis()));
@@ -253,12 +299,25 @@ public class InterestHandler extends Thread {
 	/**
 	 * Sets the previous interest execution date to the (perhaps simulated) server-time.
 	 */
-	public static void setPreviousInterestExecutionDate() {
+	public static void setPreviousNegativeInterestExecutionDate() {
 		previousNegativeInterestExecution = ServerModel.getServerCalendar();
 		ServerDataHandler.setServerPropertyValue(ServerDataHandler.PREVIOUS_NEGATIVE_INTEREST_LINE, 
 				Long.toString(previousNegativeInterestExecution.getTimeInMillis()));
 	}
 	
+	private static void setPreviousPositiveBalanceStoringDate() {
+		previousPositiveBalanceStoring = ServerModel.getServerCalendar();
+		ServerDataHandler.setServerPropertyValue(ServerDataHandler.PREVIOUS_POSITIVE_BALANCE_STORE_LINE, 
+				Long.toString(previousPositiveBalanceStoring.getTimeInMillis()));
+		
+	}
+
+	private static void setPreviousPositiveInterestExecutionDate() {
+		previousPositiveInterestExecution = ServerModel.getServerCalendar();
+		ServerDataHandler.setServerPropertyValue(ServerDataHandler.PREVIOUS_POSITIVE_INTEREST_LINE, 
+				Long.toString(previousPositiveInterestExecution.getTimeInMillis()));
+	}
+
 	/**
 	 * The Thread that runs as if it constantly watches the time (unless it doesn't need to do
 	 * anything). There are two situations:
@@ -283,13 +342,20 @@ public class InterestHandler extends Thread {
 			
 			// If it's the time to add the daily lowest reaches to the total interest AND transfer
 			// the interest to the ING account:
-			if (isTimeToTransfer(c)) {
+			if (isTimeToTransferPositiveInterest(c)) {
+				// Do everything
+				addNegativeBalancesToTotalNegativeInterest(c);
+				addPositiveBalancesToTotalPositiveInterest(c);
+				transferNegativeInterest();
+				transferPositiveInterest();
+			} else if (isTimeToTransferNegativeInterest(c)) {
 				System.out.println("INTEREST: Time to transfer interest");
-				addBalancesToTotalInterest(c);
-				transferInterest();
+				addNegativeBalancesToTotalNegativeInterest(c);
+				transferNegativeInterest();
 			} else if (isTimeToAddBalances(c)) {
 				System.out.println("INTEREST: Time to add balances");
-				addBalancesToTotalInterest(c);				
+				addNegativeBalancesToTotalNegativeInterest(c);		
+				addPositiveBalancesToTotalPositiveInterest(c);				
 			}
 			
 			try {
@@ -336,8 +402,20 @@ public class InterestHandler extends Thread {
 	 * @param maxDateOfMonth the date of the last day of the month (e.g. 30, 28, 31, 29)
 	 * @return the interest on the given balance
 	 */
-	public static double calculateInterest(double balance, int maxDateOfMonth) {
+	public static double calculateNegativeInterest(double balance, int maxDateOfMonth) {
 		return balance * MONTHLY_INTEREST_RATE / maxDateOfMonth; 
+	}
+	
+	public static double calculatePositiveInterest(double balance) {
+		if (balance < 25000) {
+			return balance * DAILY_INTEREST_RATE_RANGE_1;
+		} else if (balance >= 2500 && balance < 75000) {
+			return balance * DAILY_INTEREST_RATE_RANGE_2;
+		} else if (balance >= 75000 && balance < 1000000) {
+			return balance * DAILY_INTEREST_RATE_RANGE_3;
+		} else {
+			return 0;
+		}
 	}
 	
 	/**
@@ -365,15 +443,19 @@ public class InterestHandler extends Thread {
 		
 		for (int i = 1; i <= days; i++) {			
 			// Add balances
-			addBalancesToTotalInterest(c);	
+			addNegativeBalancesToTotalNegativeInterest(c);	
+			addPositiveBalancesToTotalPositiveInterest(c);	
 			
 			// Add a day to the calendar
 			c.add(Calendar.DATE, 1);
 			
-			System.out.println("========= " + c.getTime().toString() + " ==================================");
 			// Transfer the money
 			if (c.get(Calendar.DATE) == 1) {
-				transferInterest();
+				transferNegativeInterest();
+			}
+			
+			if (c.get(Calendar.DAY_OF_YEAR) == 1) {
+				transferPositiveInterest();
 			}
 		}		
 	}
@@ -382,7 +464,7 @@ public class InterestHandler extends Thread {
 	 * Transfers the interest values of all bank accounts that are in the map of total interest 
 	 * to the ING bank account.
 	 */
-	public static void transferInterest() {
+	public static void transferNegativeInterest() {
 		// FETCH: map
 		HashMap<String, Double> currentTotalMonthlyInterestMap = ServerDataHandler.getTotalNegativeInterestMap();
 		
@@ -410,7 +492,33 @@ public class InterestHandler extends Thread {
 		
 		// SET: map
 		setTotalNegativeInterestMap(currentTotalMonthlyInterestMap);
-		initializeLowestDailyReachMap();
+		initializeLowestNegativeDailyReachMap();
+	}
+
+	private static void transferPositiveInterest() {
+		// FETCH: map
+		HashMap<String, Double> currentTotalYearlyInterestMap = ServerDataHandler.getTotalPositiveInterestMap();
+		
+		//System.out.println("INTEREST: transfering interest from " + currentTotalMonthlyInterestMap.size() + " customers");
+		for (Entry<String, Double> entry : currentTotalYearlyInterestMap.entrySet()) {
+			BankAccount bankAccount;
+			BankAccount ingBankAccount;
+			try {
+				// Transfer the money to the ING account
+				double rounded = round(entry.getValue(), 2);
+				bankAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, entry.getKey());
+				ingBankAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, BankAccount.ING_BANK_ACCOUNT_IBAN);
+				ingBankAccount.transfer(bankAccount.getIBAN(), entry.getValue());
+			} catch (ObjectDoesNotExistException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		currentTotalYearlyInterestMap = new HashMap<>();
+		
+		// SET: map
+		setTotalPositiveInterestMap(currentTotalYearlyInterestMap);
+		initializeLowestPositiveDailyReachMap();
 	}
 
 	/**
@@ -418,7 +526,7 @@ public class InterestHandler extends Thread {
 	 * total interest map.
 	 * @param c the calendar that is used to set the previousBalanceStoring variable.
 	 */
-	public static void addBalancesToTotalInterest(Calendar c) {
+	public static void addNegativeBalancesToTotalNegativeInterest(Calendar c) {
 		// FETCH: maps
 		HashMap<String, Double> currentLowestDailyReachMap = ServerDataHandler.getNegativeLowestDailyReachMap();
 		HashMap<String, Double> currentTotalInterestMap = ServerDataHandler.getTotalNegativeInterestMap();
@@ -431,10 +539,10 @@ public class InterestHandler extends Thread {
 			double totalInterest; 
 			if (!currentTotalInterestMap.containsKey(IBAN)) {
 				currentInterest = 0;
-				totalInterest = calculateInterest(entry.getValue(), c.getActualMaximum(Calendar.DATE));
+				totalInterest = calculateNegativeInterest(entry.getValue(), c.getActualMaximum(Calendar.DATE));
 			} else {
 				currentInterest = currentTotalInterestMap.get(IBAN);
-				totalInterest = currentInterest + calculateInterest(entry.getValue(), c.getActualMaximum(Calendar.DATE));
+				totalInterest = currentInterest + calculateNegativeInterest(entry.getValue(), c.getActualMaximum(Calendar.DATE));
 			}
 			
 			System.out.println(IBAN + ": daily low: " + entry.getValue());
@@ -448,7 +556,36 @@ public class InterestHandler extends Thread {
 		
 		// Update the daily lowest reach map to the values that the customers 
 		// currently have on the account (monthly reset)
-		initializeLowestDailyReachMap();		
+		initializeLowestNegativeDailyReachMap();		
+	}
+
+	private static void addPositiveBalancesToTotalPositiveInterest(Calendar c) {
+		// FETCH: maps
+		HashMap<String, Double> currentLowestPositiveDailyReachMap = ServerDataHandler.getPositiveLowestDailyReachMap();
+		HashMap<String, Double> currentTotalPositiveInterestMap = ServerDataHandler.getTotalPositiveInterestMap();
+		
+		//System.out.println("INTEREST: adding balances for " + currentLowestDailyReachMap.size() + " customers");
+		// For all IBAN entries, add the interest to the total interest map 
+		for (Entry<String, Double> entry : currentLowestPositiveDailyReachMap.entrySet()) {
+			String IBAN = entry.getKey();
+			double currentInterest;
+			double totalInterest; 
+			if (!currentTotalPositiveInterestMap.containsKey(IBAN)) {
+				currentInterest = 0;
+				totalInterest = calculatePositiveInterest(entry.getValue());
+			} else {
+				currentInterest = currentTotalPositiveInterestMap.get(IBAN);
+				totalInterest = currentInterest + calculatePositiveInterest(entry.getValue());
+			}
+			currentTotalPositiveInterestMap.put(IBAN, totalInterest);
+		}
+		
+		// SET: maps
+		setTotalPositiveInterestMap(currentTotalPositiveInterestMap);
+		
+		// Update the daily lowest reach map to the values that the customers 
+		// currently have on the account (monthly reset)
+		initializeLowestNegativeDailyReachMap();
 	}
 
 	/**
@@ -478,7 +615,7 @@ public class InterestHandler extends Thread {
 	 * @param c the Calendar that is used to check if it is the time to transfer the money
 	 * @return true if it is the time, false otherwise
 	 */
-	public static boolean isTimeToTransfer(Calendar c) {
+	public static boolean isTimeToTransferNegativeInterest(Calendar c) {
 		// Check if it is the last of the month
 		boolean firstOfMonth = c.get(Calendar.DATE) == 1;
 		
@@ -493,14 +630,33 @@ public class InterestHandler extends Thread {
 		return firstOfMonth && !didTransferThisMonth && storedBalances;
 	}
 	
+	public static boolean isTimeToTransferPositiveInterest(Calendar c) {
+		// Check if it is the first of the year
+		boolean isFirstOfYear = c.get(Calendar.DAY_OF_YEAR) == 1;
+		
+		// Check if we haven't transfered this year
+		Calendar lastTransfer = previousPositiveInterestExecution;
+		boolean didTransferThisYear = c.get(Calendar.YEAR) == lastTransfer.get(Calendar.YEAR);
+		
+		// Check if we've already added the daily lowest positive balances to the map
+		boolean storedBalances = previousPositiveBalanceStoring.get(Calendar.DATE) == 1;
+		
+		return isFirstOfYear && !didTransferThisYear && storedBalances;
+	}
+	
 	/**
 	 * Resets the system to the initial state.
 	 */
 	public static void reset() {
 		setTotalNegativeInterestMap(new HashMap<String, Double>());
 		setNegativeLowestDailyReachMap(new HashMap<String, Double>());
-		setPreviousBalanceStoringDate();
-		setPreviousInterestExecutionDate();
+		setTotalPositiveInterestMap(new HashMap<String, Double>());
+		setPositiveLowestDailyReachMap(new HashMap<String, Double>());
+		
+		setPreviousNegativeBalanceStoringDate();
+		setPreviousNegativeInterestExecutionDate();
+		setPreviousPositiveBalanceStoringDate();
+		setPreviousPositiveInterestExecutionDate();
 	}
 
 }

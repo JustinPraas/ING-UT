@@ -273,6 +273,39 @@ public class BankAccount implements database.DBObject {
 	}
 
 	/**
+	 * Used by the ING bank account to transfer interest to savings accounts.
+	 * @param IBAN
+	 * @param amount
+	 */
+	public void transfer(String IBAN, double amount) {
+		BankAccount destination = null;
+		if (!DataManager.isPrimaryKeyUnique(BankAccount.CLASSNAME, BankAccount.PRIMARYKEYNAME, IBAN)) {
+			try {
+				destination = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, IBAN);
+				destination.getSavingsAccount().debit(amount);
+				destination.saveToDB();
+			} catch (ObjectDoesNotExistException | IllegalAmountException e) {
+				System.err.println(e.toString());
+				return;
+			}
+		}		
+		
+		Calendar c = Calendar.getInstance();		
+		// Add simulated days 
+		c.add(Calendar.DATE, Client.getSimulatedDays());
+		
+		String date = c.getTime().toString();
+		Transaction t = new Transaction();
+		t.setDateTime(date);
+		t.setDateTimeMilis(c.getTimeInMillis());
+		t.setSourceIBAN(this.getIBAN());
+		t.setDestinationIBAN(savingsAccount.getIBAN() + "S");
+		t.setAmount(amount);
+		t.setDescription("Interest on savings account.");
+		t.saveToDB();
+	}
+
+	/**
 	 * Transfers a specific amount of money from this <code>BankAccount</code> to another.
 	 * @param destination The <code>BankAccount</code> to which the transferred money should go
 	 * @param amount The amount of money to be transferred from this <code>BankAccount</code> to the destination
@@ -307,7 +340,7 @@ public class BankAccount implements database.DBObject {
 		t.saveToDB();
 		this.saveToDB();
 		destination.saveToDB();
-		InterestHandler.setLowestDailyReachMapEntry(IBAN, balance);
+		InterestHandler.setLowestNegativeDailyReachMapEntry(IBAN, balance);
 	}
 
 	public void transfer(String destinationIBAN, double amount, String description) throws IllegalAmountException, InsufficientFundsTransferException,
@@ -361,7 +394,7 @@ public class BankAccount implements database.DBObject {
 			destination.debit(amount);
 			destination.saveToDB();
 		}
-		InterestHandler.setLowestDailyReachMapEntry(IBAN, balance);
+		InterestHandler.setLowestNegativeDailyReachMapEntry(IBAN, balance);
 	}
 	
 	/**
@@ -400,7 +433,7 @@ public class BankAccount implements database.DBObject {
 		t.saveToDB();
 		this.saveToDB();
 		destination.saveToDB();
-		InterestHandler.setLowestDailyReachMapEntry(IBAN, balance);
+		InterestHandler.setLowestNegativeDailyReachMapEntry(IBAN, balance);
 	}
 	
 	public void transfer(BankAccount destination, double amount, String description, String targetName) throws IllegalAmountException, IllegalTransferException, ExceedOverdraftLimitException {
@@ -433,7 +466,7 @@ public class BankAccount implements database.DBObject {
 		t.saveToDB();
 		this.saveToDB();
 		destination.saveToDB();
-		InterestHandler.setLowestDailyReachMapEntry(IBAN, balance);
+		InterestHandler.setLowestNegativeDailyReachMapEntry(IBAN, balance);
 	}
 	
 	/**
