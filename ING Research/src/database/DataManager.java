@@ -200,6 +200,7 @@ public class DataManager {
 		session.createNativeQuery("DROP TABLE customerbankaccounts").executeUpdate();
 		session.createNativeQuery("DROP TABLE debitcards").executeUpdate();
 		session.createNativeQuery("DROP TABLE transactions").executeUpdate();
+		session.createNativeQuery("DROP TABLE savingsaccounts").executeUpdate();
 		t.commit();
 		session.close();
 		init();
