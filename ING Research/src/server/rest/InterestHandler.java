@@ -11,8 +11,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
-import javax.xml.crypto.Data;
-
 import accounts.BankAccount;
 import database.DataManager;
 import database.SQLiteDB;
@@ -55,7 +53,7 @@ public class InterestHandler extends Thread {
 	
 	private static final double DAILY_INTEREST_RATE_RANGE_2 = 0.00000411;
 	
-	private static final double DAILY_INTEREST_RATE_RANGE_3 = 0.000005479;
+	private static final double DAILY_INTEREST_RATE_RANGE_3 = 0.0000054795;
 	
 	/**
 	 * A map that keeps track of the lowest daily balances of accounts.
@@ -441,6 +439,9 @@ public class InterestHandler extends Thread {
 	 */
 	public static void calculateTimeSimulatedInterest(int days) {
 		Calendar c = ServerModel.getServerCalendar();
+		
+		initializeLowestNegativeDailyReachMap();
+		initializeLowestPositiveDailyReachMap();
 		
 		for (int i = 1; i <= days; i++) {	
 			System.out.println("============" + c.getTime().toString() + "===========");			

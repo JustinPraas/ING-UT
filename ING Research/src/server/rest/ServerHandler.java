@@ -409,7 +409,7 @@ public class ServerHandler {
 		HashMap<String, Object> resp = new HashMap<>();
 		
 		// Wipe all data from database
-		DataManager.wipeAllData(true);
+		DataManager.wipeAllData();
 		ServerModel.resetSimulatedDays();
 		InterestHandler.reset();
 		
