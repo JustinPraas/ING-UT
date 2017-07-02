@@ -53,7 +53,6 @@ public class DataManager {
 		if (!initialized) {
     		init();
     		initialized = true;
-    		BankAccount.setUpINGaccount();
     	}	
 	}
     
@@ -191,7 +190,7 @@ public class DataManager {
     	return true;
     }
 
-	public static void wipeAllData(boolean createINGAccount) {
+	public static void wipeAllData() {
 		initIfRequired();
 		Session session = factory.openSession();
 		Transaction t = session.beginTransaction();
@@ -205,8 +204,6 @@ public class DataManager {
 		session.close();
 		init();
 		
-		if (createINGAccount) {
-    		BankAccount.setUpINGaccount();
-		}		
+		BankAccount.setUpINGaccount();
 	}
 }
