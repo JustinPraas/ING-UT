@@ -287,7 +287,7 @@ public class InterestHandlerTest {
 		// 23:50, 01/01/2018, stored balances
 		c.setTimeInMillis(1514810700000L);
 		InterestHandler.setPreviousBalanceStoringDate(c);		
-		assertTrue(InterestHandler.isTimeToTransferNegativeInterest(c));		
+		assertFalse(InterestHandler.isTimeToTransferNegativeInterest(c));		
 		
 	}
 	
