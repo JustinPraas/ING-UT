@@ -40,7 +40,7 @@ public class InterestHandlerTest {
 		// Reset all data
 		InterestHandler.reset();
 		ServerModel.resetSimulatedDays();
-		DataManager.wipeAllData(true);	
+		DataManager.wipeAllData();	
 		
 		// Set up necessary data
 		startOfYear.setTimeInMillis(1483225320000L);
@@ -353,6 +353,6 @@ public class InterestHandlerTest {
 		// Reset all data
 		InterestHandler.reset();
 		ServerModel.resetSimulatedDays();
-		DataManager.wipeAllData(true);	
+		DataManager.wipeAllData();	
 	}
 }
