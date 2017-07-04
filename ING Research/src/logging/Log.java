@@ -2,13 +2,14 @@ package logging;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
 import database.DataManager;
 
 @Entity
-@Table(name = "log")
+@Table(name = "logs")
 public class Log implements database.DBObject {
 	
 	private long timestamp;
@@ -18,7 +19,7 @@ public class Log implements database.DBObject {
 	public static final String CLASSNAME = "logging.Log";
 	public static final String PRIMARYKEYNAME = "timestamp";
 	
-	public enum Type {SUCCESS, WARNING, ERROR, INFO}
+	public enum Type {SUCCESS, INFO, WARNING, ERROR}
 	
 	public Log() {
 		
@@ -30,6 +31,7 @@ public class Log implements database.DBObject {
 		this.type = type;
 	}
 
+	@Id
 	@Column(name = "balance")
 	public long getTimestamp() {
 		return timestamp;
