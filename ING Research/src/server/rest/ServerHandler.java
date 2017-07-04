@@ -5,6 +5,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -44,6 +45,7 @@ import exceptions.IllegalTransferException;
 import exceptions.InvalidPINException;
 import exceptions.ObjectDoesNotExistException;
 import exceptions.PinCardBlockedException;
+import logging.Logger;
 
 @Path("/banking")
 public class ServerHandler {
@@ -117,6 +119,8 @@ public class ServerHandler {
 			return setOverdraftLimit(jReq);
 		case "getOverdraftLimit":
 			return getOverdraftLimit(jReq);
+		case "getEventLogs":
+			return getEventLog(jReq);
 		default:
 			String err = buildError(-32601, "The requested remote-procedure does not exist.");
 			return respondError(err, 500);
@@ -148,6 +152,39 @@ public class ServerHandler {
 	public static Response respondError(String jResp, int code) {
 		return Response.status(500).entity(jResp).build();	
 	}
+	
+	private static Response getOverdraftLimit(JSONRPC2Request jReq) {
+		HashMap<String, Object> params = (HashMap<String, Object>) jReq.getNamedParams();	
+		
+		// Check Request validity, return an error Response if the Request is invalid
+		Response invalidRequest = RequestValidator.isValidGetOverdraftLimitRequest(params);
+		if (invalidRequest != null) {
+			return invalidRequest;
+		}
+
+		String authToken = (String) params.get("authToken");
+		String IBAN = (String) params.get("iBAN");		
+
+		CustomerAccount customerAccount = accounts.get(authToken);
+		BankAccount bankAccount;
+		try {
+			bankAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, IBAN);
+		} catch (ObjectDoesNotExistException e) {
+			String err = buildError(418, "One or more parameter has an invalid value. See message. \n" + e.toString());
+			return respondError(err, 500);
+		}
+		
+		if (!RequestValidator.userOwnsBankAccount(customerAccount, bankAccount)) {
+			String err = buildError(419, "The authenticated user is not authorized to perform this action. You can not peek at the overdraft limit of another person's bank account.");
+			return respondError(err, 500);
+		}
+		
+		HashMap<String, Object> resp = new HashMap<>();	
+		resp.put("overdraftLimit", Double.toString(bankAccount.getOverdraftLimit()));
+		
+		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
+		return respond(jResp.toJSONString());
+	}	
 	
 	private static Response openSavingsAccount(JSONRPC2Request jReq) {
 		HashMap<String, Object> params = (HashMap<String, Object>) jReq.getNamedParams();	
@@ -243,34 +280,26 @@ public class ServerHandler {
 		}
 	}
 
-	private static Response getOverdraftLimit(JSONRPC2Request jReq) {
+	private static Response getEventLog(JSONRPC2Request jReq) {
 		HashMap<String, Object> params = (HashMap<String, Object>) jReq.getNamedParams();	
 		
 		// Check Request validity, return an error Response if the Request is invalid
-		Response invalidRequest = RequestValidator.isValidGetOverdraftLimitRequest(params);
+		Response invalidRequest = RequestValidator.isValidGetEventLogRequest(params);
 		if (invalidRequest != null) {
 			return invalidRequest;
 		}
 
-		String authToken = (String) params.get("authToken");
-		String IBAN = (String) params.get("iBAN");		
+		String startString = (String) params.get("startDate");	
+		String endString = (String) params.get("endDate");
 
-		CustomerAccount customerAccount = accounts.get(authToken);
-		BankAccount bankAccount;
+		ArrayList<HashMap<String, Object>> resp;
+		
 		try {
-			bankAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, IBAN);
-		} catch (ObjectDoesNotExistException e) {
-			String err = buildError(418, "One or more parameter has an invalid value. See message. \n" + e.toString());
-			return respondError(err, 500);
+			resp = Logger.getEventLogs(startString, endString);
+		} catch (ParseException e) {
+			String err = ServerHandler.buildError(418, "One or more parameter has an invalid value. See message.", "One of the given dates is not in the format yyyy-MM-dd");
+			return ServerHandler.respondError(err, 500);
 		}
-		
-		if (!RequestValidator.userOwnsBankAccount(customerAccount, bankAccount)) {
-			String err = buildError(419, "The authenticated user is not authorized to perform this action. You can not peek at the overdraft limit of another person's bank account.");
-			return respondError(err, 500);
-		}
-		
-		HashMap<String, Object> resp = new HashMap<>();	
-		resp.put("overdraftLimit", Double.toString(bankAccount.getOverdraftLimit()));
 		
 		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
 		return respond(jResp.toJSONString());

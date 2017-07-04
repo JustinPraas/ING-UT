@@ -1,7 +1,13 @@
 package server.rest;
 
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Formatter;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.SimpleFormatter;
 
 import javax.ws.rs.core.Response;
 
@@ -402,6 +408,31 @@ public class RequestValidator {
 		// If the IBAN is invalid, stop and notify the client
 		if (!InputValidator.isValidIBAN((String) params.get("iBAN"))) {
 			return invalidIBANResponse((String) params.get("iBAN"));
+		}
+		
+		return null;
+	}
+
+	public static Response isValidGetEventLogRequest(HashMap<String, Object> params) {
+		// If we're missing required parameters, stop and notify the client
+		if (!(params.containsKey("startDate") && params.containsKey("endDate"))) {
+			return invalidMethodParametersResponse();
+		}
+		
+		DateFormat fm = new SimpleDateFormat("yyyy-MM-dd");
+		Date startDate;
+		Date endDate;
+		try {
+			startDate = fm.parse((String) params.get("startDate"));
+			endDate = fm.parse((String) params.get("endDate"));
+		} catch (ParseException e) {
+			String err = ServerHandler.buildError(418, "One or more parameter has an invalid value. See message.", "One of the given dates is not in the format yyyy-MM-dd");
+			return ServerHandler.respondError(err, 500);
+		}
+		
+		if (endDate.before(startDate)) {
+			String err = ServerHandler.buildError(418, "One or more parameter has an invalid value. See message.", "The given end date come before the start date.");
+			return ServerHandler.respondError(err, 500);
 		}
 		
 		return null;
