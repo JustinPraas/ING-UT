@@ -41,6 +41,7 @@ public class DataManager {
     	cfg.addAnnotatedClass(CustomerAccount.class);
     	cfg.addAnnotatedClass(SavingsAccount.class);
     	cfg.addAnnotatedClass(accounts.Transaction.class);
+    	cfg.addAnnotatedClass(logging.Log.class);
     	factory = cfg.buildSessionFactory();
     }
     
@@ -200,6 +201,7 @@ public class DataManager {
 		session.createNativeQuery("DROP TABLE debitcards").executeUpdate();
 		session.createNativeQuery("DROP TABLE transactions").executeUpdate();
 		session.createNativeQuery("DROP TABLE savingsaccounts").executeUpdate();
+		session.createNativeQuery("DROP TABLE logs").executeUpdate();
 		t.commit();
 		session.close();
 		init();
