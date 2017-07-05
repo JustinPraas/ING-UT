@@ -34,7 +34,7 @@ public class RequestValidator {
 			Double.parseDouble((String) params.get("overdraftLimit"));
 		} catch (NumberFormatException e) {
 			String err = ServerHandler.buildError(418, "One or more parameter has an invalid value. See message.", (String) params.get("overdraftLimit") + " is not a valid overdraft limit.");
-			return ServerHandler.respondError(err, 500);
+			return ServerHandler.respondError(err, 500, jReq.getMethod());
 		}
 		
 		return null;
@@ -84,13 +84,13 @@ public class RequestValidator {
 		// If input is invalid (i.e. not a numerical value)
 		if (!InputValidator.isNumericalOnly((String) params.get("nrOfDays"))) {
 			String err = ServerHandler.buildError(418, "One or more parameter has an invalid value. See message.", (String) params.get("nrOfDays") + " is not a valid number.");
-			return ServerHandler.respondError(err, 500);
+			return ServerHandler.respondError(err, 500, jReq.getMethod());
 		}
 		
 		// If input is negative...
 		if (Integer.parseInt((String) params.get("nrOfDays")) <= 0) {
 			String err = ServerHandler.buildError(418, "One or more parameter has an invalid value. See message.", (String) params.get("nrOfDays") + " is equal to or less than 0.");
-			return ServerHandler.respondError(err, 500);
+			return ServerHandler.respondError(err, 500, jReq.getMethod());
 		}
 		
 		return null;
@@ -140,22 +140,22 @@ public class RequestValidator {
 		// Check some of the param values for validity
 		if (!InputValidator.isValidEmailAddress((String) params.get("email"))) {
 			String err = ServerHandler.buildError(418, "One or more parameter has an invalid value. See message.", params.get("email") + " is not a valid email address.");
-			return ServerHandler.respondError(err, 500);
+			return ServerHandler.respondError(err, 500, jReq.getMethod());
 		}
 		
 		if (!InputValidator.isValidBSN((String) params.get("ssn"))) {
 		    String err = ServerHandler.buildError(418, "One or more parameter has an invalid value. See message.", params.get("BSN") + " is not a valid BSN.");
-		    return ServerHandler.respondError(err, 500);
+		    return ServerHandler.respondError(err, 500, jReq.getMethod());
 		}
 		
 		if (!InputValidator.isValidName((String) params.get("username"))) {
 		    String err = ServerHandler.buildError(418, "One or more parameter has an invalid value. See message.", "Username " + params.get("username") + " contains invalid characters.");
-		    return ServerHandler.respondError(err, 500);
+		    return ServerHandler.respondError(err, 500, jReq.getMethod());
 		}
 		
 		if (!InputValidator.isValidPhoneNumber((String) params.get("telephoneNumber"))) {
 		    String err = ServerHandler.buildError(418, "One or more parameter has an invalid value. See message.", "Username " + params.get("username") + " contains invalid characters.");
-		    return ServerHandler.respondError(err, 500);
+		    return ServerHandler.respondError(err, 500, jReq.getMethod());
 		}
 		
 		return null;
@@ -309,7 +309,7 @@ public class RequestValidator {
 		String newPinCodeString = (String) params.get("newPin");
 		if (!newPinCodeString.equals("yes") && !newPinCodeString.equals("no")) {
 			String err = ServerHandler.buildError(418, "One or more parameter has an invalid value. See message.", "'" + newPinCodeString + "' is not a valid boolean representation.");
-			return ServerHandler.respondError(err, 500);
+			return ServerHandler.respondError(err, 500, jReq.getMethod());
 		}
 		
 		// If this is a bogus auth token, slap the client
@@ -393,7 +393,7 @@ public class RequestValidator {
 			Integer.parseInt((String) params.get("nrOfTransactions"));
 		} catch (NumberFormatException e) {
 			String err = ServerHandler.buildError(418, "One or more parameter has an invalid value. See message.", (String) params.get("nrOfTransactions") + " is not a valid amount.");
-			return ServerHandler.respondError(err, 500);
+			return ServerHandler.respondError(err, 500, jReq.getMethod());
 		}
 		
 		return null;
@@ -427,12 +427,12 @@ public class RequestValidator {
 			endDate = fm.parse((String) params.get("endDate"));
 		} catch (ParseException e) {
 			String err = ServerHandler.buildError(418, "One or more parameter has an invalid value. See message.", "One of the given dates is not in the format yyyy-MM-dd");
-			return ServerHandler.respondError(err, 500);
+			return ServerHandler.respondError(err, 500, jReq.getMethod());
 		}
 		
 		if (endDate.before(startDate)) {
 			String err = ServerHandler.buildError(418, "One or more parameter has an invalid value. See message.", "The given end date come before the start date.");
-			return ServerHandler.respondError(err, 500);
+			return ServerHandler.respondError(err, 500, jReq.getMethod());
 		}
 		
 		return null;
@@ -449,31 +449,31 @@ public class RequestValidator {
 
 	private static Response invalidMethodParametersResponse() {
 		String err = ServerHandler.buildError(-32602, "Invalid method parameters.");
-		return ServerHandler.respondError(err, 500);
+		return ServerHandler.respondError(err, 500, jReq.getMethod());
 	}
 
 	private static Response invalidIBANResponse(String IBAN) {
 		String err = ServerHandler.buildError(418, "One or more parameter has an invalid value. See message.", IBAN + " is not a valid IBAN.");
-		return ServerHandler.respondError(err, 500);
+		return ServerHandler.respondError(err, 500, jReq.getMethod());
 	}
 
 	private static Response invalidPinCardResponse(String pinCard) {
 		String err = ServerHandler.buildError(418, "One or more parameter has an invalid value. See message.", pinCard+ " is not a valid card number.");
-		return ServerHandler.respondError(err, 500);
+		return ServerHandler.respondError(err, 500, jReq.getMethod());
 	}
 
 	private static Response invalidAuthTokenResponse() {
 		String err = ServerHandler.buildError(419, "The authenticated user is not authorized to perform this action. Invalid authentication token.");
-		return ServerHandler.respondError(err, 500);
+		return ServerHandler.respondError(err, 500, jReq.getMethod());
 	}
 
 	private static Response invalidAmountResponse(String amount) {
 		String err = ServerHandler.buildError(418, "One or more parameter has an invalid value. See message.", amount + " is not a valid amount.");
-		return ServerHandler.respondError(err, 500);
+		return ServerHandler.respondError(err, 500, jReq.getMethod());
 	}
 
 	private static Response invalidPinCodeResponse(String pinCode) {
 		String err = ServerHandler.buildError(418, "One or more parameter has an invalid value. See message.", pinCode + " is not a valid PIN.");
-		return ServerHandler.respondError(err, 500);
+		return ServerHandler.respondError(err, 500, jReq.getMethod());
 	}
 }
