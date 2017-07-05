@@ -137,7 +137,7 @@ public class ServerHandler {
 	}
 	
 	public static String buildError(int code, String message, String data) {
-		Logger.addMethodErrorLog(message, code);
+		Logger.addMethodErrorLog(message + " " + data, code);
 		JSONRPC2Error jErr = new JSONRPC2Error(code, message, data);
 		JSONRPC2Response jResp = new JSONRPC2Response(jErr, "response-" + java.lang.System.currentTimeMillis());
 		return jResp.toJSONString();
@@ -150,6 +150,7 @@ public class ServerHandler {
 	}
 
 	public static Response respond(String jResp, String methodName) {
+		Logger.addMethodSuccessLog(methodName);
 		return Response.status(200).entity(jResp).build();
 	}
 	
@@ -183,7 +184,6 @@ public class ServerHandler {
 		}
 		
 		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
-		Logger.addMethodSuccessLog(jReq.getMethod());
 		return respond(jResp.toJSONString(), jReq.getMethod());
 	}
 
