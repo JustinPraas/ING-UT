@@ -7,7 +7,6 @@ import com.thetransactioncompany.jsonrpc2.*;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.security.KeyStore.Entry;
 import java.util.*;
 
 import org.apache.hc.client5.http.impl.sync.CloseableHttpClient;
@@ -184,6 +183,7 @@ public class MessageHandler {
 				return;
 			}
 			
+			@SuppressWarnings("unchecked")
 			ArrayList<HashMap<String, Object>> results = (ArrayList<HashMap<String, Object>>) jResp.getResult();
 			
 			System.out.println("Error logs: " + results.size());
