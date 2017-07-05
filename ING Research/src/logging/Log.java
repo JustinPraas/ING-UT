@@ -14,7 +14,7 @@ public class Log implements database.DBObject {
 	
 	private long timestamp;
 	private String message;
-	private Type type;
+	private String type;
 	
 	public static final String CLASSNAME = "logging.Log";
 	public static final String PRIMARYKEYNAME = "timestamp";
@@ -28,11 +28,11 @@ public class Log implements database.DBObject {
 	public Log(long timestamp, Type type, String message) {
 		this.timestamp = timestamp;
 		this.message = message;
-		this.type = type;
+		this.type = type.name();
 	}
 
 	@Id
-	@Column(name = "balance")
+	@Column(name = "timestamp")
 	public long getTimestamp() {
 		return timestamp;
 	}
@@ -51,11 +51,15 @@ public class Log implements database.DBObject {
 	}
 
 	@Column(name = "type")
-	public Type getType() {
+	public String getType() {
 		return type;
 	}
 
 	public void setType(Type type) {
+		this.type = type.name();
+	}
+	
+	public void setType(String type) {
 		this.type = type;
 	}
 	

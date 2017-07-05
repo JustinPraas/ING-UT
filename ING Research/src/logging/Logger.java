@@ -8,12 +8,9 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
-
-import com.thetransactioncompany.jsonrpc2.JSONRPC2Request;
-import com.thetransactioncompany.jsonrpc2.JSONRPC2Response;
+import java.util.Map;
 
 import database.SQLiteDB;
 import logging.Log.Type;
@@ -23,7 +20,7 @@ public class Logger {
     
 	public static ArrayList<Log> getLogs(String startDate, String endDate) throws ParseException {
     	long start = parseDateToMillis(startDate);
-    	long end = parseDateToMillis(endDate) + 3600000 /*add one day so the criteria 'between' can be used*/;
+    	long end = parseDateToMillis(endDate) + 1000 * 3600 * 24 /*add one day so the criteria 'between' can be used*/;
 
 		ArrayList<Log> result = new ArrayList<>();
     	Connection c = SQLiteDB.openConnection();	
@@ -37,7 +34,7 @@ public class Logger {
 				Log log = new Log();
 				log.setMessage(rs.getString("message"));
 				log.setTimestamp(Long.parseLong(rs.getString("timestamp")));
-				log.setType(Type.valueOf(rs.getString("type")));
+				log.setType(rs.getString("type"));
 				result.add(log);
 			}
 		} catch (NumberFormatException | SQLException e) {
@@ -75,20 +72,27 @@ public class Logger {
 		log.saveToDB();
 	}
 	
-	public static void addMethodRequestLog(String methodName) {
-		Logger.addLogToDB(ServerModel.getServerCalendar().getTimeInMillis(), Type.INFO, "Requested method: " + methodName);
+	public static void addMethodRequestLog(String methodName, Map<String, Object> params) {
+		ArrayList<Map.Entry<String, Object>> parameters = new ArrayList<>();
+		
+		for (Map.Entry<String, Object> entry : params.entrySet()) {
+			parameters.add(entry);
+		}
+		
+		Logger.addLogToDB(ServerModel.getServerCalendar().getTimeInMillis(), Type.INFO, "Requested method: " + methodName + " with parameters: " + parameters);
 	}
 	
 	public static void addMethodSuccessLog(String methodName) {
 		Logger.addLogToDB(ServerModel.getServerCalendar().getTimeInMillis(), Type.SUCCESS, "Successfully responded to requested method: " + methodName);
 	}
 	
-	public static void addMethodErrorLog(String methodName, String err) {		
-		String logMessage = "An error occurred when processing the requested method " + methodName + ": " + err;  
+	public static void addMethodErrorLog(String methodName, String err, int code) {		
+		String logMessage = "(Code " + code + ") An error occurred when processing the requested method " + methodName + ": " + err;  
 		Logger.addLogToDB(ServerModel.getServerCalendar().getTimeInMillis(), Type.ERROR, logMessage);
 	}
 
-	public static void addMethodErrorLog(String err) {
-		Logger.addLogToDB(ServerModel.getServerCalendar().getTimeInMillis(), Type.ERROR, err);
+	public static void addMethodErrorLog(String err, int code) {
+		String logMessage = "(Code " + code + ") " + err;
+		Logger.addLogToDB(ServerModel.getServerCalendar().getTimeInMillis(), Type.ERROR, logMessage);
 	}
 }

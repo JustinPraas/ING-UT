@@ -27,7 +27,6 @@ import com.thetransactioncompany.jsonrpc2.JSONRPC2ParseException;
 import com.thetransactioncompany.jsonrpc2.JSONRPC2Request;
 import com.thetransactioncompany.jsonrpc2.JSONRPC2Response;
 
-import org.apache.catalina.filters.AddDefaultCharsetFilter;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
 
@@ -46,7 +45,6 @@ import exceptions.IllegalTransferException;
 import exceptions.InvalidPINException;
 import exceptions.ObjectDoesNotExistException;
 import exceptions.PinCardBlockedException;
-import logging.Log.Type;
 import logging.Logger;
 
 @Path("/banking")
@@ -71,11 +69,11 @@ public class ServerHandler {
 			jReq = JSONRPC2Request.parse(request);
 		} catch (JSONRPC2ParseException e) {
 			String err = buildError(-32700, "An error occurred while parsing the JSON input.");
-			Logger.addMethodErrorLog(err);
-			return respondError(err, 500, jReq.getMethod());
+			return respondError(err);
 		}
 		
 		method = jReq.getMethod();
+		Logger.addMethodRequestLog(method, jReq.getNamedParams());
 		
 		switch(method) {
 		case "openAccount":
@@ -126,41 +124,44 @@ public class ServerHandler {
 			return getEventLog(jReq);
 		default:
 			String err = buildError(-32601, "The requested remote-procedure does not exist.");
-			Logger.addMethodErrorLog(jReq.getMethod(), err);
-			return respondError(err, 500, jReq.getMethod());
+			Logger.addMethodErrorLog(jReq.getMethod(), err, -32601);
+			return respondError(err);
 		}
 	}
 
 	public static String buildError(int code, String message) {
+		Logger.addMethodErrorLog(message, code);
 		JSONRPC2Error jErr = new JSONRPC2Error(code, message);
 		JSONRPC2Response jResp = new JSONRPC2Response(jErr, "response-" + java.lang.System.currentTimeMillis());
 		return jResp.toJSONString();
 	}
 	
 	public static String buildError(int code, String message, String data) {
+		Logger.addMethodErrorLog(message, code);
 		JSONRPC2Error jErr = new JSONRPC2Error(code, message, data);
 		JSONRPC2Response jResp = new JSONRPC2Response(jErr, "response-" + java.lang.System.currentTimeMillis());
 		return jResp.toJSONString();
 	}
 	
-	private static Response sendEmptyResult() {
+	private static Response sendEmptyResult(String methodName) {
 		HashMap<String, Object> resp = new HashMap<>();			
 		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
-		return respond(jResp.toJSONString());
+		return respond(jResp.toJSONString(), methodName);
 	}
 
-	public  static Response respond(String jResp) {
+	public static Response respond(String jResp, String methodName) {
 		return Response.status(200).entity(jResp).build();
 	}
 	
-	public static Response respondError(String error, int code, String methodName) {
-		Response response = Response.status(500).entity(error).build();
-		Logger.addMethodErrorLog(methodName, error);
-		return response;	
+	public static Response respondError(String error) {
+		return Response.status(500).entity(error).build();	
 	}
 	
+	public static Response respondError(String error, int code) {
+		return Response.status(code).entity(error).build();
+	}
+
 	private static Response getEventLog(JSONRPC2Request jReq) {
-		Logger.addMethodRequestLog(jReq);
 		HashMap<String, Object> params = (HashMap<String, Object>) jReq.getNamedParams();	
 		
 		// Check Request validity, return an error Response if the Request is invalid
@@ -178,16 +179,16 @@ public class ServerHandler {
 			resp = Logger.getEventLogs(startString, endString);
 		} catch (ParseException e) {
 			String err = ServerHandler.buildError(418, "One or more parameter has an invalid value. See message.", "One of the given dates is not in the format yyyy-MM-dd");
-			return ServerHandler.respondError(err, 500, jReq.getMethod());
+			return ServerHandler.respondError(err);
 		}
 		
 		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
 		Logger.addMethodSuccessLog(jReq.getMethod());
-		return respond(jResp.toJSONString());
+		return respond(jResp.toJSONString(), jReq.getMethod());
 	}
 
 	private static Response getOverdraftLimit(JSONRPC2Request jReq) {
-		HashMap<String, Object> params = (HashMap<String, Object>) jReq.getNamedParams();	
+		HashMap<String, Object> params = (HashMap<String, Object>) jReq.getNamedParams();
 		
 		// Check Request validity, return an error Response if the Request is invalid
 		Response invalidRequest = RequestValidator.isValidGetOverdraftLimitRequest(params);
@@ -204,19 +205,19 @@ public class ServerHandler {
 			bankAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, IBAN);
 		} catch (ObjectDoesNotExistException e) {
 			String err = buildError(418, "One or more parameter has an invalid value. See message. \n" + e.toString());
-			return respondError(err, 500, jReq.getMethod());
+			return respondError(err);
 		}
 		
 		if (!RequestValidator.userOwnsBankAccount(customerAccount, bankAccount)) {
 			String err = buildError(419, "The authenticated user is not authorized to perform this action. You can not peek at the overdraft limit of another person's bank account.");
-			return respondError(err, 500, jReq.getMethod());
+			return respondError(err);
 		}
 		
 		HashMap<String, Object> resp = new HashMap<>();	
 		resp.put("overdraftLimit", Double.toString(bankAccount.getOverdraftLimit()));
 		
 		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
-		return respond(jResp.toJSONString());
+		return respond(jResp.toJSONString(), jReq.getMethod());
 	}	
 	
 	private static Response openSavingsAccount(JSONRPC2Request jReq) {
@@ -238,27 +239,27 @@ public class ServerHandler {
 			bankAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, IBAN);
 		} catch (ObjectDoesNotExistException e) {
 			String err = buildError(500, "An unexpected error occured, see error details", "A bank account with the given IBAN does not exist.");
-			return respondError(err, 500, jReq.getMethod());
+			return respondError(err);
 		}
 		
 		if (!RequestValidator.userOwnsBankAccount(customerAccount, bankAccount)) {
 			String err = buildError(419, "The authenticated user is not authorized to perform this action. You can not peek at the overdraft limit of another person's bank account.");
-			return respondError(err, 500, jReq.getMethod());
+			return respondError(err);
 		}
 		
 		// Check if the bank account is closed
 		if (bankAccount.getClosed()) {
 			String err = buildError(419, "The authenticated user is not authorized to perform this action. The main bank account is closed.");
-			return respondError(err, 500, jReq.getMethod());	
+			return respondError(err);	
 		} else {
 			// Check if savings account is closed
 			if (bankAccount.getSavingsAccount().isClosed()) {
 				bankAccount.getSavingsAccount().setClosed(false);
 				bankAccount.getSavingsAccount().saveToDB();
-				return sendEmptyResult();
+				return sendEmptyResult(jReq.getMethod());
 			} else {
 				String err = buildError(420, "The action has no effect. See message.", "The savings account is already open.");
-				return respondError(err, 500, jReq.getMethod());
+				return respondError(err);
 			}			
 		}
 	}
@@ -282,18 +283,18 @@ public class ServerHandler {
 			bankAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, IBAN);
 		} catch (ObjectDoesNotExistException e) {
 			String err = buildError(500, "An unexpected error occured, see error details", "A bank account with the given IBAN does not exist.");
-			return respondError(err, 500, jReq.getMethod());
+			return respondError(err);
 		}
 		
 		if (!RequestValidator.userOwnsBankAccount(customerAccount, bankAccount)) {
 			String err = buildError(419, "The authenticated user is not authorized to perform this action. You can not peek at the overdraft limit of another person's bank account.");
-			return respondError(err, 500, jReq.getMethod());
+			return respondError(err);
 		}
 		
 		// Check if the savings account is already closed
 		if (bankAccount.getSavingsAccount().isClosed()) {
 			String err = buildError(420, "The action has no effect. See message.", "The savings account is already closed.");
-			return respondError(err, 500, jReq.getMethod());
+			return respondError(err);
 		} else {
 			// Transfer the balance of the savings account to the real account
 			double savingsBalance = bankAccount.getSavingsAccount().getBalance();
@@ -309,7 +310,7 @@ public class ServerHandler {
 			// Close account 
 			bankAccount.getSavingsAccount().setClosed(true);
 			bankAccount.getSavingsAccount().saveToDB();
-			return sendEmptyResult();
+			return sendEmptyResult(jReq.getMethod());
 		}
 	}
 
@@ -336,24 +337,24 @@ public class ServerHandler {
 			bankAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, IBAN);
 		} catch (ObjectDoesNotExistException e) {
 			String err = buildError(418, "One or more parameter has an invalid value. See message. \n" + e.toString());
-			return respondError(err, 500, jReq.getMethod());
+			return respondError(err);
 		}
 		
 		// Check if the user actually owns the bank account
 		if (!RequestValidator.userOwnsBankAccount(customerAccount, bankAccount)) {
 			String err = buildError(419, "The authenticated user is not authorized to perform this action. You can not change the overdraft limit for someone else's bank account.");
-			return respondError(err, 500, jReq.getMethod());
+			return respondError(err);
 		}
 		
 		if (overdraftLimit < 0f) {
 			String err = buildError(418, "One or more parameter has an invalid value. See message.", "The overdraft limit cannot be less than 0");
-			return respondError(err, 500, jReq.getMethod());
+			return respondError(err);
 		} else if (overdraftLimit == bankAccount.getOverdraftLimit()) {
 			String err = buildError(420, "The action has no effect. See message.", "The bank account already has this overdraft limit.");
-			return respondError(err, 500, jReq.getMethod());
+			return respondError(err);
 		} else if (overdraftLimit > 5000f) {
 			String err = buildError(418, "One or more parameter has an invalid value. See message.", "The overdraft limit cannot be greater than 5000.00.");
-			return respondError(err, 500, jReq.getMethod());
+			return respondError(err);
 		}
 		
 		bankAccount.setOverdraftLimit(overdraftLimit);
@@ -361,15 +362,15 @@ public class ServerHandler {
 		
 		HashMap<String, Object> resp = new HashMap<>();		
 		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
-		return respond(jResp.toJSONString());
+		return respond(jResp.toJSONString(), jReq.getMethod());
 	}
 	
 	/**
 	 * Extension 2: 'PIN block' related.
 	 * Unblocks a given pin card, given the right parameters and given it is actually blocked.
 	 */
-	private static Response unblockCard(JSONRPC2Request jReq) {			
-		HashMap<String, Object> params = (HashMap<String, Object>) jReq.getNamedParams();	
+	private static Response unblockCard(JSONRPC2Request jReq) {	
+		HashMap<String, Object> params = (HashMap<String, Object>) jReq.getNamedParams();
 		
 		// Check Request validity, return an error Response if the Request is invalid
 		Response invalidRequest = RequestValidator.isValidUnblockCardRequest(params);
@@ -387,7 +388,7 @@ public class ServerHandler {
 			bankAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, IBAN);
 		} catch (ObjectDoesNotExistException e) {
 			String err = buildError(418, "One or more parameter has an invalid value. See message. \n" + e.toString());
-			return respondError(err, 500, jReq.getMethod());
+			return respondError(err);
 		}
 		
 		// Check if pin card is linked with IBAN
@@ -401,7 +402,7 @@ public class ServerHandler {
 		
 		if (!isLinked) {
 			String err = buildError(419, "The authenticated user is not authorized to perform this action. Pin card is not linked with this IBAN.");
-			return respondError(err, 500, jReq.getMethod());
+			return respondError(err);
 		}
 		
 		if (debitCard.isBlocked()) {
@@ -410,13 +411,13 @@ public class ServerHandler {
 			serverModel.getPreviousPinAttempts().remove(pinCard);
 		} else {
 			String err = buildError(420, "The action has no effect. See message.", "Pincard with number " + pinCard + " is not blocked.");
-			return respondError(err, 500, jReq.getMethod());
+			return respondError(err);
 		}		
 	
 		HashMap<String, Object> resp = new HashMap<>();
 		
 		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
-		return respond(jResp.toJSONString());
+		return respond(jResp.toJSONString(), jReq.getMethod());
 	}
 
 	/**
@@ -435,7 +436,7 @@ public class ServerHandler {
 		resp.put("date", simulatedDateString);
 		
 		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
-		return respond(jResp.toJSONString());
+		return respond(jResp.toJSONString(), jReq.getMethod());
 	}
 
 	/**
@@ -451,7 +452,7 @@ public class ServerHandler {
 		InterestHandler.reset();
 		
 		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
-		return respond(jResp.toJSONString());
+		return respond(jResp.toJSONString(), jReq.getMethod());
 	}
 	
 	/**
@@ -476,12 +477,12 @@ public class ServerHandler {
 		interestHandler.interrupt();
 		
 		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
-		return respond(jResp.toJSONString());
+		return respond(jResp.toJSONString(), jReq.getMethod());
 	}
 
 	private static Response getBankAccountAccess(JSONRPC2Request jReq) {
 		Map<String, Object> params = jReq.getNamedParams();
-		
+
 		String authToken = (String) params.get("authToken");
 		String IBAN = (String) params.get("iBAN");
 		
@@ -497,20 +498,20 @@ public class ServerHandler {
 		// If the bank account doesn't exist, stop and notify client
 		if (DataManager.isPrimaryKeyUnique(BankAccount.CLASSNAME, BankAccount.PRIMARYKEYNAME, IBAN)) {
 			String err = buildError(500, "An unexpected error occured, see error details.", "Bank account with IBAN " + IBAN + " not found.");
-			return respondError(err, 500, jReq.getMethod());
+			return respondError(err);
 		}
 		
 		try {
 			bAcc = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, IBAN);
 		} catch (ObjectDoesNotExistException e) {
 			String err = buildError(418, "One or more parameter has an invalid value. See message. \n" + e.toString());
-			return respondError(err, 500, jReq.getMethod());
+			return respondError(err);
 		}
 		
 		// If the target account is not owned by the authorized user, stop and notify client
 		if (!bAcc.getMainHolderBSN().equals(cAcc.getBSN())) {
 			String err = buildError(419, "The authenticated user is not authorized to perform this action. User does not own the given account.");
-			return respondError(err, 500, jReq.getMethod());
+			return respondError(err);
 		}
 		
 		@SuppressWarnings("rawtypes")
@@ -530,14 +531,14 @@ public class ServerHandler {
 			}
 		} catch (SQLException e) {
 			String err = buildError(500, "An unexpected error occured, see error details.", "SQL error occurred on server.");
-			return respondError(err, 500, jReq.getMethod());
+			return respondError(err);
 		} catch (ObjectDoesNotExistException e) {
 			String err = buildError(418, "One or more parameter has an invalid value. See message. \n" + e.toString());
-			return respondError(err, 500, jReq.getMethod());
+			return respondError(err);
 		}
 		
 		JSONRPC2Response jResp = new JSONRPC2Response(associations, "response-" + java.lang.System.currentTimeMillis());
-		return respond(jResp.toJSONString());
+		return respond(jResp.toJSONString(), jReq.getMethod());
 	}
 
 	private static Response getUserAccess(JSONRPC2Request jReq) {
@@ -574,19 +575,20 @@ public class ServerHandler {
 			}
 		} catch (SQLException e) {
 			String err = buildError(500, "An unexpected error occured, see error details.", "SQLException occurred on server.");
-			return respondError(err, 500, jReq.getMethod());
+			return respondError(err);
 		} catch (ObjectDoesNotExistException e) {
 			String err = buildError(418, "One or more parameter has an invalid value. See message. \n" + e.toString());
-			return respondError(err, 500, jReq.getMethod());
+			return respondError(err);
 		}
 		
 		JSONRPC2Response jResp = new JSONRPC2Response(associations, "response-" + java.lang.System.currentTimeMillis());
-		return respond(jResp.toJSONString());
+		return respond(jResp.toJSONString(), jReq.getMethod());
 	}
 
 	private static Response openAccount(JSONRPC2Request jReq) {
+		Map<String, Object> params = jReq.getNamedParams();	
+
 		CustomerAccount newAcc = new CustomerAccount();
-		Map<String, Object> params = jReq.getNamedParams();
 		
 		// Check Request validity, return an error Response if the Request is invalid
 		Response invalidRequest = RequestValidator.isValidOpenAccountRequest(params);
@@ -609,7 +611,7 @@ public class ServerHandler {
 		// If this is a duplicate account, respond with an appropriate error
 		if (DataManager.objectExists(newAcc)) {
 			String err = buildError(500, "User attempted to create duplicate customer account with SSN " + newAcc.getBSN());
-			return respondError(err, 500, jReq.getMethod());
+			return respondError(err);
 		}
 		
 		// If this is not a duplicate account, open a bank account for it and save it to DB
@@ -632,11 +634,12 @@ public class ServerHandler {
 		resp.put("pinCode", pinCode);
 		
 		JSONRPC2Response response = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
-		return respond(response.toJSONString());
+		return respond(response.toJSONString(), jReq.getMethod());
 	}
 
 	private static Response openAdditionalAccount(JSONRPC2Request jReq) {
 		Map<String, Object> params = jReq.getNamedParams();		
+		
 		String token = (String) params.get("authToken");
 		
 		// Check Request validity, return an error Response if the Request is invalid
@@ -664,7 +667,7 @@ public class ServerHandler {
 		
 		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
 		
-		return respond(jResp.toJSONString());
+		return respond(jResp.toJSONString(), jReq.getMethod());
 	}
 
 	private static Response closeAccount(JSONRPC2Request jReq) {
@@ -689,7 +692,7 @@ public class ServerHandler {
 			if (b.getIBAN().equals(IBAN)) {
 				if (b.getClosed()) {
 					String err = buildError(420, "The action has no effect. See message.", "Account " + IBAN + " is already closed");
-					return respondError(err, 500, jReq.getMethod());
+					return respondError(err);
 				}
 				found = true;
 				try {
@@ -704,13 +707,13 @@ public class ServerHandler {
 		// If the bank account doesn't exist under the authenticated user account, send an error
 		if (!found) {
 			String err = buildError(500, "No account found with the specified IBAN under user account " + acc.getUsername() + ".");
-			return respondError(err, 500, jReq.getMethod());
+			return respondError(err);
 		}
 		
 		// If the target account is not owned by the user, stop and notify the client
 		if (!acc.getBSN().equals(target.getMainHolderBSN()) ) {
 			String err = buildError(419, "The authenticated user is not authorized to perform this action. User does not own this account.");
-			return respondError(err, 500, jReq.getMethod());
+			return respondError(err);
 		}		
 
 		try {
@@ -718,7 +721,7 @@ public class ServerHandler {
 			target.saveToDB();
 		} catch (IllegalAccountCloseException e1) {
 			String err = buildError(419, "The authenticated user is not authorized to perform this action. " + e1.toString());
-			return respondError(err, 500, jReq.getMethod());
+			return respondError(err);
 		}
 		
 		// Check if this was the customer's last bank account
@@ -735,7 +738,7 @@ public class ServerHandler {
 				acc.SQLdeleteFromDB();
 			} catch (SQLException e) {
 				String err = buildError(500, "One or more parameter has an invalid value. See message.", "An SQL error occurred on the server.");
-				return respondError(err, 500, jReq.getMethod());
+				return respondError(err);
 			}
 		}
 		
@@ -743,7 +746,7 @@ public class ServerHandler {
 		HashMap<String, Object> resp = new HashMap<>();
 		
 		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
-		return respond(jResp.toJSONString());
+		return respond(jResp.toJSONString(), jReq.getMethod());
 	}
 
 	private static Response provideAccess(JSONRPC2Request jReq) {
@@ -773,13 +776,13 @@ public class ServerHandler {
 		// If we couldn't find the bank account, tell the client
 		if (!found) {
 			String err = buildError(500, "Could not find the specified bank account with IBAN " + IBAN + " under user account " + cAcc.getUsername() + ".");
-			return respondError(err, 500, jReq.getMethod());
+			return respondError(err);
 		}
 		
 		// If the sender is not the owner of the account, stop and notify the client
 		if (!bAcc.getMainHolderBSN().equals(cAcc.getBSN())) {
 			String err = buildError(419, "The authenticated user is not authorized to perform this action. You are not the owner of this account.");
-			return respondError(err, 500, jReq.getMethod());
+			return respondError(err);
 		}
 		
 		ArrayList<Criterion> cr = new ArrayList<>();
@@ -790,14 +793,14 @@ public class ServerHandler {
 		// If we couldn't find the target user, tell the client
 		if (target.size() == 0) {
 			String err = buildError(500, "Could not find user " + username + ".");
-			return respondError(err, 500, jReq.getMethod());
+			return respondError(err);
 		}
 		
 		// If the target user already has access, stop and notify the client
 		for (CustomerAccount c : bAcc.getOwners()) {
 			if (c.getUsername().equals(username)) {
 				String err = buildError(420, "The action has no effect. See message.", "User " + username + " already has access to account " + bAcc.getIBAN());
-				return respondError(err, 500, jReq.getMethod());
+				return respondError(err);
 			}
 		}
 		
@@ -822,12 +825,12 @@ public class ServerHandler {
 		resp.put("pinCode", pinCode);
 		
 		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
-		return respond(jResp.toJSONString());
+		return respond(jResp.toJSONString(), jReq.getMethod());
 	}
 
 	private static Response revokeAccess(JSONRPC2Request jReq) {
 		HashMap<String, Object> params = (HashMap<String, Object>) jReq.getNamedParams();
-
+	
 		String token = (String) params.get("authToken");
 		String IBAN = (String) params.get("iBAN");
 		
@@ -858,7 +861,7 @@ public class ServerHandler {
 		// If we couldn't find the bank account, tell the client
 		if (!found) {
 			String err = buildError(500, "Could not find the specified bank account with IBAN " + IBAN + ".");
-			return respondError(err, 500, jReq.getMethod());
+			return respondError(err);
 		}
 		
 		// If the user doesn't own the account he wants to revoke someone's access from, stop and notify the client
@@ -866,11 +869,11 @@ public class ServerHandler {
 		if (usernameSpecified && !bAcc.getMainHolderBSN().equals(cAcc.getBSN())) {
 			String err = buildError(419, "The authenticated user is not authorized to perform this action. You don't have the right to revoke "
 					+ "someone's access from this account");
-			return respondError(err, 500, jReq.getMethod());
+			return respondError(err);
 		} else if (!usernameSpecified && bAcc.getMainHolderBSN().equals(cAcc.getBSN())) {
 			String err = buildError(500, "An unexpected error occured, see error details.", "You are the owner of account " + IBAN 
 					+ ", so you cannot revoke your own privileges.");
-			return respondError(err, 500, jReq.getMethod());
+			return respondError(err);
 		}
 		
 		CustomerAccount targetAcc = null;
@@ -884,7 +887,7 @@ public class ServerHandler {
 			// If we couldn't find the target user, tell the client
 			if (target.size() == 0) {
 				String err = buildError(500, "Could not find user " + username + ".");
-				return respondError(err, 500, jReq.getMethod());
+				return respondError(err);
 			}
 			
 			for (CustomerAccount acc : target) {
@@ -906,7 +909,7 @@ public class ServerHandler {
 		// If the target user does not have access, the method has no effect
 		if (!hasAccess) {
 			String err = buildError(420, "The action has no effect. See message.", "User " + targetAcc.getUsername() + " has no access to account " + IBAN + ".");
-			return respondError(err, 500, jReq.getMethod());
+			return respondError(err);
 		}
 		
 		// If everything is fine, delete all cards creating an association between the target user and bank account, notify the client
@@ -926,12 +929,12 @@ public class ServerHandler {
 		HashMap<String, Object> resp = new HashMap<>();
 		
 		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
-		return respond(jResp.toJSONString());
+		return respond(jResp.toJSONString(), jReq.getMethod());
 	}
 
 	private static Response depositIntoAccount(JSONRPC2Request jReq) {
 		HashMap<String, Object> params = (HashMap<String, Object>) jReq.getNamedParams();
-
+		
 		// Check Request validity, return an error Response if the Request is invalid
 		Response invalidRequest = RequestValidator.isValidDepositIntoAccountRequest(params);		
 		if (invalidRequest != null) {
@@ -946,7 +949,7 @@ public class ServerHandler {
 		// If the card could not be found, notify the client and stop
 		if (DataManager.isPrimaryKeyUnique(DebitCard.CLASSNAME, DebitCard.PRIMARYKEYNAME, pinCard)) {
 			String err = buildError(500, "Could not find debit card " + pinCard);
-			return respondError(err, 500, jReq.getMethod());
+			return respondError(err);
 		}
 		
 		DebitCard dc;
@@ -954,7 +957,7 @@ public class ServerHandler {
 			dc = (DebitCard) DataManager.getObjectByPrimaryKey(DebitCard.CLASSNAME, pinCard);
 		} catch (ObjectDoesNotExistException e) {
 			String err = buildError(418, "One or more parameter has an invalid value. See message. \n" + e.toString());
-			return respondError(err, 500, jReq.getMethod());
+			return respondError(err);
 		}
 		
 		// If the card is not yet blocked and the wrong PIN is given, slap the client
@@ -967,13 +970,13 @@ public class ServerHandler {
 				dc.saveToDB();
 			}
 			
-			return respondError(err, 500, jReq.getMethod());
+			return respondError(err);
 		}
 		
 		// If the specified account does not exist, stop and notify the client
 		if (DataManager.isPrimaryKeyUnique(BankAccount.CLASSNAME, BankAccount.PRIMARYKEYNAME, IBAN)) {
 			String err = buildError(500, "Could not find bank account with IBAN " + IBAN);
-			return respondError(err, 500, jReq.getMethod());
+			return respondError(err);
 		}
 		
 		BankAccount bAcc;
@@ -981,20 +984,20 @@ public class ServerHandler {
 			bAcc = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, IBAN);
 		} catch (ObjectDoesNotExistException e) {
 			String err = buildError(418, "One or more parameter has an invalid value. See message. \n" + e.toString());
-			return respondError(err, 500, jReq.getMethod());
+			return respondError(err);
 		}
 		
 		try {
 			bAcc.deposit(amount, pinCard);
 		} catch (PinCardBlockedException e) {
 			String err = buildError(419, "An unexpected error occured, see error details.", e.toString());
-			return respondError(err, 500, jReq.getMethod());
+			return respondError(err);
 		} catch (IllegalAmountException e) {
 			String err = buildError(500, "An unexpected error occured, see error details.", e.toString());
-			return respondError(err, 500, jReq.getMethod());
+			return respondError(err);
 		} catch (ClosedAccountTransferException e) {
 			String err = buildError(500, "An unexpected error occured, see error details.", e.toString());
-			return respondError(err, 500, jReq.getMethod());
+			return respondError(err);
 		}
 		
 		bAcc.saveToDB();
@@ -1002,12 +1005,12 @@ public class ServerHandler {
 		HashMap<String, Object> resp = new HashMap<>();
 		
 		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
-		return respond(jResp.toJSONString());
+		return respond(jResp.toJSONString(), jReq.getMethod());
 	}
 
 	private static Response payFromAccount(JSONRPC2Request jReq) {
 		Map<String, Object> params = jReq.getNamedParams();		
-
+		
 		// Check Request validity, return an error Response if the Request is invalid
 		Response invalidRequest = RequestValidator.isValidPayFromAccountRequest(params);		
 		if (invalidRequest != null) {
@@ -1024,13 +1027,13 @@ public class ServerHandler {
 		// If the source bank account could not be found, stop and notify the client.
 		if (DataManager.isPrimaryKeyUnique(BankAccount.CLASSNAME, BankAccount.PRIMARYKEYNAME, sourceIBAN)) {
 			String err = buildError(500, "An unexpected error occured, see error details.", "Account " + sourceIBAN + " could not be found.");
-			return respondError(err, 500, jReq.getMethod());
+			return respondError(err);
 		}
 		
 		// If the debit card could not be found, stop and notify the client
 		if (DataManager.isPrimaryKeyUnique(DebitCard.CLASSNAME, DebitCard.PRIMARYKEYNAME, "" + pinCard)) {
 			String err = buildError(500, "An unexpected error occured, see error details.", "Card " + pinCard + " could not be found.");
-			return respondError(err, 500, jReq.getMethod());
+			return respondError(err);
 		}
 		
 		DebitCard card;
@@ -1038,7 +1041,7 @@ public class ServerHandler {
 			card = (DebitCard) DataManager.getObjectByPrimaryKey(DebitCard.CLASSNAME, "" + pinCard);
 		} catch (ObjectDoesNotExistException e) {
 			String err = buildError(418, "One or more parameter has an invalid value. See message. \n" + e.toString());
-			return respondError(err, 500, jReq.getMethod());
+			return respondError(err);
 		}
 		
 		// If the payment goes wrong, stop and report the exception
@@ -1046,7 +1049,7 @@ public class ServerHandler {
 			card.pinPayment(amount, pinCode, targetIBAN);
 		} catch (PinCardBlockedException e) {
 			String err = buildError(419, "An unexpected error occured, see error details.", e.toString());
-			return respondError(err, 500, jReq.getMethod());
+			return respondError(err);
 		} catch (InvalidPINException e) {
 			String err = buildError(421, "An invalid PINcard, -code or -combination was used.");
 			serverModel.increaseInvalidPinAttempt(pinCard);
@@ -1056,21 +1059,21 @@ public class ServerHandler {
 				card.saveToDB();
 			}
 			
-			return respondError(err, 500, jReq.getMethod());
+			return respondError(err);
 		} catch (IllegalAmountException | IllegalTransferException | ExpiredCardException | ExceedOverdraftLimitException e) {
 			String err = buildError(500, "An unexpected error occured, see error details.", e.toString());
-			return respondError(err, 500, jReq.getMethod());
+			return respondError(err);
 		}
 		
 		HashMap<String, Object> resp = new HashMap<>();
 		
 		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
-		return respond(jResp.toJSONString());
+		return respond(jResp.toJSONString(), jReq.getMethod());
 	}
 
 	private static Response invalidateCard(JSONRPC2Request jReq) {
 		Map<String, Object> params = jReq.getNamedParams();
-
+		
 		// Check Request validity, return an error Response if the Request is invalid
 		Response invalidRequest = RequestValidator.isValidInvalidateCardRequest(params);		
 		if (invalidRequest != null) {
@@ -1091,7 +1094,7 @@ public class ServerHandler {
 			bankAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, IBAN);
 		} catch (ObjectDoesNotExistException e) {
 			String err = buildError(418, "One or more parameter has an invalid value. See message. \n" + e.toString());
-			return respondError(err, 500, jReq.getMethod());
+			return respondError(err);
 		}
 		boolean authorized = false;
 		
@@ -1108,7 +1111,7 @@ public class ServerHandler {
 		// If the user is trying to invalidate someone else's pincard
 		if (!authorized) {
 			String err = buildError(419, "The authenticated user is not authorized to perform this action. You can not invalidate someone else's pin card.");
-			return respondError(err, 500, jReq.getMethod());
+			return respondError(err);
 		}
 		
 		// If there is no such pincard for this bankAccount
@@ -1123,7 +1126,7 @@ public class ServerHandler {
 		
 		if (currentDebitCard == null) {
 			String err = buildError(419, "The authenticated user is not authorized to perform this action. The user has no access to such a pin card with number " + pinCardNumber);
-			return respondError(err, 500, jReq.getMethod());
+			return respondError(err);
 		}
 		
 		DebitCard newDebitCard = null;
@@ -1139,7 +1142,7 @@ public class ServerHandler {
 			bankAccount.transfer(feeDestinationBankAccount, 7.50, "Fee for new pincard", "ING");
 		} catch (ObjectDoesNotExistException | IllegalAmountException | IllegalTransferException | ExceedOverdraftLimitException e) {
 			String err = buildError(500, "An unexpected error occured, see error details.", e.toString());
-			return respondError(err, 500, jReq.getMethod());
+			return respondError(err);
 		}
 		
 		
@@ -1156,13 +1159,13 @@ public class ServerHandler {
 		}
 		
 		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
-		return respond(jResp.toJSONString());
+		return respond(jResp.toJSONString(), jReq.getMethod());
 		
 	}
 
 	private static Response transferMoney(JSONRPC2Request jReq) {
 		Map<String, Object> params = jReq.getNamedParams();
-
+		
 		// Check Request validity, return an error Response if the Request is invalid
 		Response invalidRequest = RequestValidator.isValidTransferMoneyRequest(params);		
 		if (invalidRequest != null) {
@@ -1198,7 +1201,7 @@ public class ServerHandler {
 			destination = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, targetIBAN);
 		} catch (ObjectDoesNotExistException e) {
 			String err = buildError(418, "One or more parameter has an invalid value. See message. \n" + e.toString());
-			return respondError(err, 500, jReq.getMethod());
+			return respondError(err);
 		}
 		
 		// Check if the transferer owns the source bank account
@@ -1215,25 +1218,25 @@ public class ServerHandler {
 		// Check if savings account A -> main account B
 		if (isSourceSavingsAccount && !sourceIBAN.equals(targetIBAN)) {
 			String err = buildError(419, "The authenticated user is not authorized to perform this action. You can not transfer money from your savings account to some other main bank account/savings account.");
-			return respondError(err, 500, jReq.getMethod());
+			return respondError(err);
 		}
 		
 		// Check if main account A -> savings account B
 		if (isTargetSavingsAccount && !targetIBAN.equals(sourceIBAN)) {
 			String err = buildError(419, "The authenticated user is not authorized to perform this action. You can not transfer money from your main bank account to some other bank account/savings account.");
-			return respondError(err, 500, jReq.getMethod());
+			return respondError(err);
 		}
 		
 		// Check if savings account A -> savings account A/B
 		if (isTargetSavingsAccount && isSourceSavingsAccount) {
 			String err = buildError(419, "The authenticated user is not authorized to perform this action. You can not transfer money between savings accounts.");
-			return respondError(err, 500, jReq.getMethod());
+			return respondError(err);
 		}
 		
 		// If the client is trying to transfer money from someone else's account, send an error
 		if (!authorized) {
 			String err = buildError(419, "The authenticated user is not authorized to perform this action. You can not transfer money from someone else's account.");
-			return respondError(err, 500, jReq.getMethod());
+			return respondError(err);
 		}
 		
 		// If something goes wrong with the transfer, stop and report it
@@ -1248,18 +1251,18 @@ public class ServerHandler {
 			
 		} catch (IllegalAmountException | IllegalTransferException | ExceedOverdraftLimitException e) {
 			String err = buildError(500, "An unexpected error occured, see error details.", e.toString());
-			return respondError(err, 500, jReq.getMethod());
+			return respondError(err);
 		}
 
 		HashMap<String, Object> resp = new HashMap<>();
 		
 		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
-		return respond(jResp.toJSONString());
+		return respond(jResp.toJSONString(), jReq.getMethod());
 	}
 
 	private static Response getAuthToken(JSONRPC2Request jReq) {
 		Map<String, Object> params = jReq.getNamedParams();
-
+		
 		// Check Request validity, return an error Response if the Request is invalid
 		Response invalidRequest = RequestValidator.isValidGetAuthTokenRequest(params);		
 		if (invalidRequest != null) {
@@ -1287,13 +1290,13 @@ public class ServerHandler {
 		// If the account is not found, return the appropriate error
 		if (list.size() == 0) {
 			String err = buildError(422, "The user could not be authenticated: Invalid username, password or combination.");			
-			return respondError(err, 500, jReq.getMethod());
+			return respondError(err);
 		}
 		
 		// If the account is already logged in, return error
 		if (accounts.containsValue(account)) {
 			String err = buildError(500, "The user is already logged in on this account.");
-			return respondError(err, 500, jReq.getMethod());
+			return respondError(err);
 		}
 		
 		// Generate the authentication token
@@ -1306,12 +1309,12 @@ public class ServerHandler {
 		HashMap<String, String> resp = new HashMap<>();
 		resp.put("authToken", token);
 		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
-		return respond(jResp.toJSONString());
+		return respond(jResp.toJSONString(), jReq.getMethod());
 	}
 
 	private static Response getBalance(JSONRPC2Request jReq) {
 		Map<String, Object> params = jReq.getNamedParams();
-
+		
 		// Check Request validity, return an error Response if the Request is invalid
 		Response invalidRequest = RequestValidator.isValidGetBalanceRequest(params);	
 		if (invalidRequest != null) {
@@ -1331,14 +1334,14 @@ public class ServerHandler {
 		// If the bank account can't be found, stop and notify the client
 		if (DataManager.isPrimaryKeyUnique(BankAccount.CLASSNAME, BankAccount.PRIMARYKEYNAME, IBAN)) {
 			String err = buildError(500, "An unexpected error occured, see error details.", "Bank account " + IBAN + " not found.");
-			return respondError(err, 500, jReq.getMethod());
+			return respondError(err);
 		}
 		
 		try {
 			source = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, IBAN);
 		} catch (ObjectDoesNotExistException e) {
 			String err = buildError(418, "One or more parameter has an invalid value. See message. \n" + e.toString());
-			return respondError(err, 500, jReq.getMethod());
+			return respondError(err);
 		}
 		
 		if (cAcc.getBSN().equals(source.getMainHolderBSN())) {
@@ -1354,7 +1357,7 @@ public class ServerHandler {
 		// If the client is trying to snoop on someone else's account, send an error
 		if (!authorized) {
 			String err = buildError(419, "The authenticated user is not authorized to perform this action. You can't view the balance of this account.");
-			return respondError(err, 500, jReq.getMethod());
+			return respondError(err);
 		}
 		
 		HashMap<String, Object> resp = new HashMap<>();
@@ -1366,7 +1369,7 @@ public class ServerHandler {
 		}
 		
 		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
-		return respond(jResp.toJSONString());
+		return respond(jResp.toJSONString(), jReq.getMethod());
 	}
 
 	@SuppressWarnings("unchecked")
@@ -1391,20 +1394,20 @@ public class ServerHandler {
 		// If this is a bogus token, slap the client
 		if (!accounts.containsKey(authToken)) {
 			String err = buildError(419, "The authenticated user is not authorized to perform this action. Invalid authentication token.");
-			return respondError(err, 500, jReq.getMethod());
+			return respondError(err);
 		}
 				
 		// If the bank account could not be found, stop and notify the client
 		if (DataManager.isPrimaryKeyUnique(BankAccount.CLASSNAME, BankAccount.PRIMARYKEYNAME, IBAN)) {
 			String err = buildError(500, "An unexpected error occured, see error details.", "Bank account " + IBAN + " could not be found.");
-			respondError(err, 500, jReq.getMethod());
+			respondError(err);
 		}
 		
 		try {
 			source = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, IBAN);
 		} catch (ObjectDoesNotExistException e) {
 			String err = buildError(418, "One or more parameter has an invalid value. See message. \n" + e.toString());
-			return respondError(err, 500, jReq.getMethod());
+			return respondError(err);
 		}
 		
 		cAcc = accounts.get(authToken);
@@ -1422,7 +1425,7 @@ public class ServerHandler {
 		// If the client is trying to snoop on someone else's account, send an error
 		if (!authorized) {
 			String err = buildError(419, "The authenticated user is not authorized to perform this action. You can not view the transactions of this account.");
-			return respondError(err, 500, jReq.getMethod());
+			return respondError(err);
 		}
 		
 		ArrayList<Criterion> cr = new ArrayList<>();
@@ -1472,7 +1475,7 @@ public class ServerHandler {
 		}
 			
 		JSONRPC2Response jResp = new JSONRPC2Response(transactionMapsArray, "response-" + java.lang.System.currentTimeMillis());
-		return respond(jResp.toJSONString());
+		return respond(jResp.toJSONString(), jReq.getMethod());
 	}
 
 	public static HashMap<String, CustomerAccount> getAccounts() {
