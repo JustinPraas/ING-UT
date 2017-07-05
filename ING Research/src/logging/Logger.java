@@ -8,6 +8,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -51,9 +52,10 @@ public class Logger {
     	for (int i = 0; i < logs.size(); i++) {
     		HashMap<String, Object> map = new HashMap<>();
     		Log log = logs.get(i);
-    		Date date = new Date();
-    		date.setTime(log.getTimestamp());
-    		map.put("timeStamp", date.toString());
+	    	Date date = new Date();
+	    	date.setTime(log.getTimestamp());
+    		DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mmZ");
+    		map.put("timeStamp", df.format(date));
     		map.put("eventLog", "(" + log.getType() + ") " + log.getMessage());
     		result.add(map);    		
     	}
