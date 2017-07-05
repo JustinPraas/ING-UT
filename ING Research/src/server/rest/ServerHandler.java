@@ -46,6 +46,7 @@ import exceptions.InvalidPINException;
 import exceptions.ObjectDoesNotExistException;
 import exceptions.PinCardBlockedException;
 import logging.Logger;
+import logging.Log.Type;
 
 @Path("/banking")
 public class ServerHandler {
@@ -150,7 +151,9 @@ public class ServerHandler {
 	}
 
 	public static Response respond(String jResp, String methodName) {
-		Logger.addMethodSuccessLog(methodName);
+		if (!methodName.equals("reset")) {
+			Logger.addMethodSuccessLog(methodName);
+		}		
 		return Response.status(200).entity(jResp).build();
 	}
 	
@@ -210,6 +213,7 @@ public class ServerHandler {
 		
 		if (!RequestValidator.userOwnsBankAccount(customerAccount, bankAccount)) {
 			String err = buildError(419, "The authenticated user is not authorized to perform this action. You can not peek at the overdraft limit of another person's bank account.");
+			Logger.addLogToDB(ServerModel.getServerCalendar().getTimeInMillis(), Type.WARNING, "Possible harmful activity: trying to access information from another account.");
 			return respondError(err);
 		}
 		
@@ -244,6 +248,7 @@ public class ServerHandler {
 		
 		if (!RequestValidator.userOwnsBankAccount(customerAccount, bankAccount)) {
 			String err = buildError(419, "The authenticated user is not authorized to perform this action. You can not peek at the overdraft limit of another person's bank account.");
+			Logger.addLogToDB(ServerModel.getServerCalendar().getTimeInMillis(), Type.WARNING, "Possible harmful activity: trying to access information from another account.");
 			return respondError(err);
 		}
 		
@@ -288,6 +293,7 @@ public class ServerHandler {
 		
 		if (!RequestValidator.userOwnsBankAccount(customerAccount, bankAccount)) {
 			String err = buildError(419, "The authenticated user is not authorized to perform this action. You can not peek at the overdraft limit of another person's bank account.");
+			Logger.addLogToDB(ServerModel.getServerCalendar().getTimeInMillis(), Type.WARNING, "Possible harmful activity: trying to access information from another account.");
 			return respondError(err);
 		}
 		
@@ -343,6 +349,7 @@ public class ServerHandler {
 		// Check if the user actually owns the bank account
 		if (!RequestValidator.userOwnsBankAccount(customerAccount, bankAccount)) {
 			String err = buildError(419, "The authenticated user is not authorized to perform this action. You can not change the overdraft limit for someone else's bank account.");
+			Logger.addLogToDB(ServerModel.getServerCalendar().getTimeInMillis(), Type.WARNING, "Possible harmful activity: trying to manipulate information from another account.");
 			return respondError(err);
 		}
 		
@@ -402,6 +409,7 @@ public class ServerHandler {
 		
 		if (!isLinked) {
 			String err = buildError(419, "The authenticated user is not authorized to perform this action. Pin card is not linked with this IBAN.");
+			Logger.addLogToDB(ServerModel.getServerCalendar().getTimeInMillis(), Type.WARNING, "Possible harmful activity: trying to manipulate information from another account.");
 			return respondError(err);
 		}
 		
@@ -511,6 +519,7 @@ public class ServerHandler {
 		// If the target account is not owned by the authorized user, stop and notify client
 		if (!bAcc.getMainHolderBSN().equals(cAcc.getBSN())) {
 			String err = buildError(419, "The authenticated user is not authorized to perform this action. User does not own the given account.");
+			Logger.addLogToDB(ServerModel.getServerCalendar().getTimeInMillis(), Type.WARNING, "Possible harmful activity: trying to access information from another account.");
 			return respondError(err);
 		}
 		
@@ -713,6 +722,7 @@ public class ServerHandler {
 		// If the target account is not owned by the user, stop and notify the client
 		if (!acc.getBSN().equals(target.getMainHolderBSN()) ) {
 			String err = buildError(419, "The authenticated user is not authorized to perform this action. User does not own this account.");
+			Logger.addLogToDB(ServerModel.getServerCalendar().getTimeInMillis(), Type.WARNING, "Possible harmful activity: trying to manipulate information from another account.");
 			return respondError(err);
 		}		
 
@@ -782,6 +792,7 @@ public class ServerHandler {
 		// If the sender is not the owner of the account, stop and notify the client
 		if (!bAcc.getMainHolderBSN().equals(cAcc.getBSN())) {
 			String err = buildError(419, "The authenticated user is not authorized to perform this action. You are not the owner of this account.");
+			Logger.addLogToDB(ServerModel.getServerCalendar().getTimeInMillis(), Type.WARNING, "Possible harmful activity: trying to access information from another account.");
 			return respondError(err);
 		}
 		
@@ -869,6 +880,7 @@ public class ServerHandler {
 		if (usernameSpecified && !bAcc.getMainHolderBSN().equals(cAcc.getBSN())) {
 			String err = buildError(419, "The authenticated user is not authorized to perform this action. You don't have the right to revoke "
 					+ "someone's access from this account");
+			Logger.addLogToDB(ServerModel.getServerCalendar().getTimeInMillis(), Type.WARNING, "Possible harmful activity: trying to manipulate information from another account.");
 			return respondError(err);
 		} else if (!usernameSpecified && bAcc.getMainHolderBSN().equals(cAcc.getBSN())) {
 			String err = buildError(500, "An unexpected error occured, see error details.", "You are the owner of account " + IBAN 
@@ -963,6 +975,7 @@ public class ServerHandler {
 		// If the card is not yet blocked and the wrong PIN is given, slap the client
 		if (!dc.isBlocked() && !dc.isValidPIN(pinCode)) {
 			String err = buildError(421, "An invalid PINcard, -code or -combination was used.");
+			Logger.addLogToDB(ServerModel.getServerCalendar().getTimeInMillis(), Type.WARNING, "Possible harmful activity: PINcard, -code or -combination was incorrect.");
 			serverModel.increaseInvalidPinAttempt(pinCard);
 			
 			if (!dc.isBlocked() && serverModel.getPreviousPinAttempts().get(pinCard) >= 3) {
@@ -1111,6 +1124,7 @@ public class ServerHandler {
 		// If the user is trying to invalidate someone else's pincard
 		if (!authorized) {
 			String err = buildError(419, "The authenticated user is not authorized to perform this action. You can not invalidate someone else's pin card.");
+			Logger.addLogToDB(ServerModel.getServerCalendar().getTimeInMillis(), Type.WARNING, "Possible harmful activity: trying to manipulate information from another account.");
 			return respondError(err);
 		}
 		
@@ -1126,6 +1140,7 @@ public class ServerHandler {
 		
 		if (currentDebitCard == null) {
 			String err = buildError(419, "The authenticated user is not authorized to perform this action. The user has no access to such a pin card with number " + pinCardNumber);
+			Logger.addLogToDB(ServerModel.getServerCalendar().getTimeInMillis(), Type.WARNING, "Possible harmful activity: trying to manipulate information from another account.");
 			return respondError(err);
 		}
 		
@@ -1218,24 +1233,28 @@ public class ServerHandler {
 		// Check if savings account A -> main account B
 		if (isSourceSavingsAccount && !sourceIBAN.equals(targetIBAN)) {
 			String err = buildError(419, "The authenticated user is not authorized to perform this action. You can not transfer money from your savings account to some other main bank account/savings account.");
+			Logger.addLogToDB(ServerModel.getServerCalendar().getTimeInMillis(), Type.WARNING, "Possible harmful activity: trying to manipulate information from another account.");
 			return respondError(err);
 		}
 		
 		// Check if main account A -> savings account B
 		if (isTargetSavingsAccount && !targetIBAN.equals(sourceIBAN)) {
 			String err = buildError(419, "The authenticated user is not authorized to perform this action. You can not transfer money from your main bank account to some other bank account/savings account.");
+			Logger.addLogToDB(ServerModel.getServerCalendar().getTimeInMillis(), Type.WARNING, "Possible harmful activity: trying to manipulate information from another account.");
 			return respondError(err);
 		}
 		
 		// Check if savings account A -> savings account A/B
 		if (isTargetSavingsAccount && isSourceSavingsAccount) {
 			String err = buildError(419, "The authenticated user is not authorized to perform this action. You can not transfer money between savings accounts.");
+			Logger.addLogToDB(ServerModel.getServerCalendar().getTimeInMillis(), Type.WARNING, "Possible harmful activity: trying to manipulate information from another account.");
 			return respondError(err);
 		}
 		
 		// If the client is trying to transfer money from someone else's account, send an error
 		if (!authorized) {
 			String err = buildError(419, "The authenticated user is not authorized to perform this action. You can not transfer money from someone else's account.");
+			Logger.addLogToDB(ServerModel.getServerCalendar().getTimeInMillis(), Type.WARNING, "Possible harmful activity: trying to manipulate information from another account.");
 			return respondError(err);
 		}
 		
@@ -1357,6 +1376,7 @@ public class ServerHandler {
 		// If the client is trying to snoop on someone else's account, send an error
 		if (!authorized) {
 			String err = buildError(419, "The authenticated user is not authorized to perform this action. You can't view the balance of this account.");
+			Logger.addLogToDB(ServerModel.getServerCalendar().getTimeInMillis(), Type.WARNING, "Possible harmful activity: trying to access information from another account.");
 			return respondError(err);
 		}
 		
@@ -1425,6 +1445,7 @@ public class ServerHandler {
 		// If the client is trying to snoop on someone else's account, send an error
 		if (!authorized) {
 			String err = buildError(419, "The authenticated user is not authorized to perform this action. You can not view the transactions of this account.");
+			Logger.addLogToDB(ServerModel.getServerCalendar().getTimeInMillis(), Type.WARNING, "Possible harmful activity: trying to access information from another account.");
 			return respondError(err);
 		}
 		
