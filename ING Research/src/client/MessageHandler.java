@@ -7,6 +7,7 @@ import com.thetransactioncompany.jsonrpc2.*;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.security.KeyStore.Entry;
 import java.util.*;
 
 import org.apache.hc.client5.http.impl.sync.CloseableHttpClient;
@@ -81,6 +82,9 @@ public class MessageHandler {
 			case "GET_DATE":
 				getDate();
 				break;
+			case "GET_EVENT_LOGS":
+				getEventLogs(parameters);
+				break;
 			default:
 				System.err.println("Invalid command.");
 				break;
@@ -144,12 +148,52 @@ public class MessageHandler {
 			case "GET_OVERDRAFT_LIMIT":
 				getOverdraftLimit(parameters);
 				break;
+			case "GET_EVENT_LOGS":
+				getEventLogs(parameters);
+				break;
 			default:
 				System.err.println("Invalid command.");
 				break;
 			}
 		}
 		System.out.println("\n");
+	}
+	
+	private void getEventLogs(String parameters) {
+		String parameterArray[] = parameters.split(":");
+		String method = "getEventLogs";
+		HashMap<String, Object> params = new HashMap<>();
+
+		if (parameterArray.length != 2) {
+			System.err.println("Please enter the requested parameters.");
+			return;
+		}
+		params.put("startDate", parameterArray[0]);
+		params.put("endDate", parameterArray[1]);
+		
+		JSONRPC2Request request = new JSONRPC2Request(method, params,
+				"request-" + java.lang.System.currentTimeMillis());
+		String resp = sendToServer(request);
+		try {
+			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
+			if (!jResp.indicatesSuccess()) {
+				System.out.printf("Error " + jResp.getError().getCode() + ": " + jResp.getError().getMessage());
+				if (jResp.getError().getData() != null) {
+					System.out.println((String) jResp.getError().getData());
+				}
+				return;
+			}
+			
+			ArrayList<HashMap<String, Object>> results = (ArrayList<HashMap<String, Object>>) jResp.getResult();
+			
+			System.out.println("Error logs: " + results.size());
+			for (HashMap<String, Object> log : results) {
+				System.out.println(log.get("timeStamp") + ": " + log.get("eventLog"));
+			}
+			
+		} catch (JSONRPC2ParseException e) {
+			System.out.println("Discarded invalid JSON-RPC response from server.");
+		}
 	}
 	
 	/**
