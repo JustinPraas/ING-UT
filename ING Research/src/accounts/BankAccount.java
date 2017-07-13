@@ -291,7 +291,7 @@ public class BankAccount implements database.DBObject {
 			throws IllegalAmountException, ExceedLimitException, ClosedAccountTransferException {
 		if (amount <= 0) {
 			throw new IllegalAmountException(amount);
-		} else if (balance - amount < overdraftLimit * -1) {
+		} else if (exceedsLimit(amount, LimitType.OVERDRAFT_LIMIT)) {
 			throw new ExceedLimitException(amount, this, LimitType.OVERDRAFT_LIMIT);
 		} else if (this.closed || savingsAccount.isClosed()) {
 			throw new ClosedAccountTransferException();
@@ -370,7 +370,7 @@ public class BankAccount implements database.DBObject {
 			throws IllegalAmountException, IllegalTransferException, ExceedLimitException {
 		if (amount <= 0) {
 			throw new IllegalAmountException(amount);
-		} else if (balance - amount < overdraftLimit * -1) {
+		} else if (exceedsLimit(amount, LimitType.OVERDRAFT_LIMIT)) {
 			throw new ExceedLimitException(amount, this, LimitType.OVERDRAFT_LIMIT);
 		} else if (exceedsLimit(amount, LimitType.TRANSFER_LIMIT)) {
 			throw new ExceedLimitException(amount, this, LimitType.OVERDRAFT_LIMIT);
@@ -420,7 +420,7 @@ public class BankAccount implements database.DBObject {
 			SameAccountTransferException, ExceedLimitException {
 		if (amount <= 0) {
 			throw new IllegalAmountException(amount);
-		} else if (balance - amount < overdraftLimit * -1 && !description.equals("Negative interest credit")) {
+		} else if (exceedsLimit(amount, LimitType.OVERDRAFT_LIMIT) && !description.equals("Negative interest credit")) {
 			throw new ExceedLimitException(amount, this, LimitType.OVERDRAFT_LIMIT);
 		} else if (exceedsLimit(amount, LimitType.DEBITCARD_LIMIT)) {
 			throw new ExceedLimitException(amount, this, LimitType.DEBITCARD_LIMIT);
@@ -491,7 +491,7 @@ public class BankAccount implements database.DBObject {
 			throws IllegalAmountException, IllegalTransferException, ExceedLimitException {
 		if (amount <= 0) {
 			throw new IllegalAmountException(amount);
-		} else if (balance - amount < overdraftLimit * -1 && !description.equals("Negative interest credit")) {
+		} else if (exceedsLimit(amount, LimitType.OVERDRAFT_LIMIT) && !description.equals("Negative interest credit")) {
 			throw new ExceedLimitException(amount, this, LimitType.OVERDRAFT_LIMIT);
 		} else if (exceedsLimit(amount, LimitType.DEBITCARD_LIMIT)) {
 			throw new ExceedLimitException(amount, this, LimitType.DEBITCARD_LIMIT);
@@ -539,7 +539,7 @@ public class BankAccount implements database.DBObject {
 			throws IllegalAmountException, IllegalTransferException, ExceedLimitException {
 		if (amount <= 0) {
 			throw new IllegalAmountException(amount);
-		} else if (balance - amount < overdraftLimit * -1 && !description.equals("Negative interest credit")) {
+		} else if (exceedsLimit(amount, LimitType.OVERDRAFT_LIMIT) && !description.equals("Negative interest credit")) {
 			throw new ExceedLimitException(amount, this, LimitType.OVERDRAFT_LIMIT);
 		} else if (exceedsLimit(amount, LimitType.TRANSFER_LIMIT)
 				&& !description.equals("Fee for new pincard")) {
@@ -573,7 +573,11 @@ public class BankAccount implements database.DBObject {
 		InterestHandler.setLowestNegativeDailyReachMapEntry(IBAN, balance);
 	}
 
-	private boolean exceedsLimit(double amount, LimitType limitType) {		
+	private boolean exceedsLimit(double amount, LimitType limitType) {
+		if (limitType == LimitType.OVERDRAFT_LIMIT) {
+			return balance - amount < overdraftLimit * -1;
+		} 
+		
 		if (limitType == LimitType.DEBITCARD_LIMIT) {
 			return exceedsDebitCardLimit(amount);
 		} 
