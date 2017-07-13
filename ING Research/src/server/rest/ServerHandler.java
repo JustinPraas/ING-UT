@@ -191,16 +191,16 @@ public class ServerHandler {
 		
 		// Check if the user actually owns the bank account
 		if (!RequestValidator.userOwnsBankAccount(customerAccount, bankAccount)) {
-			String err = buildError(419, "The authenticated user is not authorized to perform this action. You can not change the overdraft limit for someone else's bank account.");
+			String err = buildError(419, "The authenticated user is not authorized to perform this action. You can not change the transfer limit for someone else's bank account.");
 			Logger.addLogToDB(ServerModel.getServerCalendar().getTimeInMillis(), Type.WARNING, "Possible harmful activity: trying to manipulate information from another account.");
 			return respondError(err);
 		}
 		
 		if (weeklyLimit < 0f) {
-			String err = buildError(418, "One or more parameter has an invalid value. See message.", "The overdraft limit cannot be less than 0");
+			String err = buildError(418, "One or more parameter has an invalid value. See message.", "The transfer limit cannot be less than 0");
 			return respondError(err);
 		} else if (weeklyLimit == bankAccount.getTransferLimit()) {
-			String err = buildError(420, "The action has no effect. See message.", "The bank account already has this overdraft limit.");
+			String err = buildError(420, "The action has no effect. See message.", "The bank account already has this transfer limit.");
 			return respondError(err);
 		}
 		
