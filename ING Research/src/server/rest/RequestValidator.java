@@ -38,6 +38,29 @@ public class RequestValidator {
 		return null;
 	}
 	
+	public static Response isValidSetTransferLimitRequest(HashMap<String, Object> params) {
+		if (!params.containsKey("authToken") || !params.containsKey("iBAN") || !params.containsKey("transferLimit")) {
+			return invalidMethodParametersResponse();
+		}
+		
+		if (!InputValidator.isValidIBAN((String) params.get("iBAN"))) {
+			return invalidIBANResponse((String) params.get("iBAN"));
+		}
+		
+		if (!ServerHandler.getAccounts().keySet().contains((String) params.get("authToken"))) {
+			return invalidAuthTokenResponse();
+		}
+		
+		try {
+			Double.parseDouble((String) params.get("transferLimit"));
+		} catch (NumberFormatException e) {
+			String err = ServerHandler.buildError(418, "One or more parameter has an invalid value. See message.", (String) params.get("overdraftLimit") + " is not a valid overdraft limit.");
+			return ServerHandler.respondError(err, 500);
+		}
+		
+		return null;
+	}
+	
 	public static Response isValidGetOverdraftLimitRequest(HashMap<String, Object> params) {
 		if (!params.containsKey("authToken") || !params.containsKey("iBAN")) {
 			return invalidMethodParametersResponse();

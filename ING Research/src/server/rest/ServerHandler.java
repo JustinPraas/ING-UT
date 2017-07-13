@@ -123,6 +123,8 @@ public class ServerHandler {
 			return getOverdraftLimit(jReq);
 		case "getEventLogs":
 			return getEventLog(jReq);
+		case "setTransferLimit":
+			return setTransferLimit(jReq);
 		default:
 			String err = buildError(-32601, "The requested remote-procedure does not exist.");
 			Logger.addMethodErrorLog(jReq.getMethod(), err, -32601);
@@ -165,6 +167,49 @@ public class ServerHandler {
 		return Response.status(code).entity(error).build();
 	}
 
+	private static Response setTransferLimit(JSONRPC2Request jReq) {
+		HashMap<String, Object> params = (HashMap<String, Object>) jReq.getNamedParams();	
+		
+		// Check Request validity, return an error Response if the Request is invalid
+		Response invalidRequest = RequestValidator.isValidSetTransferLimitRequest(params);
+		if (invalidRequest != null) {
+			return invalidRequest;
+		}
+		
+		String authToken = (String) params.get("authToken");
+		String IBAN = (String) params.get("iBAN");		
+		Double weeklyLimit = Double.parseDouble((String) params.get("transferLimit"));		
+
+		CustomerAccount customerAccount = accounts.get(authToken);
+		BankAccount bankAccount;
+		try {
+			bankAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, IBAN);
+		} catch (ObjectDoesNotExistException e) {
+			String err = buildError(418, "One or more parameter has an invalid value. See message. \n" + e.toString());
+			return respondError(err);
+		}
+		
+		// Check if the user actually owns the bank account
+		if (!RequestValidator.userOwnsBankAccount(customerAccount, bankAccount)) {
+			String err = buildError(419, "The authenticated user is not authorized to perform this action. You can not change the overdraft limit for someone else's bank account.");
+			Logger.addLogToDB(ServerModel.getServerCalendar().getTimeInMillis(), Type.WARNING, "Possible harmful activity: trying to manipulate information from another account.");
+			return respondError(err);
+		}
+		
+		if (weeklyLimit < 0f) {
+			String err = buildError(418, "One or more parameter has an invalid value. See message.", "The overdraft limit cannot be less than 0");
+			return respondError(err);
+		} else if (weeklyLimit == bankAccount.getTransferLimit()) {
+			String err = buildError(420, "The action has no effect. See message.", "The bank account already has this overdraft limit.");
+			return respondError(err);
+		}
+		
+		bankAccount.setTransferLimit(weeklyLimit);
+		bankAccount.saveToDB();
+	
+		return sendEmptyResult(jReq.getMethod());
+	}
+	
 	private static Response getEventLog(JSONRPC2Request jReq) {
 		HashMap<String, Object> params = (HashMap<String, Object>) jReq.getNamedParams();	
 		
@@ -367,9 +412,7 @@ public class ServerHandler {
 		bankAccount.setOverdraftLimit(overdraftLimit);
 		bankAccount.saveToDB();
 		
-		HashMap<String, Object> resp = new HashMap<>();		
-		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
-		return respond(jResp.toJSONString(), jReq.getMethod());
+		return sendEmptyResult(jReq.getMethod());
 	}
 	
 	/**
