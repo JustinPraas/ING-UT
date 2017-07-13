@@ -527,10 +527,13 @@ public class ServerHandler {
 		
 		int newlySimulatedDays = Integer.parseInt((String) params.get("nrOfDays"));		
 
-		interestHandler.newlySimulatedDays = newlySimulatedDays;
+		InterestHandler.calculateTimeSimulatedInterest(newlySimulatedDays);
 		interestHandler.interrupt();
+		
 		timeOperator.newlySimulatedDays = newlySimulatedDays;
 		timeOperator.interrupt();
+		
+		ServerModel.setSimulatedDays(newlySimulatedDays, true);
 		
 		HashMap<String, Object> resp = new HashMap<>();
 		

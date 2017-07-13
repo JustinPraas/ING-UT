@@ -34,12 +34,12 @@ public class TimeOperator extends Thread {
 				// Sleep for a day
 				Thread.sleep(3600 * 1000 * 24);
 			} catch (InterruptedException e) {
-				Calendar newCalendar = c;
+				Calendar newCalendar = ServerModel.getServerCalendar();
 				for (int i = 1; i <= newlySimulatedDays; i++) {
 					newCalendar.add(Calendar.DATE, 1);
 					updateTransferLimitsIfNeeded(newCalendar);
 				}	
-				ServerModel.setSimulatedDays(newlySimulatedDays, true);
+				newlySimulatedDays = 0;
 			}	
 		}
 	}
