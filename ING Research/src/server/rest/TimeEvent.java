@@ -52,11 +52,12 @@ public class TimeEvent implements database.DBObject {
 		this.timestamp = timestamp;
 	}
 
-	@Column(name = "timestamp")
+	@Column(name = "description")
 	public String getDescription() {
 		return description;
 	}
 	
+	@Transient
 	public Calendar getCalendar() {
 		Calendar c = Calendar.getInstance();
 		c.setTimeInMillis(timestamp);

@@ -23,6 +23,7 @@ public class Logger {
     	long end = parseDateToMillis(endDate) + 1000 * 3600 * 24 /*add one day so the criteria 'between' can be used*/;
 
 		ArrayList<Log> result = new ArrayList<>();
+		SQLiteDB.connectionLock.lock();
     	Connection c = SQLiteDB.openConnection();	
 		ResultSet rs;
 		try {
@@ -39,6 +40,8 @@ public class Logger {
 			}
 		} catch (NumberFormatException | SQLException e) {
 			e.printStackTrace();
+		} finally {
+			SQLiteDB.connectionLock.unlock();
 		}
 		
 		return result;		
@@ -69,8 +72,10 @@ public class Logger {
 	}
 	
 	public static void addLogToDB(long timestamp, Type type, String message) {
+		SQLiteDB.connectionLock.lock();	
 		Log log = new Log(timestamp, type, message);
 		log.saveToDB();
+		SQLiteDB.connectionLock.unlock();	
 	}
 	
 	public static void addMethodRequestLog(String methodName, Map<String, Object> params) {

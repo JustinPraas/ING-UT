@@ -31,6 +31,7 @@ public class ServerDataHandler {
 	private static final String POSITIVE_LOWEST_DAILY_REACH_MAP_PATH = Client.DESKTOP_ING_FOLDER_PATH + "positive_daily_lowest.ser";
 	private static final String TOTAL_NEGATIVE_INTEREST_MAP_PATH = Client.DESKTOP_ING_FOLDER_PATH + "negative_interest.ser";
 	private static final String TOTAL_POSITIVE_INTEREST_MAP_PATH = Client.DESKTOP_ING_FOLDER_PATH + "positive_interest.ser";
+	private static final String UPDATED_TRANSFER_LIMIT_MAP_PATH = Client.DESKTOP_ING_FOLDER_PATH + "updated_transfer_limits.ser";
 	
 
 	/**
@@ -71,6 +72,40 @@ public class ServerDataHandler {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	/**
+	 * Writes the map of updated transfer limits <code>updated_transfer_limits.ser</code> file.
+	 * @param updatedTransferLimitMap the map to be written
+	 */
+	public static void setUpdatedTransferLimitMap(HashMap<String, Double> updatedTransferLimitMap) {
+		try {
+			ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(UPDATED_TRANSFER_LIMIT_MAP_PATH, false));
+			oos.writeObject(updatedTransferLimitMap);
+			oos.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}		
+	}
+
+	/**
+	 * Reads the map of updated transfer limits from the <code>updated_transfer_limits.ser</code> file.
+	 * @return a map of updated transfer limits
+	 */
+	@SuppressWarnings("unchecked")
+	public static HashMap<String, Double> getUpdatedTransferLimitMap() {
+		initIfRequired();
+		try {
+			ObjectInputStream ois = new ObjectInputStream(new FileInputStream(UPDATED_TRANSFER_LIMIT_MAP_PATH));
+			HashMap<String, Double> updatedTransferLimitMap = (HashMap<String, Double>) ois.readObject();
+			ois.close();
+			return updatedTransferLimitMap;
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
 
 	/**
@@ -140,7 +175,6 @@ public class ServerDataHandler {
 		}
 		return null;
 	}
-
 
 	/**
 	 * Writes the map of total interests to the <code>negative_interest.ser</code> file.
@@ -252,6 +286,16 @@ public class ServerDataHandler {
 				e.printStackTrace();
 			}
 			InterestHandler.setTotalPositiveInterestMap(new HashMap<String, Double>());
+		}
+		
+		File updatedTransferLimitMap = new File(UPDATED_TRANSFER_LIMIT_MAP_PATH);
+		if (!updatedTransferLimitMap.exists()) {
+			try {
+				updatedTransferLimitMap.createNewFile();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			setUpdatedTransferLimitMap(new HashMap<>());
 		}		
 		
 		File configFile = new File(CONFIG_PATH);

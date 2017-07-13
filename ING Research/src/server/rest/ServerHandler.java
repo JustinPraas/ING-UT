@@ -58,6 +58,7 @@ public class ServerHandler {
 	
 	// Handles the monthly interest
 	private static InterestHandler interestHandler = new InterestHandler();
+	private static TimeOperator timeOperator = new TimeOperator();
 	
 	@POST
 	@Path("/postRequest")
@@ -208,8 +209,9 @@ public class ServerHandler {
 			return respondError(err);
 		}
 		
-		bankAccount.setTransferLimit(weeklyLimit);
-		bankAccount.saveToDB();
+		HashMap<String, Double> updatedTransferLimitMap = ServerDataHandler.getUpdatedTransferLimitMap();
+		updatedTransferLimitMap.put(bankAccount.getIBAN(), weeklyLimit);
+		ServerDataHandler.setUpdatedTransferLimitMap(updatedTransferLimitMap);
 	
 		return sendEmptyResult(jReq.getMethod());
 	}
@@ -523,13 +525,15 @@ public class ServerHandler {
 			return invalidRequest;
 		}
 		
-		int newlySimulatedDays = Integer.parseInt((String) params.get("nrOfDays"));
-		ServerModel.setSimulatedDays(newlySimulatedDays, true);
+		int newlySimulatedDays = Integer.parseInt((String) params.get("nrOfDays"));		
+
+		interestHandler.newlySimulatedDays = newlySimulatedDays;
+		interestHandler.interrupt();
+		timeOperator.newlySimulatedDays = newlySimulatedDays;
+		timeOperator.interrupt();
 		
 		HashMap<String, Object> resp = new HashMap<>();
 		
-		interestHandler.newlySimulatedDays = newlySimulatedDays;
-		interestHandler.interrupt();
 		
 		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
 		return respond(jResp.toJSONString(), jReq.getMethod());
@@ -575,6 +579,7 @@ public class ServerHandler {
 		ResultSet rs = null;
 		
 		try {
+			SQLiteDB.connectionLock.lock();
 			Connection c = SQLiteDB.openConnection();
 			Statement s = c.createStatement();
 			rs = s.executeQuery("SELECT * FROM customerbankaccounts WHERE IBAN='" + IBAN + "';");
@@ -591,6 +596,8 @@ public class ServerHandler {
 		} catch (ObjectDoesNotExistException e) {
 			String err = buildError(418, "One or more parameter has an invalid value. See message.", e.toString());
 			return respondError(err);
+		} finally {
+			SQLiteDB.connectionLock.unlock();
 		}
 		
 		JSONRPC2Response jResp = new JSONRPC2Response(associations, "response-" + java.lang.System.currentTimeMillis());
@@ -614,6 +621,7 @@ public class ServerHandler {
 		ResultSet rs = null;
 		
 		try {
+			SQLiteDB.connectionLock.lock();
 			Connection c = SQLiteDB.openConnection();
 			Statement s = c.createStatement();
 			rs = s.executeQuery("SELECT * FROM customerbankaccounts WHERE customer_BSN='" + cAcc.getBSN() + "';");
@@ -635,6 +643,8 @@ public class ServerHandler {
 		} catch (ObjectDoesNotExistException e) {
 			String err = buildError(418, "One or more parameter has an invalid value. See message.", e.toString());
 			return respondError(err);
+		} finally {
+			SQLiteDB.connectionLock.unlock();
 		}
 		
 		JSONRPC2Response jResp = new JSONRPC2Response(associations, "response-" + java.lang.System.currentTimeMillis());

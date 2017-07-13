@@ -229,6 +229,7 @@ public class InterestHandler extends Thread {
 	public static void initializeLowestNegativeDailyReachMap() {
 		HashMap<String, Double> newLowestDailyReachMap = new HashMap<>();
 		try {
+			SQLiteDB.connectionLock.lock();
 			Connection c = SQLiteDB.openConnection();
 			Statement s = c.createStatement();
 			ResultSet rs = s.executeQuery("SELECT IBAN, balance FROM bankaccounts WHERE balance < 0;");
@@ -237,6 +238,8 @@ public class InterestHandler extends Thread {
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
+		} finally {
+			SQLiteDB.connectionLock.unlock();
 		}
 		
 		// SET: map
@@ -251,6 +254,7 @@ public class InterestHandler extends Thread {
 	public static void initializeLowestPositiveDailyReachMap() {
 		HashMap<String, Double> newLowestPositiveDailyReachMap = new HashMap<>();
 		try {
+			SQLiteDB.connectionLock.lock();
 			Connection c = SQLiteDB.openConnection();
 			Statement s = c.createStatement();
 			ResultSet rs = s.executeQuery("SELECT IBAN, balance FROM savingsaccounts WHERE balance > 0;");
@@ -259,6 +263,8 @@ public class InterestHandler extends Thread {
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
+		} finally {
+			SQLiteDB.connectionLock.unlock();
 		}
 		
 		// SET: map
@@ -332,9 +338,9 @@ public class InterestHandler extends Thread {
 	 */
 	@Override
 	public void run() {		
-		boolean continues = true;
-		while (continues) {
-			System.out.println("INTEREST: Re-entering loop");
+		while (true) {			
+			SQLiteDB.connectionLock.lock();	
+			
 			// The server's current time and date
 			Calendar c = ServerModel.getServerCalendar();
 			
@@ -357,10 +363,11 @@ public class InterestHandler extends Thread {
 				addPositiveBalancesToTotalPositiveInterest(c);				
 			}
 			
+			SQLiteDB.connectionLock.unlock();	
 			try {
-				Thread.sleep(calculateShortestSleep(c));
+				// Sleep for a minute
+				Thread.sleep(1000 * 60);
 			} catch (InterruptedException e) {
-				System.out.println("INTEREST: interrupted");
 				calculateTimeSimulatedInterest(newlySimulatedDays);
 				newlySimulatedDays = 0;
 			}					
@@ -390,8 +397,6 @@ public class InterestHandler extends Thread {
 		long dateMillis = date.getTime();
 		long millisUntilNextMidNight = dateMillis - nowMillis;
 		
-		System.out.println("INTEREST: Going to sleep for " + millisUntilNextMidNight + "milliseconds (" + date.toString() + ")");
-
 		return millisUntilNextMidNight;
 	}
 
@@ -440,6 +445,8 @@ public class InterestHandler extends Thread {
 	public static void calculateTimeSimulatedInterest(int days) {
 		Calendar c = ServerModel.getServerCalendar();
 		
+		SQLiteDB.connectionLock.lock();	
+		
 		initializeLowestNegativeDailyReachMap();
 		initializeLowestPositiveDailyReachMap();
 		
@@ -462,7 +469,9 @@ public class InterestHandler extends Thread {
 			if (c.get(Calendar.DAY_OF_YEAR) == 1) {
 				transferPositiveInterest();
 			}
-		}		
+		}
+		
+		SQLiteDB.connectionLock.unlock();			
 	}
 
 	/**

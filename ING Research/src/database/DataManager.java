@@ -32,7 +32,7 @@ public class DataManager {
 	/**
 	 * Initializes hibernate configuration and database connection.
 	 */
-    public static void init() {
+    public static synchronized void init() {
     	SQLiteDB.initializeDB();
     	cfg = new Configuration();
     	cfg.configure(CFGPATH);
@@ -42,6 +42,7 @@ public class DataManager {
     	cfg.addAnnotatedClass(SavingsAccount.class);
     	cfg.addAnnotatedClass(accounts.Transaction.class);
     	cfg.addAnnotatedClass(logging.Log.class);
+    	cfg.addAnnotatedClass(server.rest.TimeEvent.class);
     	factory = cfg.buildSessionFactory();
     }
     
@@ -50,7 +51,7 @@ public class DataManager {
      * they are not already initialized. Sets up ING bank account in the database
      * for further use by the program. Resets the account on every server startup.
      */
-	private static void initIfRequired() {
+	private static synchronized void initIfRequired() {
 		if (!initialized) {
     		init();
     		initialized = true;
@@ -61,7 +62,7 @@ public class DataManager {
      * Remove a persistent object from the database.
      * @param o The object to be removed
      */
-    public static void removeEntryFromDB(DBObject o) {
+    public static synchronized void removeEntryFromDB(DBObject o) {
     	initIfRequired();
     	
     	Session session = factory.openSession();
@@ -79,7 +80,7 @@ public class DataManager {
      * @return True or false, depending on whether or not the object is found
      */
     @SuppressWarnings("deprecation")
-	public static boolean objectExists(DBObject o) {
+	public static synchronized boolean objectExists(DBObject o) {
     	initIfRequired();
     	
     	Session session = factory.openSession();
@@ -98,7 +99,7 @@ public class DataManager {
      * is updated. If the object does not exist in the DB, it is added.
      * @param o The object to save
      */
-	public static void save(DBObject o) {
+	public static synchronized void save(DBObject o) {
 		initIfRequired();
 		
 		Session session = factory.openSession();
@@ -115,7 +116,7 @@ public class DataManager {
 	 * @return A List of all objects meeting the given criteria
 	 */
     @SuppressWarnings("deprecation")
-	public static List<?> getObjectsFromDB(String className, ArrayList<Criterion> criteria) {
+	public static synchronized List<?> getObjectsFromDB(String className, ArrayList<Criterion> criteria) {
     	initIfRequired();
     	
     	Session session = factory.openSession();
@@ -134,7 +135,7 @@ public class DataManager {
      * @return A List of all objects of the given type
      */
     @SuppressWarnings("deprecation")
-	public static List<?> getObjectsFromDB(String className) {
+	public static synchronized List<?> getObjectsFromDB(String className) {
     	initIfRequired();
     	
     	Session session = factory.openSession();
@@ -152,7 +153,7 @@ public class DataManager {
      * @throws ObjectDoesNotExistException 
      */
     @SuppressWarnings("deprecation")
-	public static Object getObjectByPrimaryKey(String className, Object primaryKey) throws ObjectDoesNotExistException {
+	public static synchronized Object getObjectByPrimaryKey(String className, Object primaryKey) throws ObjectDoesNotExistException {
     	initIfRequired();
     	
     	Session session = factory.openSession();
@@ -176,7 +177,7 @@ public class DataManager {
      * @return True or false, depending on whether or not the primary key is in use
      */
     @SuppressWarnings("deprecation")
-	public static boolean isPrimaryKeyUnique(String className, String primaryKeyName, String primaryKey) {
+	public static synchronized boolean isPrimaryKeyUnique(String className, String primaryKeyName, String primaryKey) {
     	initIfRequired();
     	
     	Session session = factory.openSession();
@@ -191,7 +192,7 @@ public class DataManager {
     	return true;
     }
 
-	public static void wipeAllData() {
+	public static synchronized void wipeAllData() {
 		initIfRequired();
 		Session session = factory.openSession();
 		Transaction t = session.beginTransaction();
@@ -202,6 +203,7 @@ public class DataManager {
 		session.createNativeQuery("DROP TABLE transactions").executeUpdate();
 		session.createNativeQuery("DROP TABLE savingsaccounts").executeUpdate();
 		session.createNativeQuery("DROP TABLE logs").executeUpdate();
+		session.createNativeQuery("DROP TABLE timeevents").executeUpdate();
 		t.commit();
 		session.close();
 		init();

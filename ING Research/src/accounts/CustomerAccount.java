@@ -212,6 +212,7 @@ public class CustomerAccount implements database.DBObject {
 	}
 	
 	public void SQLdeleteFromDB() throws SQLException {
+		SQLiteDB.connectionLock.lock();
 		Connection c = SQLiteDB.openConnection();
 		Statement s = c.createStatement();
 		s.executeUpdate("DELETE FROM customeraccounts WHERE customer_BSN='" + BSN + "';");
@@ -219,6 +220,7 @@ public class CustomerAccount implements database.DBObject {
 		s.executeUpdate("DELETE FROM bankaccounts WHERE customer_BSN='" + BSN +"';" );
 		s.executeUpdate("DELETE FROM debitcards WHERE customer_BSN='" + BSN + "';");
 		c.close();
+		SQLiteDB.connectionLock.unlock();
 	}
 
 	@Column (name = "username")

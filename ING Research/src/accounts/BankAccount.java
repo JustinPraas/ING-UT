@@ -615,6 +615,7 @@ public class BankAccount implements database.DBObject {
 		ResultSet result;
 		PreparedStatement statement;
 		try {
+			SQLiteDB.connectionLock.lock();
 			con = SQLiteDB.openConnection();
 			statement = con.prepareStatement("SELECT sum(amount) FROM transactions WHERE source_IBAN = '" + IBAN + 
 					"' AND date_time_milis >= " + firstDay.getTimeInMillis() + " AND date_time_milis < " + today.getTimeInMillis());
@@ -625,7 +626,6 @@ public class BankAccount implements database.DBObject {
 			} else {
 				currentSum = Double.parseDouble(result.getString(1));
 			}				
-			System.out.println("Current sum " + currentSum);
 			double totalSum = currentSum + amount;
 			
 			statement.close();
@@ -639,6 +639,8 @@ public class BankAccount implements database.DBObject {
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
+		} finally {
+			SQLiteDB.connectionLock.unlock();
 		}
 		return false;
 	}
@@ -656,6 +658,7 @@ public class BankAccount implements database.DBObject {
 		ResultSet result;
 		PreparedStatement statement;
 		try {
+			SQLiteDB.connectionLock.lock();
 			con = SQLiteDB.openConnection();
 			statement = con.prepareStatement("SELECT sum(amount) FROM transactions WHERE source_IBAN = '" + IBAN + 
 					"' AND date_time LIKE '% " + thisMonthDisplayName + " " + today.get(Calendar.DAY_OF_MONTH) + " % " + today.get(Calendar.YEAR) + "'  AND pin_transaction = 1");
@@ -680,6 +683,8 @@ public class BankAccount implements database.DBObject {
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
+		} finally {
+			SQLiteDB.connectionLock.unlock();
 		}
 		return false;
 	}

@@ -8,6 +8,8 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import client.Client;
 
@@ -18,6 +20,8 @@ import client.Client;
 public class SQLiteDB {
 	public static final String DBName = Client.DESKTOP_ING_FOLDER_PATH + "banking.db";
 	public static final String schema = Client.DESKTOP_ING_FOLDER_PATH + "bankingtables.txt";
+	
+	public static Lock connectionLock = new ReentrantLock();
 	
 	/**
 	 * Creates a .db file if it does not already exist.
