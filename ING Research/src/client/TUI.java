@@ -100,6 +100,7 @@ public class TUI {
 			System.out.printf("%25s %1s %s %n", "UNBLOCK_PINCARD", "", "<IBAN>:<cardNumber>");
 			System.out.printf("%25s %1s %s %n", "GET_OVERDRAFT_LIMIT", "", "<IBAN>");
 			System.out.printf("%25s %1s %s %n", "SET_OVERDRAFT_LIMIT", "", "<IBAN>:<overdraftLimit>");
+			System.out.printf("%25s %1s %s %n", "SET_TRANSFER_LIMIT", "", "<IBAN>:<transferLimit>");
 			System.out.printf("%25s %1s %s %n", "OPEN_SAVINGS_ACCOUNT", "", "<IBAN>");
 			System.out.printf("%25s %1s %s %n", "CLOSE_SAVINGS_ACCOUNT", "", "<IBAN>");
 			System.out.printf("%25s %1s %s %n", "GET_EVENT_LOGS", "", "<startDate>:<endDate> (format = yyyy-MM-dd)");

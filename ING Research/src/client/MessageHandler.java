@@ -147,6 +147,9 @@ public class MessageHandler {
 			case "GET_OVERDRAFT_LIMIT":
 				getOverdraftLimit(parameters);
 				break;
+			case "SET_TRANSFER_LIMIT":
+				setTransferLimit(parameters);
+				break;
 			case "GET_EVENT_LOGS":
 				getEventLogs(parameters);
 				break;
@@ -156,6 +159,42 @@ public class MessageHandler {
 			}
 		}
 		System.out.println("\n");
+	}
+	
+	/**
+	 * Extension 5: 'Overdraft' related.
+	 * Sets the overdraft limit of the given bank account
+	 */
+	private void setTransferLimit(String parameters) {
+		String parameterArray[] = parameters.split(":");
+		String method = "setTransferLimit";
+		HashMap<String, Object> params = new HashMap<>();
+		
+		if (parameterArray.length != 2) {
+			System.err.println("Please enter the requested parameters.");
+			return;
+		}
+
+		params.put("authToken", AUTHTOKEN);
+		params.put("iBAN", parameterArray[0]);
+		params.put("transferLimit", parameterArray[1]);
+		
+		JSONRPC2Request request = new JSONRPC2Request(method, params,
+				"request-" + java.lang.System.currentTimeMillis());
+		String resp = sendToServer(request);
+		try {
+			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
+			if (!jResp.indicatesSuccess()) {
+				System.out.printf("Error " + jResp.getError().getCode() + ": " + jResp.getError().getMessage());
+				if (jResp.getError().getData() != null) {
+					System.out.println((String) jResp.getError().getData());
+				}
+				return;
+			}
+			System.out.println("Transfer limit succesfully set to " + Double.parseDouble(parameterArray[1]) + ".");
+		} catch (JSONRPC2ParseException e) {
+			System.out.println("Discarded invalid JSON-RPC response from server.");
+		}		
 	}
 	
 	private void getEventLogs(String parameters) {
