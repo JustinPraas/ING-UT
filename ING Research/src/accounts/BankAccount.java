@@ -577,7 +577,12 @@ public class BankAccount implements database.DBObject {
 		InterestHandler.setLowestNegativeDailyReachMapEntry(IBAN, balance);
 	}
 
-	private boolean exceedsLimit(double amount, LimitType limitType) {
+	/**
+	 * Checks if the given limit of this account is exceeded.
+	 * @param amount the amount that's attempted to transfer
+	 * @return true if the amount exceeds the limit, false otherwise
+	 */
+	public boolean exceedsLimit(double amount, LimitType limitType) {
 		if (limitType == LimitType.OVERDRAFT_LIMIT) {
 			return balance - amount < overdraftLimit * -1;
 		} 
@@ -592,6 +597,11 @@ public class BankAccount implements database.DBObject {
 		return true;
 	}
 
+	/**
+	 * Checks if the transfer limit of this account is exceeded for the previous 6 days.
+	 * @param amount the amount that's attempted to transfer
+	 * @return true if the amount exceeds the limit, false otherwise
+	 */
 	public boolean exceedsTransferLimit(double amount) {
 		double currentSum;
 		Calendar today = ServerModel.getServerCalendar();
@@ -634,19 +644,21 @@ public class BankAccount implements database.DBObject {
 	}
 
 	/**
-	 * @param amount
-	 * @return
+	 * Checks if the debit card limit of this account is exceeded for today.
+	 * @param amount the amount that's attempted to transfer
+	 * @return true if the amount exceeds the limit, false otherwise
 	 */
 	public boolean exceedsDebitCardLimit(double amount) {
 		double currentSum;
 		Calendar today = ServerModel.getServerCalendar();
+		String thisMonthDisplayName = today.getDisplayName(Calendar.MONTH, Calendar.SHORT_STANDALONE, Locale.UK);
 		Connection con;
 		ResultSet result;
 		PreparedStatement statement;
 		try {
 			con = SQLiteDB.openConnection();
 			statement = con.prepareStatement("SELECT sum(amount) FROM transactions WHERE source_IBAN = '" + IBAN + 
-					"' AND date_time LIKE '% " + today.getDisplayName(Calendar.MONTH, Calendar.SHORT_STANDALONE, Locale.UK)+ " " + today.get(Calendar.DAY_OF_MONTH) + " % " + today.get(Calendar.YEAR) + "'  AND pin_transaction = 1");
+					"' AND date_time LIKE '% " + thisMonthDisplayName + " " + today.get(Calendar.DAY_OF_MONTH) + " % " + today.get(Calendar.YEAR) + "'  AND pin_transaction = 1");
 			result = statement.executeQuery();
 			result.next();
 			if (result.getString(1) == null) {
