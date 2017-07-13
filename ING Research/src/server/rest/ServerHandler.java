@@ -141,7 +141,7 @@ public class ServerHandler {
 	
 	public static String buildError(int code, String message, String data) {
 		Logger.addMethodErrorLog(message + " " + data, code);
-		JSONRPC2Error jErr = new JSONRPC2Error(code, message, data);
+		JSONRPC2Error jErr = new JSONRPC2Error(code, message, "\n" + data);
 		JSONRPC2Response jResp = new JSONRPC2Response(jErr, "response-" + java.lang.System.currentTimeMillis());
 		return jResp.toJSONString();
 	}
@@ -185,7 +185,7 @@ public class ServerHandler {
 		try {
 			bankAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, IBAN);
 		} catch (ObjectDoesNotExistException e) {
-			String err = buildError(418, "One or more parameter has an invalid value. See message. \n" + e.toString());
+			String err = buildError(418, "One or more parameter has an invalid value. See message.", e.toString());
 			return respondError(err);
 		}
 		
@@ -252,7 +252,7 @@ public class ServerHandler {
 		try {
 			bankAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, IBAN);
 		} catch (ObjectDoesNotExistException e) {
-			String err = buildError(418, "One or more parameter has an invalid value. See message. \n" + e.toString());
+			String err = buildError(418, "One or more parameter has an invalid value. See message.", e.toString());
 			return respondError(err);
 		}
 		
@@ -387,7 +387,7 @@ public class ServerHandler {
 		try {
 			bankAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, IBAN);
 		} catch (ObjectDoesNotExistException e) {
-			String err = buildError(418, "One or more parameter has an invalid value. See message. \n" + e.toString());
+			String err = buildError(418, "One or more parameter has an invalid value. See message.", e.toString());
 			return respondError(err);
 		}
 		
@@ -437,7 +437,7 @@ public class ServerHandler {
 			debitCard = (DebitCard) DataManager.getObjectByPrimaryKey(DebitCard.CLASSNAME, pinCard);
 			bankAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, IBAN);
 		} catch (ObjectDoesNotExistException e) {
-			String err = buildError(418, "One or more parameter has an invalid value. See message. \n" + e.toString());
+			String err = buildError(418, "One or more parameter has an invalid value. See message.", e.toString());
 			return respondError(err);
 		}
 		
@@ -555,7 +555,7 @@ public class ServerHandler {
 		try {
 			bAcc = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, IBAN);
 		} catch (ObjectDoesNotExistException e) {
-			String err = buildError(418, "One or more parameter has an invalid value. See message. \n" + e.toString());
+			String err = buildError(418, "One or more parameter has an invalid value. See message.", e.toString());
 			return respondError(err);
 		}
 		
@@ -585,7 +585,7 @@ public class ServerHandler {
 			String err = buildError(500, "An unexpected error occured, see error details.", "SQL error occurred on server.");
 			return respondError(err);
 		} catch (ObjectDoesNotExistException e) {
-			String err = buildError(418, "One or more parameter has an invalid value. See message. \n" + e.toString());
+			String err = buildError(418, "One or more parameter has an invalid value. See message.", e.toString());
 			return respondError(err);
 		}
 		
@@ -629,7 +629,7 @@ public class ServerHandler {
 			String err = buildError(500, "An unexpected error occured, see error details.", "SQLException occurred on server.");
 			return respondError(err);
 		} catch (ObjectDoesNotExistException e) {
-			String err = buildError(418, "One or more parameter has an invalid value. See message. \n" + e.toString());
+			String err = buildError(418, "One or more parameter has an invalid value. See message.", e.toString());
 			return respondError(err);
 		}
 		
@@ -1011,7 +1011,7 @@ public class ServerHandler {
 		try {
 			dc = (DebitCard) DataManager.getObjectByPrimaryKey(DebitCard.CLASSNAME, pinCard);
 		} catch (ObjectDoesNotExistException e) {
-			String err = buildError(418, "One or more parameter has an invalid value. See message. \n" + e.toString());
+			String err = buildError(418, "One or more parameter has an invalid value. See message.", e.toString());
 			return respondError(err);
 		}
 		
@@ -1039,7 +1039,7 @@ public class ServerHandler {
 		try {
 			bAcc = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, IBAN);
 		} catch (ObjectDoesNotExistException e) {
-			String err = buildError(418, "One or more parameter has an invalid value. See message. \n" + e.toString());
+			String err = buildError(418, "One or more parameter has an invalid value. See message.", e.toString());
 			return respondError(err);
 		}
 		
@@ -1096,7 +1096,7 @@ public class ServerHandler {
 		try {
 			card = (DebitCard) DataManager.getObjectByPrimaryKey(DebitCard.CLASSNAME, "" + pinCard);
 		} catch (ObjectDoesNotExistException e) {
-			String err = buildError(418, "One or more parameter has an invalid value. See message. \n" + e.toString());
+			String err = buildError(418, "One or more parameter has an invalid value. See message.", e.toString());
 			return respondError(err);
 		}
 		
@@ -1149,7 +1149,7 @@ public class ServerHandler {
 		try {
 			bankAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, IBAN);
 		} catch (ObjectDoesNotExistException e) {
-			String err = buildError(418, "One or more parameter has an invalid value. See message. \n" + e.toString());
+			String err = buildError(418, "One or more parameter has an invalid value. See message.", e.toString());
 			return respondError(err);
 		}
 		boolean authorized = false;
@@ -1258,7 +1258,7 @@ public class ServerHandler {
 			source = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, sourceIBAN);
 			destination = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, targetIBAN);
 		} catch (ObjectDoesNotExistException e) {
-			String err = buildError(418, "One or more parameter has an invalid value. See message. \n" + e.toString());
+			String err = buildError(418, "One or more parameter has an invalid value. See message.", e.toString());
 			return respondError(err);
 		}
 		
@@ -1402,7 +1402,7 @@ public class ServerHandler {
 		try {
 			source = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, IBAN);
 		} catch (ObjectDoesNotExistException e) {
-			String err = buildError(418, "One or more parameter has an invalid value. See message. \n" + e.toString());
+			String err = buildError(418, "One or more parameter has an invalid value. See message.", e.toString());
 			return respondError(err);
 		}
 		
@@ -1469,7 +1469,7 @@ public class ServerHandler {
 		try {
 			source = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, IBAN);
 		} catch (ObjectDoesNotExistException e) {
-			String err = buildError(418, "One or more parameter has an invalid value. See message. \n" + e.toString());
+			String err = buildError(418, "One or more parameter has an invalid value. See message.", e.toString());
 			return respondError(err);
 		}
 		
