@@ -16,7 +16,7 @@ import accounts.DebitCard;
 import accounts.Transaction;
 import database.DataManager;
 import exceptions.ClosedAccountTransferException;
-import exceptions.ExceedOverdraftLimitException;
+import exceptions.ExceedLimitException;
 import exceptions.IllegalAmountException;
 import exceptions.IllegalTransferException;
 import exceptions.PinCardBlockedException;
@@ -106,7 +106,7 @@ public class AccountTest {
 			
 		} catch (IllegalTransferException e) {
 			
-		} catch (ExceedOverdraftLimitException e) {
+		} catch (ExceedLimitException e) {
 
 		}
 		assertTrue(bankAccount.getBalance() == 100);
@@ -184,7 +184,7 @@ public class AccountTest {
 
 		} catch (IllegalTransferException e) {
 
-		} catch (ExceedOverdraftLimitException e) {
+		} catch (ExceedLimitException e) {
 			
 		}
 		
@@ -211,7 +211,7 @@ public class AccountTest {
 
 		} catch (IllegalTransferException e) {
 
-		} catch (ExceedOverdraftLimitException e) {
+		} catch (ExceedLimitException e) {
 
 		}
 		
