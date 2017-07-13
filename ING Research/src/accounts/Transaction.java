@@ -20,6 +20,7 @@ import database.DataManager;
 public class Transaction implements DBObject, Comparable<Object> {
 	private String sourceIBAN;
 	private String destinationIBAN;
+	private boolean pinTransaction;
 	private String dateTime;
 	private long dateTimeMilis;
 	private double amount;
@@ -63,6 +64,15 @@ public class Transaction implements DBObject, Comparable<Object> {
 	
 	public void setDestinationIBAN(String destinationIBAN) {
 		this.destinationIBAN = destinationIBAN;
+	}
+	
+	@Column(name = "pin_transaction")
+	public boolean getPinTransaction() {
+		return this.pinTransaction;
+	}
+	
+	public void setPinTransaction(boolean pinTransaction) {
+		this.pinTransaction = pinTransaction;
 	}
 	
 	@Column(name = "date_time")
