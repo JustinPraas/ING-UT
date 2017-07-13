@@ -1,5 +1,7 @@
 package testing;
 
+import static org.junit.Assert.assertEquals;
+
 import java.util.ArrayList;
 
 import org.junit.AfterClass;
@@ -10,7 +12,7 @@ import accounts.BankAccount;
 import accounts.DebitCard;
 import accounts.Transaction;
 import database.DataManager;
-import exceptions.ExceedOverdraftLimitException;
+import exceptions.ExceedLimitException;
 import exceptions.ExpiredCardException;
 import exceptions.InvalidPINException;
 import exceptions.ObjectDoesNotExistException;
@@ -52,7 +54,7 @@ public class DebitCardTest {
 			
 		} catch (ExpiredCardException e) {
 			
-		} catch (ExceedOverdraftLimitException e) {
+		} catch (ExceedLimitException e) {
 
 		}
 		try {
@@ -69,7 +71,7 @@ public class DebitCardTest {
 			
 		} catch (ExpiredCardException e) {
 			
-		} catch (ExceedOverdraftLimitException e) {
+		} catch (ExceedLimitException e) {
 
 		}
 		try {
@@ -78,8 +80,28 @@ public class DebitCardTest {
 		} catch (ObjectDoesNotExistException e) {
 			System.err.println(e.toString());
 		}
+
+		assertEquals(10000, bAcc.getBalance(), 0.00000000001);
+		assertEquals(0, bAcc2.getBalance(), 0.00000000001);
 		
-		assert(bAcc.getBalance() == 9000 && bAcc2.getBalance() == 1000);
+		try {
+			card2.pinPayment(250, "4444", bAcc2);
+		} catch (InvalidPINException e) {
+			
+		} catch (ExpiredCardException e) {
+			
+		} catch (ExceedLimitException e) {
+
+		}
+		try {
+			bAcc = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, bAcc.getIBAN());
+			bAcc2 = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, bAcc2.getIBAN());
+		} catch (ObjectDoesNotExistException e) {
+			System.err.println(e.toString());
+		}		
+
+		assert(bAcc.getBalance() == 9750 && bAcc2.getBalance() == 250);
+		
 		bAcc.deleteFromDB();
 		bAcc2.deleteFromDB();
 	}

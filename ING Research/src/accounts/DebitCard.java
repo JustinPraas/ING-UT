@@ -9,7 +9,7 @@ import javax.persistence.Transient;
 
 import client.Client;
 import database.DataManager;
-import exceptions.ExceedOverdraftLimitException;
+import exceptions.ExceedLimitException;
 import exceptions.ExpiredCardException;
 import exceptions.IllegalAmountException;
 import exceptions.IllegalTransferException;
@@ -191,9 +191,9 @@ public class DebitCard implements database.DBObject {
 	 * @param destination The destination IBAN
 	 * @throws InvalidPINException 
 	 * @throws ExpiredCardException 
-	 * @throws ExceedOverdraftLimitException 
+	 * @throws ExceedLimitException 
 	 */
-	public void pinPayment(double amount, String PIN, BankAccount destination) throws InvalidPINException, ExpiredCardException, ExceedOverdraftLimitException {
+	public void pinPayment(double amount, String PIN, BankAccount destination) throws InvalidPINException, ExpiredCardException, ExceedLimitException {
 		BankAccount ownAccount;
 		try {
 			ownAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, bankAccountIBAN);
@@ -201,6 +201,8 @@ public class DebitCard implements database.DBObject {
 			System.err.println(e.toString());
 			return;
 		}
+		
+		// Check if a valid PIN is given
 		if (!isValidPIN(PIN)) {
 			throw new InvalidPINException(PIN, getCardNumber());
 		} else if (isExpired()) {
@@ -218,7 +220,7 @@ public class DebitCard implements database.DBObject {
 		}
 	}
 	
-	public void pinPayment(double amount, String PIN, String destinationIBAN) throws IllegalAmountException, IllegalTransferException, InvalidPINException, ExpiredCardException, PinCardBlockedException, ExceedOverdraftLimitException {
+	public void pinPayment(double amount, String PIN, String destinationIBAN) throws IllegalAmountException, IllegalTransferException, InvalidPINException, ExpiredCardException, PinCardBlockedException, ExceedLimitException {
 		BankAccount ownAccount;
 		try {
 			ownAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, bankAccountIBAN);

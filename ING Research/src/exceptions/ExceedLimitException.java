@@ -20,6 +20,6 @@ public class ExceedLimitException extends Exception {
 	}
 
 	public String toString() {
-		return "Can not complete transaction: exceeding " + limitType.name() + " with amount: " + amount + ".";
+		return "Can not complete transaction: exceeding " + limitType.name() + " with amount: " + amount + " for IBAN " + IBAN + ".";
 	}
 }
