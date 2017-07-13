@@ -37,7 +37,7 @@ import accounts.Transaction;
 import database.DataManager;
 import database.SQLiteDB;
 import exceptions.ClosedAccountTransferException;
-import exceptions.ExceedOverdraftLimitException;
+import exceptions.ExceedLimitException;
 import exceptions.ExpiredCardException;
 import exceptions.IllegalAccountCloseException;
 import exceptions.IllegalAmountException;
@@ -1073,7 +1073,7 @@ public class ServerHandler {
 			}
 			
 			return respondError(err);
-		} catch (IllegalAmountException | IllegalTransferException | ExpiredCardException | ExceedOverdraftLimitException e) {
+		} catch (IllegalAmountException | IllegalTransferException | ExpiredCardException | ExceedLimitException e) {
 			String err = buildError(500, "An unexpected error occured, see error details.", e.toString());
 			return respondError(err);
 		}
@@ -1155,7 +1155,7 @@ public class ServerHandler {
 		try {
 			feeDestinationBankAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, "NL36INGB8278309172");
 			bankAccount.transfer(feeDestinationBankAccount, 7.50, "Fee for new pincard", "ING");
-		} catch (ObjectDoesNotExistException | IllegalAmountException | IllegalTransferException | ExceedOverdraftLimitException e) {
+		} catch (ObjectDoesNotExistException | IllegalAmountException | IllegalTransferException | ExceedLimitException e) {
 			String err = buildError(500, "An unexpected error occured, see error details.", e.toString());
 			return respondError(err);
 		}
@@ -1268,7 +1268,7 @@ public class ServerHandler {
 				destination.transfer(amount);
 			}
 			
-		} catch (IllegalAmountException | IllegalTransferException | ExceedOverdraftLimitException e) {
+		} catch (IllegalAmountException | IllegalTransferException | ExceedLimitException e) {
 			String err = buildError(500, "An unexpected error occured, see error details.", e.toString());
 			return respondError(err);
 		}
