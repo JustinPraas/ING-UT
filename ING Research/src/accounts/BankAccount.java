@@ -63,6 +63,7 @@ public class BankAccount implements database.DBObject {
 
 	private boolean closed;
 	private double overdraftLimit;
+	private double weeklyLimit;
 	public static final String CLASSNAME = "accounts.BankAccount";
 	public static final String PRIMARYKEYNAME = "IBAN";
 
@@ -99,6 +100,7 @@ public class BankAccount implements database.DBObject {
 		this.IBAN = generateIBAN(COUNTRY_CODE, BANK_CODE, randomPAN());
 		this.mainHolderBSN = mainHolderBSN;
 		this.overdraftLimit = 0;
+		this.weeklyLimit = 2500;
 		this.savingsAccount = new SavingsAccount(this);
 		this.savingsAccount.saveToDB();
 	}
@@ -123,6 +125,7 @@ public class BankAccount implements database.DBObject {
 		this.balance = balance;
 		this.IBAN = IBAN;
 		this.overdraftLimit = 0;
+		this.weeklyLimit = 2500;
 
 		if (!IBAN.equals(ING_BANK_ACCOUNT_IBAN)) {
 			this.savingsAccount = new SavingsAccount(this);
@@ -742,6 +745,15 @@ public class BankAccount implements database.DBObject {
 		this.savingsAccount = savingsAccount;
 	}
 
+	public void setWeeklyLimit(double weeklyLimit) {
+		this.weeklyLimit = weeklyLimit;
+	}
+
+	@Column(name = "weeklylimit")
+	public double getWeeklyLimit() {
+		return weeklyLimit;
+	}
+
 	@OneToOne(fetch = FetchType.LAZY, mappedBy = "bankAccount", cascade = CascadeType.ALL)
 	public SavingsAccount getSavingsAccount() {
 		return savingsAccount;
@@ -812,6 +824,8 @@ public class BankAccount implements database.DBObject {
 		CustomerAccount ingAccount = new CustomerAccount("ING", "BANK", "I.B", "00000000", "ING Street 1", "0600000000",
 				"ing@mail.com", "01-01-1950", "ing", "bank");
 		BankAccount ingBankAccount = new BankAccount("00000000", 1000000f, ING_BANK_ACCOUNT_IBAN);
+		ingBankAccount.setWeeklyLimit(1000000000);
+		ingBankAccount.setOverdraftLimit(1000000000);
 		HashSet<BankAccount> bankAccountSet = new HashSet<>();
 		bankAccountSet.add(ingBankAccount);
 		ingAccount.setBankAccounts(bankAccountSet);
