@@ -63,7 +63,7 @@ public class BankAccount implements database.DBObject {
 
 	private boolean closed;
 	private double overdraftLimit;
-	private double weeklyLimit;
+	private double transferLimit;
 	public static final String CLASSNAME = "accounts.BankAccount";
 	public static final String PRIMARYKEYNAME = "IBAN";
 
@@ -100,7 +100,7 @@ public class BankAccount implements database.DBObject {
 		this.IBAN = generateIBAN(COUNTRY_CODE, BANK_CODE, randomPAN());
 		this.mainHolderBSN = mainHolderBSN;
 		this.overdraftLimit = 0;
-		this.weeklyLimit = 2500;
+		this.transferLimit = 2500;
 		this.savingsAccount = new SavingsAccount(this);
 		this.savingsAccount.saveToDB();
 	}
@@ -125,7 +125,7 @@ public class BankAccount implements database.DBObject {
 		this.balance = balance;
 		this.IBAN = IBAN;
 		this.overdraftLimit = 0;
-		this.weeklyLimit = 2500;
+		this.transferLimit = 2500;
 
 		if (!IBAN.equals(ING_BANK_ACCOUNT_IBAN)) {
 			this.savingsAccount = new SavingsAccount(this);
@@ -579,12 +579,12 @@ public class BankAccount implements database.DBObject {
 		} 
 		
 		if (limitType == LimitType.WEEKLY_ACCOUNT_LIMIT) {
-			return exceedsWeeklyLimit(amount);
+			return exceedsTransferLimit(amount);
 		}
 		return true;
 	}
 
-	public boolean exceedsWeeklyLimit(double amount) {
+	public boolean exceedsTransferLimit(double amount) {
 		double currentSum;
 		Calendar today = ServerModel.getServerCalendar();
 		Calendar firstDay = ServerModel.getServerCalendar();
@@ -745,13 +745,13 @@ public class BankAccount implements database.DBObject {
 		this.savingsAccount = savingsAccount;
 	}
 
-	public void setWeeklyLimit(double weeklyLimit) {
-		this.weeklyLimit = weeklyLimit;
+	public void setTransferLimit(double transferLimit) {
+		this.transferLimit = transferLimit;
 	}
 
-	@Column(name = "weeklylimit")
-	public double getWeeklyLimit() {
-		return weeklyLimit;
+	@Column(name = "transferlimit")
+	public double getTransferLimit() {
+		return transferLimit;
 	}
 
 	@OneToOne(fetch = FetchType.LAZY, mappedBy = "bankAccount", cascade = CascadeType.ALL)
@@ -824,7 +824,7 @@ public class BankAccount implements database.DBObject {
 		CustomerAccount ingAccount = new CustomerAccount("ING", "BANK", "I.B", "00000000", "ING Street 1", "0600000000",
 				"ing@mail.com", "01-01-1950", "ing", "bank");
 		BankAccount ingBankAccount = new BankAccount("00000000", 1000000f, ING_BANK_ACCOUNT_IBAN);
-		ingBankAccount.setWeeklyLimit(1000000000);
+		ingBankAccount.setTransferLimit(1000000000);
 		ingBankAccount.setOverdraftLimit(1000000000);
 		HashSet<BankAccount> bankAccountSet = new HashSet<>();
 		bankAccountSet.add(ingBankAccount);
