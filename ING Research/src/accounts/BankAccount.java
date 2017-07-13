@@ -614,7 +614,7 @@ public class BankAccount implements database.DBObject {
 			result.close();
 			con.close();
 			
-			if (totalSum > 2500.00) {
+			if (totalSum > transferLimit) {
 				return true;
 			} else {
 				return false;
