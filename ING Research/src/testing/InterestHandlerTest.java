@@ -94,18 +94,27 @@ public class InterestHandlerTest {
 	
 	@Test
 	public void calculateInterestTest() {
+		bAccount1.setBalance((float) startValue1);
+		bAccount2.setBalance((float) startValue2);
+		bAccount3.setBalance((float) startValue3);
+		
+		cAccount.saveToDB();
+		bAccount1.saveToDB();
+		bAccount2.saveToDB();
+		bAccount3.saveToDB();
+		
 		double balance, interest;
 
 		balance = bAccount1.getBalance();
-		interest = InterestHandler.calculateNegativeInterest(balance, 31);		
+		interest = InterestHandler.calculateNegativeInterest(balance, ServerModel.getServerCalendar().getMaximum(Calendar.DATE));		
 		assertEquals(0.26, Math.abs(interest), 0.01);
 
 		balance = bAccount2.getBalance();
-		interest = InterestHandler.calculateNegativeInterest(balance, 31);
+		interest = InterestHandler.calculateNegativeInterest(balance, ServerModel.getServerCalendar().getMaximum(Calendar.DATE));
 		assertEquals(0.51, Math.abs(interest), 0.01);
 		
 		balance = bAccount3.getBalance();
-		interest = InterestHandler.calculateNegativeInterest(balance, 31);
+		interest = InterestHandler.calculateNegativeInterest(balance, ServerModel.getServerCalendar().getMaximum(Calendar.DATE));
 		assertEquals(1.03, Math.abs(interest), 0.01);
 	}
 	
@@ -216,7 +225,7 @@ public class InterestHandlerTest {
 			e.printStackTrace();
 		}
 		
-		interestHandler.newlySimulatedDays = 31;
+		interestHandler.newlySimulatedDays = 32;
 		interestHandler.interrupt();
 		
 		try {
@@ -242,9 +251,20 @@ public class InterestHandlerTest {
 	}
 	
 	@Test
-	public void addBalancesTest() {
+	public void addBalancesTest() {		
 		int daysUntilNextYear = Calendar.getInstance().getMaximum(Calendar.DAY_OF_YEAR) - Calendar.getInstance().get(Calendar.DAY_OF_YEAR);
 		ServerModel.setSimulatedDays(daysUntilNextYear, true);
+		
+
+		bAccount1.setBalance((float) startValue1);
+		bAccount2.setBalance((float) startValue2);
+		bAccount3.setBalance((float) startValue3);
+		
+		cAccount.saveToDB();
+		bAccount1.saveToDB();
+		bAccount2.saveToDB();
+		bAccount3.saveToDB();
+		
 		InterestHandler interestHandler = new InterestHandler();
 		interestHandler.newlySimulatedDays = 1;
 		interestHandler.interrupt();

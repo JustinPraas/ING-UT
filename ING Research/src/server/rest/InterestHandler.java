@@ -15,7 +15,7 @@ import accounts.BankAccount;
 import database.DataManager;
 import database.SQLiteDB;
 import exceptions.ClosedAccountTransferException;
-import exceptions.ExceedOverdraftLimitException;
+import exceptions.ExceedLimitException;
 import exceptions.IllegalAmountException;
 import exceptions.InsufficientFundsTransferException;
 import exceptions.ObjectDoesNotExistException;
@@ -488,7 +488,7 @@ public class InterestHandler extends Thread {
 				System.out.println(bankAccount.getIBAN() + ": old balance is " + currentBalance + ", new balance is " + newBalance);
 				
 			} catch (ObjectDoesNotExistException | InsufficientFundsTransferException | ClosedAccountTransferException | SameAccountTransferException 
-					| IllegalAmountException | ExceedOverdraftLimitException e) {
+					| IllegalAmountException | ExceedLimitException e) {
 				e.printStackTrace();
 			}
 		}
