@@ -292,7 +292,7 @@ public class BankAccount implements database.DBObject {
 		if (amount <= 0) {
 			throw new IllegalAmountException(amount);
 		} else if (balance - amount < overdraftLimit * -1) {
-			throw new ExceedLimitException(amount, IBAN, LimitType.OVERDRAFT_LIMIT);
+			throw new ExceedLimitException(amount, this, LimitType.OVERDRAFT_LIMIT);
 		} else if (this.closed || savingsAccount.isClosed()) {
 			throw new ClosedAccountTransferException();
 		}
@@ -371,9 +371,9 @@ public class BankAccount implements database.DBObject {
 		if (amount <= 0) {
 			throw new IllegalAmountException(amount);
 		} else if (balance - amount < overdraftLimit * -1) {
-			throw new ExceedLimitException(amount, IBAN, LimitType.OVERDRAFT_LIMIT);
-		} else if (exceedsLimit(amount, LimitType.WEEKLY_ACCOUNT_LIMIT)) {
-			throw new ExceedLimitException(amount, IBAN, LimitType.OVERDRAFT_LIMIT);
+			throw new ExceedLimitException(amount, this, LimitType.OVERDRAFT_LIMIT);
+		} else if (exceedsLimit(amount, LimitType.TRANSFER_LIMIT)) {
+			throw new ExceedLimitException(amount, this, LimitType.OVERDRAFT_LIMIT);
 		} else if (destination.getIBAN().equals(this.getIBAN())) {
 			throw new SameAccountTransferException();
 		} else if (this.closed || destination.getClosed()) {
@@ -421,9 +421,9 @@ public class BankAccount implements database.DBObject {
 		if (amount <= 0) {
 			throw new IllegalAmountException(amount);
 		} else if (balance - amount < overdraftLimit * -1 && !description.equals("Negative interest credit")) {
-			throw new ExceedLimitException(amount, IBAN, LimitType.OVERDRAFT_LIMIT);
+			throw new ExceedLimitException(amount, this, LimitType.OVERDRAFT_LIMIT);
 		} else if (exceedsLimit(amount, LimitType.DEBITCARD_LIMIT)) {
-			throw new ExceedLimitException(amount, IBAN, LimitType.DEBITCARD_LIMIT);
+			throw new ExceedLimitException(amount, this, LimitType.DEBITCARD_LIMIT);
 		} else if (this.closed) {
 			throw new ClosedAccountTransferException();
 		}
@@ -492,9 +492,9 @@ public class BankAccount implements database.DBObject {
 		if (amount <= 0) {
 			throw new IllegalAmountException(amount);
 		} else if (balance - amount < overdraftLimit * -1 && !description.equals("Negative interest credit")) {
-			throw new ExceedLimitException(amount, IBAN, LimitType.OVERDRAFT_LIMIT);
+			throw new ExceedLimitException(amount, this, LimitType.OVERDRAFT_LIMIT);
 		} else if (exceedsLimit(amount, LimitType.DEBITCARD_LIMIT)) {
-			throw new ExceedLimitException(amount, IBAN, LimitType.DEBITCARD_LIMIT);
+			throw new ExceedLimitException(amount, this, LimitType.DEBITCARD_LIMIT);
 		} else if (destination.getIBAN().equals(this.getIBAN())) {
 			throw new SameAccountTransferException();
 		} else if (this.closed || destination.getClosed()) {
@@ -540,10 +540,10 @@ public class BankAccount implements database.DBObject {
 		if (amount <= 0) {
 			throw new IllegalAmountException(amount);
 		} else if (balance - amount < overdraftLimit * -1 && !description.equals("Negative interest credit")) {
-			throw new ExceedLimitException(amount, IBAN, LimitType.OVERDRAFT_LIMIT);
-		} else if (exceedsLimit(amount, LimitType.WEEKLY_ACCOUNT_LIMIT)
+			throw new ExceedLimitException(amount, this, LimitType.OVERDRAFT_LIMIT);
+		} else if (exceedsLimit(amount, LimitType.TRANSFER_LIMIT)
 				&& !description.equals("Fee for new pincard")) {
-			throw new ExceedLimitException(amount, IBAN, LimitType.OVERDRAFT_LIMIT);
+			throw new ExceedLimitException(amount, this, LimitType.TRANSFER_LIMIT);
 		} else if (destination.getIBAN().equals(this.getIBAN())) {
 			throw new SameAccountTransferException();
 		} else if (this.closed || destination.getClosed()) {
@@ -573,12 +573,12 @@ public class BankAccount implements database.DBObject {
 		InterestHandler.setLowestNegativeDailyReachMapEntry(IBAN, balance);
 	}
 
-	private boolean exceedsLimit(double amount, LimitType limitType) {
+	private boolean exceedsLimit(double amount, LimitType limitType) {		
 		if (limitType == LimitType.DEBITCARD_LIMIT) {
 			return exceedsDebitCardLimit(amount);
 		} 
 		
-		if (limitType == LimitType.WEEKLY_ACCOUNT_LIMIT) {
+		if (limitType == LimitType.TRANSFER_LIMIT) {
 			return exceedsTransferLimit(amount);
 		}
 		return true;

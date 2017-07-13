@@ -1,5 +1,7 @@
 package exceptions;
 
+import accounts.BankAccount;
+
 /**
  * Thrown when a user wants to pay/transfer money, but the amount exceeds the overdraft limit.
  * @author Justin Praas
@@ -8,18 +10,31 @@ public class ExceedLimitException extends Exception {
 
 	private static final long serialVersionUID = 5436165626961779364L;
 	private double amount;
-	private String IBAN;
+	private BankAccount bankAccount;
 	private LimitType limitType;
 	
-	public enum LimitType {OVERDRAFT_LIMIT, DEBITCARD_LIMIT, WEEKLY_ACCOUNT_LIMIT};
+	public enum LimitType {OVERDRAFT_LIMIT, DEBITCARD_LIMIT, TRANSFER_LIMIT};
 	
-	public ExceedLimitException(double amount, String IBAN, LimitType limitType) {
+	public ExceedLimitException(double amount, BankAccount bankAccount, LimitType limitType) {
 		this.amount = amount;
-		this.IBAN = IBAN;
+		this.bankAccount = bankAccount;
 		this.limitType = limitType;		
 	}
 
 	public String toString() {
-		return "Can not complete transaction: exceeding " + limitType.name() + " with amount: " + amount + " for IBAN " + IBAN + ".";
+		if (limitType == LimitType.OVERDRAFT_LIMIT) {
+			double exceedingAmount = -1 * (bankAccount.getOverdraftLimit() - bankAccount.getBalance() - amount);
+			return "Can not complete transaction: exceeding the bank account's overdraft limit of " + bankAccount.getOverdraftLimit() + ". Exceeding amount: " + exceedingAmount + ".";
+		}
+		
+		if (limitType == LimitType.TRANSFER_LIMIT) {
+			return "Can not complete transaction: exceeding the bank account's transfer limit of " + bankAccount.getTransferLimit() + ".";
+		}
+		
+		if (limitType == LimitType.DEBITCARD_LIMIT) {
+			return "Can not complete transaction: exceeding the bank account's daily debit card limit of 250.00.";
+		}
+		
+		return "Unspecified limit type for limit exception.";
 	}
 }
