@@ -167,6 +167,10 @@ public class ServerHandler {
 		return Response.status(code).entity(error).build();
 	}
 
+	/**
+	 * Extension 9: 'Spending limits' related.
+	 * Sets the transferLimit of the bank account with the given IBAN.
+	 */
 	private static Response setTransferLimit(JSONRPC2Request jReq) {
 		HashMap<String, Object> params = (HashMap<String, Object>) jReq.getNamedParams();	
 		
