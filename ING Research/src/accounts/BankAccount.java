@@ -424,6 +424,8 @@ public class BankAccount implements database.DBObject {
 			throw new ExceedLimitException(amount, this, LimitType.OVERDRAFT_LIMIT);
 		} else if (exceedsLimit(amount, LimitType.DEBITCARD_LIMIT)) {
 			throw new ExceedLimitException(amount, this, LimitType.DEBITCARD_LIMIT);
+		} else if (exceedsLimit(amount, LimitType.TRANSFER_LIMIT)) {
+			throw new ExceedLimitException(amount, this, LimitType.TRANSFER_LIMIT);
 		} else if (this.closed) {
 			throw new ClosedAccountTransferException();
 		}
@@ -495,6 +497,8 @@ public class BankAccount implements database.DBObject {
 			throw new ExceedLimitException(amount, this, LimitType.OVERDRAFT_LIMIT);
 		} else if (exceedsLimit(amount, LimitType.DEBITCARD_LIMIT)) {
 			throw new ExceedLimitException(amount, this, LimitType.DEBITCARD_LIMIT);
+		} else if (exceedsLimit(amount, LimitType.TRANSFER_LIMIT)) {
+			throw new ExceedLimitException(amount, this, LimitType.TRANSFER_LIMIT);
 		} else if (destination.getIBAN().equals(this.getIBAN())) {
 			throw new SameAccountTransferException();
 		} else if (this.closed || destination.getClosed()) {
