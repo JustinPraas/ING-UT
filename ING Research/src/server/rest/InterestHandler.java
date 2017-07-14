@@ -365,11 +365,10 @@ public class InterestHandler extends Thread {
 			
 			SQLiteDB.connectionLock.unlock();	
 			try {
-				// Sleep for a minute
-				Thread.sleep(1000 * 60);
+				// Sleep for an hour
+				Thread.sleep(1000 * 3600);
 			} catch (InterruptedException e) {
-				calculateTimeSimulatedInterest(newlySimulatedDays);
-				newlySimulatedDays = 0;
+				
 			}					
 		}		
 	}

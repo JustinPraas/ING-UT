@@ -11,8 +11,6 @@ import exceptions.ObjectDoesNotExistException;
 
 public class TimeOperator extends Thread {
 	
-	public int newlySimulatedDays;
-	
 	public TimeOperator() {
 		start();
 	}
@@ -27,30 +25,43 @@ public class TimeOperator extends Thread {
 
 			// Events on the first day of the month
 			if (c.get(Calendar.DATE) == 1) {
+				SQLiteDB.connectionLock.lock();
 				updateTransferLimitsIfNeeded(c);
+				SQLiteDB.connectionLock.unlock();
 			}
 			
 			try {
 				// Sleep for a day
 				Thread.sleep(3600 * 1000 * 24);
 			} catch (InterruptedException e) {
-				Calendar newCalendar = ServerModel.getServerCalendar();
-				for (int i = 1; i <= newlySimulatedDays; i++) {
-					newCalendar.add(Calendar.DATE, 1);
-					updateTransferLimitsIfNeeded(newCalendar);
-				}	
-				newlySimulatedDays = 0;
+				
 			}	
 		}
 	}
 
 	/**
+	 * @param newlySimulatedDays2 
+	 * 
+	 */
+	public static void simulateDays(int newlySimulatedDays) {
+		SQLiteDB.connectionLock.lock();
+		Calendar serverCalendar = ServerModel.getServerCalendar();
+		for (int i = 1; i <= newlySimulatedDays; i++) {
+			serverCalendar.add(Calendar.DATE, 1);
+			if (serverCalendar.get(Calendar.DATE) == 1 && !updatedTransferLimitsThisMonth(serverCalendar)) {
+				updateTransferLimitsIfNeeded(serverCalendar);
+				break;
+			}			
+		}	
+		SQLiteDB.connectionLock.unlock();
+	}
+
+	/**
 	 * Updates the transfer limits for all pending bank accounts. 
 	 */
-	private void updateTransferLimitsIfNeeded(Calendar serverCalendar) {	
-		SQLiteDB.connectionLock.lock();	
+	private static void updateTransferLimitsIfNeeded(Calendar serverCalendar) {	
 		if (serverCalendar.get(Calendar.DATE) == 1 && !updatedTransferLimitsThisMonth(serverCalendar)) {
-			System.out.println("Updating transfer limits");
+			System.out.println("Updating transfer limits: " + serverCalendar.getTime().toString());
 			HashMap<String, Double> updatedTransferLimitMap = ServerDataHandler.getUpdatedTransferLimitMap();
 			for (Map.Entry<String, Double> entry : updatedTransferLimitMap.entrySet()) {
 				try {
@@ -64,12 +75,10 @@ public class TimeOperator extends Thread {
 			ServerDataHandler.setUpdatedTransferLimitMap(new HashMap<>());
 			new TimeEvent(TimeEvent.UPDATE_TRANSFER_LIMITS, serverCalendar.getTimeInMillis(), 
 					"Updated the transfer limits on " + serverCalendar.getTime().toString()).saveToDB();
-		}
-		
-		SQLiteDB.connectionLock.unlock();			
+		}			
 	}
 
-	private boolean updatedTransferLimitsThisMonth(Calendar serverCalendar) {
+	private static boolean updatedTransferLimitsThisMonth(Calendar serverCalendar) {
 		Calendar lastExecution = getTimestampOf(TimeEvent.UPDATE_TRANSFER_LIMITS);
 		if (lastExecution != null) {
 			return lastExecution.get(Calendar.DATE) == 1 && lastExecution.get(Calendar.MONTH) == serverCalendar.get(Calendar.MONTH) && lastExecution.get(Calendar.YEAR) == serverCalendar.get(Calendar.YEAR);
@@ -78,15 +87,12 @@ public class TimeOperator extends Thread {
 		}		
 	}
 
-	private Calendar getTimestampOf(String settingName) {
-		SQLiteDB.connectionLock.lock();	
+	private static Calendar getTimestampOf(String settingName) {
 		TimeEvent timeEvent;
 		try {
 			timeEvent = (TimeEvent) DataManager.getObjectByPrimaryKey(TimeEvent.CLASSNAME, settingName);
-			SQLiteDB.connectionLock.unlock();	
 			return timeEvent.getCalendar();
 		} catch (ObjectDoesNotExistException e) {
-			SQLiteDB.connectionLock.unlock();	
 			return null;
 		}
 	}

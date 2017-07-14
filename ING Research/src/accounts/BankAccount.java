@@ -669,7 +669,6 @@ public class BankAccount implements database.DBObject {
 			} else {
 				currentSum = Double.parseDouble(result.getString(1));
 			}				
-			System.out.println("Current sum " + currentSum);
 			double totalSum = currentSum + amount;
 			
 			statement.close();

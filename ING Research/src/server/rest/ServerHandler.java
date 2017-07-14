@@ -57,7 +57,9 @@ public class ServerHandler {
 	private static ServerModel serverModel = new ServerModel();
 	
 	// Handles the monthly interest
+	@SuppressWarnings("unused")
 	private static InterestHandler interestHandler = new InterestHandler();
+	@SuppressWarnings("unused")
 	private static TimeOperator timeOperator = new TimeOperator();
 	
 	@POST
@@ -359,7 +361,6 @@ public class ServerHandler {
 				try {
 					bankAccount.getSavingsAccount().transfer(savingsBalance);
 				} catch (IllegalAmountException | IllegalTransferException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
@@ -479,7 +480,7 @@ public class ServerHandler {
 
 	/**
 	 * Extension 4: 'Time simulation' related.
-	 * Returns the real server time. (TODO to be changed)
+	 * Returns the real server time.
 	 */
 	private static Response getDate(JSONRPC2Request jReq) {
 		Calendar c = Calendar.getInstance();
@@ -528,18 +529,10 @@ public class ServerHandler {
 		int newlySimulatedDays = Integer.parseInt((String) params.get("nrOfDays"));		
 
 		InterestHandler.calculateTimeSimulatedInterest(newlySimulatedDays);
-		interestHandler.interrupt();
-		
-		timeOperator.newlySimulatedDays = newlySimulatedDays;
-		timeOperator.interrupt();
-		
+		TimeOperator.simulateDays(newlySimulatedDays);		
 		ServerModel.setSimulatedDays(newlySimulatedDays, true);
 		
-		HashMap<String, Object> resp = new HashMap<>();
-		
-		
-		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
-		return respond(jResp.toJSONString(), jReq.getMethod());
+		return sendEmptyResult(jReq.getMethod());
 	}
 
 	private static Response getBankAccountAccess(JSONRPC2Request jReq) {
