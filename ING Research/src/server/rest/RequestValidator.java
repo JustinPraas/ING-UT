@@ -29,10 +29,10 @@ public class RequestValidator {
 		}
 		
 		try {
-			Double.parseDouble((String) params.get("overdraftLimit"));
-		} catch (NumberFormatException e) {
-			String err = ServerHandler.buildError(418, "One or more parameter has an invalid value. See message.", (String) params.get("overdraftLimit") + " is not a valid overdraft limit.");
-			return ServerHandler.respondError(err, 500);
+			@SuppressWarnings("unused")
+			double amount = (double) params.get("overdraftLimit");
+		} catch (ClassCastException e) {
+			return invalidAmountResponse(params.get("overdraftLimit"));
 		}
 		
 		return null;

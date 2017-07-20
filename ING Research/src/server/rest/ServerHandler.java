@@ -335,7 +335,7 @@ public class ServerHandler {
 
 		String authToken = (String) params.get("authToken");
 		String IBAN = (String) params.get("iBAN");
-		Double overdraftLimit = Double.parseDouble((String) params.get("overdraftLimit"));
+		double overdraftLimit = (double) params.get("overdraftLimit");
 		
 		CustomerAccount customerAccount = accounts.get(authToken);
 		BankAccount bankAccount;

@@ -277,10 +277,18 @@ public class MessageHandler {
 			System.err.println("Please enter the requested parameters.");
 			return;
 		}
+		
+		double amount = 0;
+		try {
+			amount = Double.parseDouble(parameterArray[1]);
+		} catch (NumberFormatException e) {
+			System.err.println("Please enter a valid amount representation.");
+			return;
+		}
 
 		params.put("authToken", AUTHTOKEN);
 		params.put("iBAN", parameterArray[0]);
-		params.put("overdraftLimit", parameterArray[1]);
+		params.put("overdraftLimit", amount);
 		
 		JSONRPC2Request request = new JSONRPC2Request(method, params,
 				"request-" + java.lang.System.currentTimeMillis());
