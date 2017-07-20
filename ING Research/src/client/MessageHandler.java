@@ -167,7 +167,7 @@ public class MessageHandler {
 			System.err.println("Please enter the requested parameters.");
 			return;
 		}
-		params.put("startDate", parameterArray[0]);
+		params.put("beginDate", parameterArray[0]);
 		params.put("endDate", parameterArray[1]);
 		
 		JSONRPC2Request request = new JSONRPC2Request(method, params,
@@ -691,7 +691,14 @@ public class MessageHandler {
 		params.put("authToken", AUTHTOKEN);
 		params.put("iBAN", IBAN);
 		params.put("pinCard", pinCard);
-		params.put("newPin", newPin);
+		
+		if (newPin.equals("yes")) {
+			params.put("newPin", true);
+		} else if (newPin.equals("no")) {
+			params.put("newPin", false);
+		} else {
+			params.put("newPin", "NA");
+		}		
 		
 		JSONRPC2Request request = new JSONRPC2Request(method, params, 
 				"request-" + java.lang.System.currentTimeMillis());

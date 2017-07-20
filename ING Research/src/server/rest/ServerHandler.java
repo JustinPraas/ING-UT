@@ -174,7 +174,7 @@ public class ServerHandler {
 			return invalidRequest;
 		}
 	
-		String startString = (String) params.get("startDate");	
+		String startString = (String) params.get("beginDate");	
 		String endString = (String) params.get("endDate");
 	
 		ArrayList<HashMap<String, Object>> resp;
@@ -476,16 +476,12 @@ public class ServerHandler {
 			return invalidRequest;
 		}
 		
-		int newlySimulatedDays = Integer.parseInt((String) params.get("nrOfDays"));
+		int newlySimulatedDays = Integer.parseInt(Long.toString((long) params.get("nrOfDays")));
+		
+		InterestHandler.calculateTimeSimulatedInterest(newlySimulatedDays);
 		ServerModel.setSimulatedDays(newlySimulatedDays, true);
 		
-		HashMap<String, Object> resp = new HashMap<>();
-		
-		interestHandler.newlySimulatedDays = newlySimulatedDays;
-		interestHandler.interrupt();
-		
-		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
-		return respond(jResp.toJSONString(), jReq.getMethod());
+		return sendEmptyResult(jReq.getMethod());
 	}
 
 	private static Response getBankAccountAccess(JSONRPC2Request jReq) {
@@ -641,6 +637,7 @@ public class ServerHandler {
 		resp.put("iBAN", IBAN);
 		resp.put("pinCard", pinCard);
 		resp.put("pinCode", pinCode);
+		resp.put("expirationDate", card.getExpirationDate());
 		
 		JSONRPC2Response response = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
 		return respond(response.toJSONString(), jReq.getMethod());
@@ -673,6 +670,7 @@ public class ServerHandler {
 		resp.put("iBAN", IBAN);
 		resp.put("pinCard", pinCard);
 		resp.put("pinCode", pinCode);
+		resp.put("expirationDate", card.getExpirationDate());
 		
 		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
 		
@@ -834,6 +832,7 @@ public class ServerHandler {
 		
 		resp.put("pinCard", pinCard);
 		resp.put("pinCode", pinCode);
+		resp.put("expirationDate", card.getExpirationDate());
 		
 		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
 		return respond(jResp.toJSONString(), jReq.getMethod());
@@ -1096,10 +1095,7 @@ public class ServerHandler {
 		String authToken = (String) params.get("authToken");
 		String IBAN = (String) params.get("iBAN");
 		String pinCardNumber = (String) params.get("pinCard");
-		boolean newPinCode = false;	
-		if (params.get("newPin").equals("yes")) {
-			newPinCode = true;
-		}			
+		boolean newPinCode = (boolean) params.get("newPin");		
 		
 		CustomerAccount customerAccount = accounts.get(authToken);
 		BankAccount bankAccount;

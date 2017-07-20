@@ -358,12 +358,11 @@ public class InterestHandler extends Thread {
 			}
 			
 			try {
-				Thread.sleep(calculateShortestSleep(c));
+				// Sleep for an hour
+				Thread.sleep(1000 * 3600);
 			} catch (InterruptedException e) {
-				System.out.println("INTEREST: interrupted");
-				calculateTimeSimulatedInterest(newlySimulatedDays);
-				newlySimulatedDays = 0;
-			}					
+				
+			}				
 		}		
 	}
 	

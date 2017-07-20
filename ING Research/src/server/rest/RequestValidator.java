@@ -80,14 +80,14 @@ public class RequestValidator {
 		}
 		
 		// If input is invalid (i.e. not a numerical value)
-		if (!InputValidator.isNumericalOnly((String) params.get("nrOfDays"))) {
-			String err = ServerHandler.buildError(418, "One or more parameter has an invalid value. See message.", (String) params.get("nrOfDays") + " is not a valid number.");
+		if (!InputValidator.isNumericalOnly(Long.toString((long)params.get("nrOfDays")))) {
+			String err = ServerHandler.buildError(418, "One or more parameter has an invalid value. See message.", (long) params.get("nrOfDays") + " is not a valid number.");
 			return ServerHandler.respondError(err, 500);
 		}
 		
 		// If input is negative...
-		if (Integer.parseInt((String) params.get("nrOfDays")) <= 0) {
-			String err = ServerHandler.buildError(418, "One or more parameter has an invalid value. See message.", (String) params.get("nrOfDays") + " is equal to or less than 0.");
+		if ((long) params.get("nrOfDays") <= 0) {
+			String err = ServerHandler.buildError(418, "One or more parameter has an invalid value. See message.", (long) params.get("nrOfDays") + " is equal to or less than 0.");
 			return ServerHandler.respondError(err, 500);
 		}
 		
@@ -304,9 +304,10 @@ public class RequestValidator {
 			return invalidPinCardResponse((String) params.get("pinCard"));
 		}
 		
-		String newPinCodeString = (String) params.get("newPin");
-		if (!newPinCodeString.equals("yes") && !newPinCodeString.equals("no")) {
-			String err = ServerHandler.buildError(418, "One or more parameter has an invalid value. See message.", "'" + newPinCodeString + "' is not a valid boolean representation.");
+		try {
+			boolean newPin = (boolean) params.get("newPin");
+		} catch (ClassCastException e) {
+			String err = ServerHandler.buildError(418, "One or more parameter has an invalid value. See message.", "Boolean cannot be parsed from the given paramater for 'newPin'.");
 			return ServerHandler.respondError(err, 500);
 		}
 		
@@ -412,7 +413,7 @@ public class RequestValidator {
 
 	public static Response isValidGetEventLogRequest(HashMap<String, Object> params) {
 		// If we're missing required parameters, stop and notify the client
-		if (!(params.containsKey("startDate") && params.containsKey("endDate"))) {
+		if (!(params.containsKey("beginDate") && params.containsKey("endDate"))) {
 			return invalidMethodParametersResponse();
 		}
 		
@@ -420,7 +421,7 @@ public class RequestValidator {
 		Date startDate;
 		Date endDate;
 		try {
-			startDate = fm.parse((String) params.get("startDate"));
+			startDate = fm.parse((String) params.get("beginDate"));
 			endDate = fm.parse((String) params.get("endDate"));
 		} catch (ParseException e) {
 			String err = ServerHandler.buildError(418, "One or more parameter has an invalid value. See message.", "One of the given dates is not in the format yyyy-MM-dd");
