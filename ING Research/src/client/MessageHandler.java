@@ -24,12 +24,12 @@ import org.apache.hc.core5.http.entity.StringEntity;
 public class MessageHandler {
 
 	private static String AUTHTOKEN;
-	public static State state = State.NOT_AUTHENTICATED;
+	public static UserState userState = UserState.NO_USER;
 	public static final String HTTPPOST = "POST / HTTP/1.1\nHost: 127.0.0.1";
 	CloseableHttpClient httpclient = HttpClients.createDefault();
 
-	public enum State {
-		NOT_AUTHENTICATED, AUTHENTICATED;
+	public enum UserState {
+		NO_USER, CONSUMER, ADMINISTRATOR;
 	}
 
 	/**
@@ -58,7 +58,7 @@ public class MessageHandler {
 
 		// Act according to the given input. Pass parameters with the
 		// handler-methods.
-		if (state == State.NOT_AUTHENTICATED) {
+		if (userState == UserState.NO_USER) {
 			switch (command) {
 			case "OPEN_BANK_ACCOUNT":
 				openAccount(parameters);
@@ -72,23 +72,11 @@ public class MessageHandler {
 			case "DEPOSIT":
 				depositIntoAccount(parameters);
 				break;
-			case "SIMULATE_TIME":
-				simulateTime(parameters);
-				break;
-			case "RESET":
-				reset();
-				break;
-			case "GET_DATE":
-				getDate();
-				break;
-			case "GET_EVENT_LOGS":
-				getEventLogs(parameters);
-				break;
 			default:
 				System.err.println("Invalid command.");
 				break;
 			}
-		} else if (state == State.AUTHENTICATED) {
+		} else if (userState == UserState.CONSUMER) {
 			switch (command) {
 			case "OPEN_ADDITIONAL_ACCOUNT":
 				openAdditionalAccount();
@@ -126,12 +114,6 @@ public class MessageHandler {
 			case "GET_BANK_ACCOUNT_ACCESS":
 				getBankAccountAccess(parameters);
 				break;
-			case "SIMULATE_TIME":
-				simulateTime(parameters);
-				break;
-			case "GET_DATE":
-				getDate();
-				break;
 			case "UNBLOCK_PINCARD":
 				unblockCard(parameters);
 				break;
@@ -150,8 +132,35 @@ public class MessageHandler {
 			case "SET_TRANSFER_LIMIT":
 				setTransferLimit(parameters);
 				break;
+			default:
+				System.err.println("Invalid command.");
+				break;
+			}
+		} else if (userState == UserState.ADMINISTRATOR) {
+			switch (command) {
+			case "SIMULATE_TIME":
+				simulateTime(parameters);
+				break;
+			case "RESET":
+				reset();
+				break;
+			case "GET_DATE":
+				getDate();
+				break;
 			case "GET_EVENT_LOGS":
 				getEventLogs(parameters);
+				break;
+			case "GET_OVERDRAFT_LIMIT":
+				getOverdraftLimit(parameters);
+				break;
+			case "GET_BANK_ACCOUNT_ACCESS":
+				getBankAccountAccess(parameters);
+				break;
+			case "GET_BALANCE":
+				getBalance(parameters);
+				break;
+			case "TRANSACTION_OVERVIEW":
+				getTransactionsOverview(parameters);
 				break;
 			default:
 				System.err.println("Invalid command.");
@@ -451,6 +460,7 @@ public class MessageHandler {
 	private void reset() {
 		String method = "reset";
 		HashMap<String, Object> params = new HashMap<>();
+		params.put("authToken", AUTHTOKEN);
 		
 		JSONRPC2Request request = new JSONRPC2Request(method, params,
 				"request-" + java.lang.System.currentTimeMillis());
@@ -930,7 +940,7 @@ public class MessageHandler {
 			@SuppressWarnings("unchecked")
 			HashMap<String, Object> results = (HashMap<String, Object>) jResp.getResult();
 			AUTHTOKEN = (String) results.get("authToken");
-			state = State.AUTHENTICATED;
+			userState = UserState.CONSUMER;
 			System.out.println("Authentication successful.");
 		} catch (JSONRPC2ParseException e) {
 			System.out.println("Discarded invalid JSON-RPC response from server.");

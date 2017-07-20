@@ -65,22 +65,17 @@ public class TUI {
 	 * Prints the available commands to the output.
 	 */
 	private void printCommands() {
-		switch (MessageHandler.state) {
-		case NOT_AUTHENTICATED: 
+		switch (MessageHandler.userState) {
+		case NO_USER: 
 			System.out.println("=====================================================================================================");
 			System.out.printf("%25s %1s %s %n", "Command:", "", "Parameters:");
 			System.out.printf("%25s %1s %s %n", "LOGIN", "", "<username>:<password>");
 			System.out.printf("%25s %1s %s %n", "OPEN_BANK_ACCOUNT", "", "<firstname>:<lastname>:<initials>:<dateofbirth>:<SSN>:<address>:<phonenumber>:<email>:<username>:<password>");
 			System.out.printf("%25s %1s %s %n", "PAY_BY_CARD", "", "<sourceIBAN>:<targetIBAN>:<cardnumber>:<PIN>:<amount>");
 			System.out.printf("%25s %1s %s %n", "DEPOSIT", "", "<IBAN>:<cardnumber>:<PIN>:<amount>");
-			System.out.printf("%25s %1s %s %n", "SIMULATE_TIME", "", "<nrOfDays>");
-			System.out.printf("%25s %1s %s %n", "RESET", "", "");
-			System.out.printf("%25s %1s %s %n", "GET_DATE", "", "");
-			System.out.printf("%25s %1s %s %n", "GET_EVENT_LOGS", "", "<startDate>:<endDate> (format = yyyy-MM-dd)");
 			System.out.printf("%25s %1s %s %n", "EXIT", "", "");
-
 			break;
-		case AUTHENTICATED:			
+		case CONSUMER:			
 			System.out.println("=====================================================================================================");
 			System.out.printf("%25s %1s %s %n", "Command:", "", "Parameters:");
 			System.out.printf("%25s %1s %s %n", "OPEN_ADDITIONAL_ACCOUNT", "", "");
@@ -95,17 +90,25 @@ public class TUI {
 			System.out.printf("%25s %1s %s %n", "GET_USER_ACCESS", "", "");
 			System.out.printf("%25s %1s %s %n", "GET_BANK_ACCOUNT_ACCESS", "", "<IBAN>");
 			System.out.printf("%25s %1s %s %n", "CLOSE", "", "<IBAN>");
-			System.out.printf("%25s %1s %s %n", "SIMULATE_TIME", "", "<nrOfDays>");
-			System.out.printf("%25s %1s %s %n", "GET_DATE", "", "");
 			System.out.printf("%25s %1s %s %n", "UNBLOCK_PINCARD", "", "<IBAN>:<cardNumber>");
 			System.out.printf("%25s %1s %s %n", "GET_OVERDRAFT_LIMIT", "", "<IBAN>");
 			System.out.printf("%25s %1s %s %n", "SET_OVERDRAFT_LIMIT", "", "<IBAN>:<overdraftLimit>");
 			System.out.printf("%25s %1s %s %n", "SET_TRANSFER_LIMIT", "", "<IBAN>:<transferLimit>");
 			System.out.printf("%25s %1s %s %n", "OPEN_SAVINGS_ACCOUNT", "", "<IBAN>");
 			System.out.printf("%25s %1s %s %n", "CLOSE_SAVINGS_ACCOUNT", "", "<IBAN>");
-			System.out.printf("%25s %1s %s %n", "GET_EVENT_LOGS", "", "<startDate>:<endDate> (format = yyyy-MM-dd)");
 			System.out.printf("%25s %1s %s %n", "EXIT", "", "");
-			break;			
+			break;
+		case ADMINISTRATOR:
+			System.out.println("=====================================================================================================");
+			System.out.printf("%25s %1s %s %n", "SIMULATE_TIME", "", "<nrOfDays>");
+			System.out.printf("%25s %1s %s %n", "RESET", "", "");
+			System.out.printf("%25s %1s %s %n", "GET_DATE", "", "");
+			System.out.printf("%25s %1s %s %n", "GET_EVENT_LOGS", "", "<startDate>:<endDate> (format = yyyy-MM-dd)");
+			System.out.printf("%25s %1s %s %n", "GET_OVERDRAFT_LIMIT", "", "<IBAN>");
+			System.out.printf("%25s %1s %s %n", "GET_BANK_ACCOUNT_ACCESS", "", "<IBAN>");
+			System.out.printf("%25s %1s %s %n", "TRANSACTION_OVERVIEW", "", "<IBAN>:<nrOfTransactions>");
+			System.out.printf("%25s %1s %s %n", "GET_BALANCE", "", "<IBAN>");
+			break;
 		}
 	}
 }
