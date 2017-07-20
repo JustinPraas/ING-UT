@@ -98,7 +98,7 @@ public class RequestValidator {
 
 	public static Response isValidSimulateTimeRequest(Map<String, Object> params) {
 		// If the required parameters aren't present, stop and notify the client
-		if (!params.containsKey("nrOfDays")) {
+		if (!params.containsKey("nrOfDays") || !params.containsKey("authToken")) {
 			return invalidMethodParametersResponse();
 		}
 		
@@ -468,7 +468,7 @@ public class RequestValidator {
 		return false;
 	}
 
-	private static Response invalidMethodParametersResponse() {
+	public static Response invalidMethodParametersResponse() {
 		String err = ServerHandler.buildError(-32602, "Invalid method parameters.");
 		return ServerHandler.respondError(err, 500);
 	}

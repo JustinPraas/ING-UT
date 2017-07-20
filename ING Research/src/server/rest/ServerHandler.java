@@ -264,7 +264,7 @@ public class ServerHandler {
 			return respondError(err);
 		}
 		
-		if (!RequestValidator.userOwnsBankAccount(customerAccount, bankAccount)) {
+		if (!RequestValidator.userOwnsBankAccount(customerAccount, bankAccount) || !isAdministrativeUser(authToken)) {
 			String err = buildError(419, "The authenticated user is not authorized to perform this action. You can not peek at the overdraft limit of another person's bank account.");
 			Logger.addLogToDB(ServerModel.getServerCalendar().getTimeInMillis(), Type.WARNING, "Possible harmful activity: trying to access information from another account.");
 			return respondError(err);
@@ -296,6 +296,12 @@ public class ServerHandler {
 			bankAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, IBAN);
 		} catch (ObjectDoesNotExistException e) {
 			String err = buildError(500, "An unexpected error occured, see error details", "A bank account with the given IBAN does not exist.");
+			return respondError(err);
+		}
+		
+		// An administrator can not set up a savings account
+		if (isAdministrativeUser(authToken)) {
+			String err = buildError(500, "An administrator can not open a savings account.");
 			return respondError(err);
 		}
 		
@@ -341,6 +347,12 @@ public class ServerHandler {
 			bankAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, IBAN);
 		} catch (ObjectDoesNotExistException e) {
 			String err = buildError(500, "An unexpected error occured, see error details", "A bank account with the given IBAN does not exist.");
+			return respondError(err);
+		}
+		
+		// An administrator can not close a savings account
+		if (isAdministrativeUser(authToken)) {
+			String err = buildError(500, "An administrator can not close a savings account.");
 			return respondError(err);
 		}
 		
@@ -504,6 +516,18 @@ public class ServerHandler {
 	private static Response reset(JSONRPC2Request jReq) {	
 		HashMap<String, Object> resp = new HashMap<>();
 		
+		if (!resp.containsKey("authToken")) {
+			return RequestValidator.invalidMethodParametersResponse();
+		}
+		
+		String authToken = (String) resp.get("authToken");
+		
+		// An non-administrator can not reset the system
+		if (!isAdministrativeUser(authToken)) {
+			String err = buildError(500, "Only an administrator can reset the system.");
+			return respondError(err);
+		}
+		
 		// Wipe all data from database
 		DataManager.wipeAllData();
 		ServerModel.resetSimulatedDays();
@@ -524,6 +548,14 @@ public class ServerHandler {
 		Response invalidRequest = RequestValidator.isValidSimulateTimeRequest(params);	
 		if (invalidRequest != null) {
 			return invalidRequest;
+		}
+		
+		String authToken = (String) params.get("authToken");
+		
+		// An non-administrator can not reset the system
+		if (!isAdministrativeUser(authToken)) {
+			String err = buildError(500, "Only an administrator can simulate time.");
+			return respondError(err);
 		}
 		
 		int newlySimulatedDays = Integer.parseInt(Long.toString((long) params.get("nrOfDays")));
@@ -563,8 +595,9 @@ public class ServerHandler {
 			return respondError(err);
 		}
 		
-		// If the target account is not owned by the authorized user, stop and notify client
-		if (!bAcc.getMainHolderBSN().equals(cAcc.getBSN())) {
+		// If the target account is not owned by the authorized user or is not an administrative account, 
+		// stop and notify client
+		if (!bAcc.getMainHolderBSN().equals(cAcc.getBSN()) || isAdministrativeUser(authToken)) {
 			String err = buildError(419, "The authenticated user is not authorized to perform this action. User does not own the given account.");
 			Logger.addLogToDB(ServerModel.getServerCalendar().getTimeInMillis(), Type.WARNING, "Possible harmful activity: trying to access information from another account.");
 			return respondError(err);
@@ -614,8 +647,8 @@ public class ServerHandler {
 		
 		@SuppressWarnings("rawtypes")
 		ArrayList<HashMap> associations = new ArrayList<>();
-		ResultSet rs = null;
-		
+		ResultSet rs = null;		
+
 		try {
 			SQLiteDB.connectionLock.lock();
 			Connection c = SQLiteDB.openConnection();
@@ -709,16 +742,22 @@ public class ServerHandler {
 	private static Response openAdditionalAccount(JSONRPC2Request jReq) {
 		Map<String, Object> params = jReq.getNamedParams();		
 		
-		String token = (String) params.get("authToken");
+		String authToken = (String) params.get("authToken");
 		
 		// Check Request validity, return an error Response if the Request is invalid
 		Response invalidRequest = RequestValidator.isValidOpenAdditionalAccountRequest(params);		
 		if (invalidRequest != null) {
 			return invalidRequest;
-		}		
+		}
+		
+		// An admin can not open an additional account
+		if (isAdministrativeUser(authToken)) {
+			String err = buildError(500, "An administrator can not open an additional account.");
+			return respondError(err);
+		}
 		
 		// If the user IS authorized, open a new account under his user account.
-		CustomerAccount acc = accounts.get(token);
+		CustomerAccount acc = accounts.get(authToken);
 		BankAccount bAcc = acc.openBankAccount();
 		DebitCard card = new DebitCard(acc.getBSN(), bAcc.getIBAN());
 		String IBAN = bAcc.getIBAN();
@@ -743,7 +782,7 @@ public class ServerHandler {
 	private static Response closeAccount(JSONRPC2Request jReq) {
 		HashMap<String, Object> params = (HashMap<String, Object>) jReq.getNamedParams();
 		
-		String token = (String) params.get("authToken");
+		String authToken = (String) params.get("authToken");
 		String IBAN = (String) params.get("iBAN");
 
 		// Check Request validity, return an error Response if the Request is invalid
@@ -752,10 +791,15 @@ public class ServerHandler {
 			return invalidRequest;
 		}		
 		
-		CustomerAccount acc = accounts.get(token);
+		CustomerAccount acc = accounts.get(authToken);
 		boolean found = false;
 		BankAccount target = null;
 		
+		// An admin can not open an additional account
+		if (isAdministrativeUser(authToken)) {
+			String err = buildError(500, "An administrator can not close an account.");
+			return respondError(err);
+		}
 		
 		// Look for the bank account
 		for (BankAccount b : acc.getBankAccounts()) {
@@ -823,7 +867,7 @@ public class ServerHandler {
 	private static Response provideAccess(JSONRPC2Request jReq) {
 		HashMap<String, Object> params = (HashMap<String, Object>) jReq.getNamedParams();
 		
-		String token = (String) params.get("authToken");
+		String authToken = (String) params.get("authToken");
 		String IBAN = (String) params.get("iBAN");
 		String username = (String) params.get("username");
 
@@ -833,9 +877,15 @@ public class ServerHandler {
 			return invalidRequest;
 		}		
 		
-		CustomerAccount cAcc = accounts.get(token);
+		CustomerAccount cAcc = accounts.get(authToken);
 		BankAccount bAcc = null;
 		boolean found = false;
+		
+		// An admin can not provide access to an account
+		if (isAdministrativeUser(authToken)) {
+			String err = buildError(500, "An administrator can not provide access to an account.");
+			return respondError(err);
+		}
 		
 		for (BankAccount b : cAcc.getBankAccounts()) {
 			if (b.getIBAN().equals(IBAN)) {
@@ -904,14 +954,20 @@ public class ServerHandler {
 	private static Response revokeAccess(JSONRPC2Request jReq) {
 		HashMap<String, Object> params = (HashMap<String, Object>) jReq.getNamedParams();
 	
-		String token = (String) params.get("authToken");
+		String authToken = (String) params.get("authToken");
 		String IBAN = (String) params.get("iBAN");
 		
 		// Check Request validity, return an error Response if the Request is invalid
 		Response invalidRequest = RequestValidator.isValidRevokeAccessRequest(params);		
 		if (invalidRequest != null) {
 			return invalidRequest;
-		}		
+		}
+		
+		// An admin can not open revoke access from an account
+		if (isAdministrativeUser(authToken)) {
+			String err = buildError(500, "An administrator can not revoke access from an account.");
+			return respondError(err);
+		}
 		
 		boolean usernameSpecified = false;
 		String username = null;
@@ -920,7 +976,7 @@ public class ServerHandler {
 			usernameSpecified = true;
 		}
 		
-		CustomerAccount cAcc = accounts.get(token);
+		CustomerAccount cAcc = accounts.get(authToken);
 		BankAccount bAcc = null;
 		boolean found = false;
 		
@@ -969,7 +1025,7 @@ public class ServerHandler {
 				break;
 			}
 		} else {
-			targetAcc = accounts.get(token);
+			targetAcc = accounts.get(authToken);
 		}
 		
 		boolean hasAccess = false;
@@ -1160,6 +1216,12 @@ public class ServerHandler {
 		String pinCardNumber = (String) params.get("pinCard");
 		boolean newPinCode = (boolean) params.get("newPin");		
 		
+		// An admin can not invalidate a card
+		if (isAdministrativeUser(authToken)) {
+			String err = buildError(500, "An administrator can not invalidate a card.");
+			return respondError(err);
+		}
+				
 		CustomerAccount customerAccount = accounts.get(authToken);
 		BankAccount bankAccount;
 		try {
@@ -1246,7 +1308,13 @@ public class ServerHandler {
 			return invalidRequest;
 		}		
 		
-		String authToken = (String) params.get("authToken");
+		String authToken = (String) params.get("authToken");		
+		
+		// An admin can not transfer money
+		if (isAdministrativeUser(authToken)) {
+			String err = buildError(500, "An administrator can not transfer money.");
+			return respondError(err);
+		}
 		
 		String sourceIBAN = (String) params.get("sourceIBAN");
 		boolean isSourceSavingsAccount = sourceIBAN.charAt(sourceIBAN.length() - 1) == 'S' ? true : false;
@@ -1422,7 +1490,7 @@ public class ServerHandler {
 			return respondError(err);
 		}
 		
-		if (cAcc.getBSN().equals(source.getMainHolderBSN())) {
+		if (cAcc.getBSN().equals(source.getMainHolderBSN()) || isAdministrativeUser(authToken)) {
 			authorized = true;
 		} else {
 			for (CustomerAccount c : source.getOwners()) {
@@ -1491,7 +1559,7 @@ public class ServerHandler {
 		
 		cAcc = accounts.get(authToken);
 				
-		if (cAcc.getBSN().equals(source.getMainHolderBSN())) {
+		if (cAcc.getBSN().equals(source.getMainHolderBSN()) || isAdministrativeUser(authToken)) {
 			authorized = true;
 		} else {
 			for (CustomerAccount c : source.getOwners()) {
