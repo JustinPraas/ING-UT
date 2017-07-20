@@ -100,6 +100,7 @@ public class TUI {
 			break;
 		case ADMINISTRATOR:
 			System.out.println("=====================================================================================================");
+			System.out.printf("%25s %1s %s %n", "Command:", "", "Parameters:");
 			System.out.printf("%25s %1s %s %n", "SIMULATE_TIME", "", "<nrOfDays>");
 			System.out.printf("%25s %1s %s %n", "RESET", "", "");
 			System.out.printf("%25s %1s %s %n", "GET_DATE", "", "");
