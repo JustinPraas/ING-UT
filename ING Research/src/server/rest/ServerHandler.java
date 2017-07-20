@@ -670,6 +670,12 @@ public class ServerHandler {
 		newAcc.setUsername((String)params.get("username"));
 		newAcc.setPassword((String)params.get("password"));
 		
+		// Check if the username is 'admin'
+		if (newAcc.getUsername().equals("admin")) {
+			String err = buildError(500, "User attempted to create an account with the username 'admin'");
+			return respondError(err);
+		}
+		
 		// If this is a duplicate account, respond with an appropriate error
 		if (DataManager.objectExists(newAcc)) {
 			String err = buildError(500, "User attempted to create duplicate customer account with SSN " + newAcc.getBSN());
@@ -1554,6 +1560,12 @@ public class ServerHandler {
 
 	public static HashMap<String, CustomerAccount> getAccounts() {
 		return accounts;
+	}
+	
+	public static boolean isAdministrativeUser(String authToken) {
+		if (accounts.containsKey(authToken)) {
+			return accounts.get(authToken).getUsername().equals("admin");
+		} else return false;
 	}
 	
 	
