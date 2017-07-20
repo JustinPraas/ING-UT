@@ -229,7 +229,14 @@ public class ServerHandler {
 	
 		String startString = (String) params.get("beginDate");	
 		String endString = (String) params.get("endDate");
-	
+		String authToken = (String) params.get("authToken");
+
+		// An non-administrator can not get the event logs
+		if (!isAdministrativeUser(authToken)) {
+			String err = buildError(500, "Only an administrator can not request the event logs.");
+			return respondError(err);
+		}
+		
 		ArrayList<HashMap<String, Object>> resp;
 		
 		try {
@@ -264,7 +271,7 @@ public class ServerHandler {
 			return respondError(err);
 		}
 		
-		if (!RequestValidator.userOwnsBankAccount(customerAccount, bankAccount) || !isAdministrativeUser(authToken)) {
+		if (!RequestValidator.userOwnsBankAccount(customerAccount, bankAccount) && !isAdministrativeUser(authToken)) {
 			String err = buildError(419, "The authenticated user is not authorized to perform this action. You can not peek at the overdraft limit of another person's bank account.");
 			Logger.addLogToDB(ServerModel.getServerCalendar().getTimeInMillis(), Type.WARNING, "Possible harmful activity: trying to access information from another account.");
 			return respondError(err);
@@ -514,13 +521,13 @@ public class ServerHandler {
 	 * Resets the database, i.e. wipes all data.
 	 */
 	private static Response reset(JSONRPC2Request jReq) {	
-		HashMap<String, Object> resp = new HashMap<>();
+		HashMap<String, Object> params = (HashMap<String, Object>) jReq.getNamedParams();
 		
-		if (!resp.containsKey("authToken")) {
+		if (!params.containsKey("authToken")) {
 			return RequestValidator.invalidMethodParametersResponse();
 		}
 		
-		String authToken = (String) resp.get("authToken");
+		String authToken = (String) params.get("authToken");
 		
 		// An non-administrator can not reset the system
 		if (!isAdministrativeUser(authToken)) {
@@ -533,8 +540,7 @@ public class ServerHandler {
 		ServerModel.resetSimulatedDays();
 		InterestHandler.reset();
 		
-		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
-		return respond(jResp.toJSONString(), jReq.getMethod());
+		return sendEmptyResult(jReq.getMethod());
 	}
 	
 	/**
@@ -597,7 +603,7 @@ public class ServerHandler {
 		
 		// If the target account is not owned by the authorized user or is not an administrative account, 
 		// stop and notify client
-		if (!bAcc.getMainHolderBSN().equals(cAcc.getBSN()) || isAdministrativeUser(authToken)) {
+		if (!bAcc.getMainHolderBSN().equals(cAcc.getBSN()) && !isAdministrativeUser(authToken)) {
 			String err = buildError(419, "The authenticated user is not authorized to perform this action. User does not own the given account.");
 			Logger.addLogToDB(ServerModel.getServerCalendar().getTimeInMillis(), Type.WARNING, "Possible harmful activity: trying to access information from another account.");
 			return respondError(err);
@@ -1511,7 +1517,7 @@ public class ServerHandler {
 		resp.put("result", new Double(source.getBalance()));
 		
 		// If there's a savings account open, send the balance of it
-		if (!source.getSavingsAccount().isClosed()) {
+		if (source.getSavingsAccount() != null && !source.getSavingsAccount().isClosed()) {
 			resp.put("savingAccountBalance", source.getSavingsAccount().getBalance());
 		}
 		
