@@ -108,6 +108,7 @@ public class TUI {
 			System.out.printf("%25s %1s %s %n", "GET_BANK_ACCOUNT_ACCESS", "", "<IBAN>");
 			System.out.printf("%25s %1s %s %n", "TRANSACTION_OVERVIEW", "", "<IBAN>:<nrOfTransactions>");
 			System.out.printf("%25s %1s %s %n", "GET_BALANCE", "", "<IBAN>");
+			System.out.printf("%25s %1s %s %n", "EXIT", "", "");
 			break;
 		}
 	}

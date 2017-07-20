@@ -43,6 +43,7 @@ public class MessageHandler {
 	public void processInput(String input) {
 		String[] inputArray = input.split(" ");
 		String command = inputArray[0];
+		command = command.toUpperCase();
 		String parameters = "";
 
 		// Only look for parameters if they are actually there.
