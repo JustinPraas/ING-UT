@@ -436,7 +436,7 @@ public class RequestValidator {
 
 	public static Response isValidGetEventLogRequest(HashMap<String, Object> params) {
 		// If we're missing required parameters, stop and notify the client
-		if (!(params.containsKey("beginDate") && params.containsKey("endDate"))) {
+		if (!(params.containsKey("beginDate") || !params.containsKey("endDate")) || !params.containsKey("authToken")) {
 			return invalidMethodParametersResponse();
 		}
 		
