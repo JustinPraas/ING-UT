@@ -446,7 +446,7 @@ public class MessageHandler {
 			return;
 		}
 		
-		params.put("nrOfDays", parameterArray[0]);
+		params.put("nrOfDays", Integer.parseInt(parameterArray[0]));
 		
 		JSONRPC2Request request = new JSONRPC2Request(method, params,
 				"request-" + java.lang.System.currentTimeMillis());
