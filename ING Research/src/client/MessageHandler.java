@@ -211,6 +211,7 @@ public class MessageHandler {
 		String parameterArray[] = parameters.split(":");
 		String method = "getEventLogs";
 		HashMap<String, Object> params = new HashMap<>();
+		params.put("authToken", AUTHTOKEN);
 
 		if (parameterArray.length != 2) {
 			System.err.println("Please enter the requested parameters.");
@@ -485,6 +486,7 @@ public class MessageHandler {
 		String[] parameterArray = parameters.split(":");
 		String method = "simulateTime";
 		HashMap<String, Object> params = new HashMap<>();
+		params.put("authToken", AUTHTOKEN);
 
 		if (parameterArray.length != 1) {
 			System.err.println("Please enter the requested parameters.");
@@ -942,6 +944,12 @@ public class MessageHandler {
 			HashMap<String, Object> results = (HashMap<String, Object>) jResp.getResult();
 			AUTHTOKEN = (String) results.get("authToken");
 			userState = UserState.CONSUMER;
+			
+			// if user is an admin, set state to admin
+			if (username.equals("admin")) {
+				userState = UserState.ADMINISTRATOR;
+			}
+			
 			System.out.println("Authentication successful.");
 		} catch (JSONRPC2ParseException e) {
 			System.out.println("Discarded invalid JSON-RPC response from server.");
