@@ -133,6 +133,9 @@ public class MessageHandler {
 			case "SET_TRANSFER_LIMIT":
 				setTransferLimit(parameters);
 				break;
+			case "LOGOUT":
+				logout(parameters);
+				break;
 			default:
 				System.err.println("Invalid command.");
 				break;
@@ -163,6 +166,9 @@ public class MessageHandler {
 			case "TRANSACTION_OVERVIEW":
 				getTransactionsOverview(parameters);
 				break;
+			case "LOGOUT":
+				logout(parameters);
+				break;
 			default:
 				System.err.println("Invalid command.");
 				break;
@@ -171,6 +177,12 @@ public class MessageHandler {
 		System.out.println("\n");
 	}
 	
+	private void logout(String parameters) {
+		AUTHTOKEN = "";
+		userState = UserState.NO_USER;
+		System.out.println("Logout successful.");
+	}
+
 	/**
 	 * Extension 5: 'Overdraft' related.
 	 * Sets the overdraft limit of the given bank account

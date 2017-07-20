@@ -96,6 +96,7 @@ public class TUI {
 			System.out.printf("%25s %1s %s %n", "SET_TRANSFER_LIMIT", "", "<IBAN>:<transferLimit>");
 			System.out.printf("%25s %1s %s %n", "OPEN_SAVINGS_ACCOUNT", "", "<IBAN>");
 			System.out.printf("%25s %1s %s %n", "CLOSE_SAVINGS_ACCOUNT", "", "<IBAN>");
+			System.out.printf("%25s %1s %s %n", "LOGOUT", "", "");
 			System.out.printf("%25s %1s %s %n", "EXIT", "", "");
 			break;
 		case ADMINISTRATOR:
@@ -109,6 +110,7 @@ public class TUI {
 			System.out.printf("%25s %1s %s %n", "GET_BANK_ACCOUNT_ACCESS", "", "<IBAN>");
 			System.out.printf("%25s %1s %s %n", "TRANSACTION_OVERVIEW", "", "<IBAN>:<nrOfTransactions>");
 			System.out.printf("%25s %1s %s %n", "GET_BALANCE", "", "<IBAN>");
+			System.out.printf("%25s %1s %s %n", "LOGOUT", "", "");
 			System.out.printf("%25s %1s %s %n", "EXIT", "", "");
 			break;
 		}
