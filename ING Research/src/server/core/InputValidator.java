@@ -107,15 +107,23 @@ public class InputValidator {
 	 * @return true if the phone number is valid, otherwise false
 	 */
 	public static boolean isValidPhoneNumber(String phoneNumber) {
-		if (phoneNumber.length() != 10) {
-			System.err.println("Invalid phone number. Phone number is not 10 digits long.");
-			return false;
-		}
-		
-		if (!isNumericalOnly(phoneNumber)) {
-			System.err.println("Invalid phone number. Phone number is not numerical only.");
-			return false;
-		}
+		if (phoneNumber.contains("+")) {
+			phoneNumber = phoneNumber.replace(" ", "");
+			if (phoneNumber.length() != 12) {
+				System.err.println("Invalid phone number. Phone number is incorrect in the given long-form.");
+				return false;
+			}
+		} else {
+			if (phoneNumber.length() != 10) {
+				System.err.println("Invalid phone number. Phone number is incorrect in the given short-form.");
+				return false;
+			}
+			
+			if (!isNumericalOnly(phoneNumber)) {
+				System.err.println("Invalid phone number. Phone number is not numerical only.");
+				return false;
+			}
+		}		
 		return true;
 	}
 	

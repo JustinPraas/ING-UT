@@ -632,7 +632,13 @@ public class MessageHandler {
 		String targetIBAN = parameterArray[1];
 		String cardNumber = parameterArray[2];
 		String PIN = parameterArray[3];
-		String amount = parameterArray[4];
+		double amount = 0;
+		try {
+			amount = Double.parseDouble(parameterArray[4]);
+		} catch (NumberFormatException e) {
+			System.err.println("Please enter a valid amount representation.");
+			return;
+		}
 
 		String method = "payFromAccount";
 		HashMap<String, Object> params = new HashMap<>();
@@ -755,15 +761,21 @@ public class MessageHandler {
 			System.err.println("Please enter the requested parameters.");
 			return;
 		}
-
-		String IBAN = parameterArray[0];
-		String numTransactions = parameterArray[1];
-
+		
 		String method = "getTransactionsOverview";
+		String IBAN = parameterArray[0];
+		int number = 0;
+		try {
+			number = Integer.parseInt(parameterArray[1]);
+		} catch (NumberFormatException e) {
+			System.err.println("Please enter a valid amount representation.");
+			return;
+		}
+
 		HashMap<String, Object> params = new HashMap<>();
 		params.put("authToken", AUTHTOKEN);
-		params.put("iBAN", IBAN);
-		params.put("nrOfTransactions", numTransactions);
+		params.put("iBAN", IBAN);		
+		params.put("nrOfTransactions", number);
 
 		JSONRPC2Request request = new JSONRPC2Request(method, params,
 				"request-" + java.lang.System.currentTimeMillis());
@@ -895,7 +907,13 @@ public class MessageHandler {
 		String sourceIBAN = parameterArray[0];
 		String targetIBAN = parameterArray[1];
 		String targetName = parameterArray[2];
-		String amount = parameterArray[3];
+		double amount = 0;
+		try {
+			amount = Double.parseDouble(parameterArray[3]);
+		} catch (NumberFormatException e) {
+			System.err.println("Please enter a valid amount representation.");
+			return;
+		}
 		String description = parameterArray[4];
 
 		String method = "transferMoney";
@@ -946,7 +964,13 @@ public class MessageHandler {
 		String IBAN = parameterArray[0];
 		String cardNumber = parameterArray[1];
 		String PIN = parameterArray[2];
-		String amount = parameterArray[3];
+		double amount = 0;
+		try {
+			amount = Double.parseDouble(parameterArray[3]);
+		} catch (NumberFormatException e) {
+			System.err.println("Please enter a valid amount representation.");
+			return;
+		}
 
 		HashMap<String, Object> params = new HashMap<>();
 		params.put("iBAN", IBAN);

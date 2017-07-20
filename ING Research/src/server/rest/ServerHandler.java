@@ -956,7 +956,7 @@ public class ServerHandler {
 		String IBAN = (String) params.get("iBAN");
 		String pinCard = (String) params.get("pinCard");
 		String pinCode = (String) params.get("pinCode");
-		double amount = Double.parseDouble((String) params.get("amount"));		
+		double amount = (double) params.get("amount");		
 		
 		// If the card could not be found, notify the client and stop
 		if (DataManager.isPrimaryKeyUnique(DebitCard.CLASSNAME, DebitCard.PRIMARYKEYNAME, pinCard)) {
@@ -1034,7 +1034,7 @@ public class ServerHandler {
 		String targetIBAN = (String) params.get("targetIBAN");
 		String pinCard = (String) params.get("pinCard");
 		String pinCode = (String) params.get("pinCode");
-		double amount = Double.parseDouble((String) params.get("amount"));
+		double amount = (double) params.get("amount");
 		
 		
 		// If the source bank account could not be found, stop and notify the client.
@@ -1203,7 +1203,7 @@ public class ServerHandler {
 		
 		String targetName = (String) params.get("targetName");
 		String description = (String) params.get("description");
-		double amount = Double.parseDouble((String) params.get("amount"));		
+		double amount = (double) params.get("amount");		
 		
 		CustomerAccount customerAccount = null;
 		BankAccount source = null;
@@ -1404,7 +1404,7 @@ public class ServerHandler {
 		
 		String authToken = (String) params.get("authToken");
 		String IBAN = (String) params.get("iBAN");
-		int num = Integer.parseInt((String) params.get("nrOfTransactions"));
+		long num = (long) params.get("nrOfTransactions");
 		
 			
 		CustomerAccount cAcc = null;
@@ -1461,7 +1461,7 @@ public class ServerHandler {
 		if (num >= transactions.size()) {
 			transactionMapsArray = new HashMap[transactions.size()];
 		} else {
-			transactionMapsArray = new HashMap[num];
+			transactionMapsArray = new HashMap[(int) num];
 		}
 		
 		long counter = num;
