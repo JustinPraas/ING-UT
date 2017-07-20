@@ -227,7 +227,7 @@ public class ServerHandler {
 			return invalidRequest;
 		}
 	
-		String startString = (String) params.get("startDate");	
+		String startString = (String) params.get("beginDate");	
 		String endString = (String) params.get("endDate");
 	
 		ArrayList<HashMap<String, Object>> resp;
@@ -387,7 +387,7 @@ public class ServerHandler {
 
 		String authToken = (String) params.get("authToken");
 		String IBAN = (String) params.get("iBAN");
-		Double overdraftLimit = Double.parseDouble((String) params.get("overdraftLimit"));
+		double overdraftLimit = (double) params.get("overdraftLimit");
 		
 		CustomerAccount customerAccount = accounts.get(authToken);
 		BankAccount bankAccount;
@@ -526,8 +526,8 @@ public class ServerHandler {
 			return invalidRequest;
 		}
 		
-		int newlySimulatedDays = Integer.parseInt((String) params.get("nrOfDays"));		
-
+		int newlySimulatedDays = Integer.parseInt(Long.toString((long) params.get("nrOfDays")));
+		
 		InterestHandler.calculateTimeSimulatedInterest(newlySimulatedDays);
 		TimeOperator.simulateDays(newlySimulatedDays);		
 		ServerModel.setSimulatedDays(newlySimulatedDays, true);
@@ -694,6 +694,7 @@ public class ServerHandler {
 		resp.put("iBAN", IBAN);
 		resp.put("pinCard", pinCard);
 		resp.put("pinCode", pinCode);
+		resp.put("expirationDate", card.getExpirationDate());
 		
 		JSONRPC2Response response = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
 		return respond(response.toJSONString(), jReq.getMethod());
@@ -726,6 +727,7 @@ public class ServerHandler {
 		resp.put("iBAN", IBAN);
 		resp.put("pinCard", pinCard);
 		resp.put("pinCode", pinCode);
+		resp.put("expirationDate", card.getExpirationDate());
 		
 		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
 		
@@ -887,6 +889,7 @@ public class ServerHandler {
 		
 		resp.put("pinCard", pinCard);
 		resp.put("pinCode", pinCode);
+		resp.put("expirationDate", card.getExpirationDate());
 		
 		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
 		return respond(jResp.toJSONString(), jReq.getMethod());
@@ -1009,7 +1012,7 @@ public class ServerHandler {
 		String IBAN = (String) params.get("iBAN");
 		String pinCard = (String) params.get("pinCard");
 		String pinCode = (String) params.get("pinCode");
-		double amount = Double.parseDouble((String) params.get("amount"));		
+		double amount = (double) params.get("amount");		
 		
 		// If the card could not be found, notify the client and stop
 		if (DataManager.isPrimaryKeyUnique(DebitCard.CLASSNAME, DebitCard.PRIMARYKEYNAME, pinCard)) {
@@ -1087,7 +1090,7 @@ public class ServerHandler {
 		String targetIBAN = (String) params.get("targetIBAN");
 		String pinCard = (String) params.get("pinCard");
 		String pinCode = (String) params.get("pinCode");
-		double amount = Double.parseDouble((String) params.get("amount"));
+		double amount = (double) params.get("amount");
 		
 		
 		// If the source bank account could not be found, stop and notify the client.
@@ -1149,10 +1152,7 @@ public class ServerHandler {
 		String authToken = (String) params.get("authToken");
 		String IBAN = (String) params.get("iBAN");
 		String pinCardNumber = (String) params.get("pinCard");
-		boolean newPinCode = false;	
-		if (params.get("newPin").equals("yes")) {
-			newPinCode = true;
-		}			
+		boolean newPinCode = (boolean) params.get("newPin");		
 		
 		CustomerAccount customerAccount = accounts.get(authToken);
 		BankAccount bankAccount;
@@ -1256,7 +1256,7 @@ public class ServerHandler {
 		
 		String targetName = (String) params.get("targetName");
 		String description = (String) params.get("description");
-		double amount = Double.parseDouble((String) params.get("amount"));		
+		double amount = (double) params.get("amount");		
 		
 		CustomerAccount customerAccount = null;
 		BankAccount source = null;
@@ -1457,7 +1457,7 @@ public class ServerHandler {
 		
 		String authToken = (String) params.get("authToken");
 		String IBAN = (String) params.get("iBAN");
-		int num = Integer.parseInt((String) params.get("nrOfTransactions"));
+		long num = (long) params.get("nrOfTransactions");
 		
 			
 		CustomerAccount cAcc = null;
@@ -1514,7 +1514,7 @@ public class ServerHandler {
 		if (num >= transactions.size()) {
 			transactionMapsArray = new HashMap[transactions.size()];
 		} else {
-			transactionMapsArray = new HashMap[num];
+			transactionMapsArray = new HashMap[(int) num];
 		}
 		
 		long counter = num;

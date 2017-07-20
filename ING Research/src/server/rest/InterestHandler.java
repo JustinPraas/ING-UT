@@ -369,7 +369,7 @@ public class InterestHandler extends Thread {
 				Thread.sleep(1000 * 3600);
 			} catch (InterruptedException e) {
 				
-			}					
+			}	
 		}		
 	}
 	

@@ -29,10 +29,10 @@ public class RequestValidator {
 		}
 		
 		try {
-			Double.parseDouble((String) params.get("overdraftLimit"));
-		} catch (NumberFormatException e) {
-			String err = ServerHandler.buildError(418, "One or more parameter has an invalid value. See message.", (String) params.get("overdraftLimit") + " is not a valid overdraft limit.");
-			return ServerHandler.respondError(err, 500);
+			@SuppressWarnings("unused")
+			double amount = (double) params.get("overdraftLimit");
+		} catch (ClassCastException e) {
+			return invalidAmountResponse(params.get("overdraftLimit"));
 		}
 		
 		return null;
@@ -103,14 +103,14 @@ public class RequestValidator {
 		}
 		
 		// If input is invalid (i.e. not a numerical value)
-		if (!InputValidator.isNumericalOnly((String) params.get("nrOfDays"))) {
-			String err = ServerHandler.buildError(418, "One or more parameter has an invalid value. See message.", (String) params.get("nrOfDays") + " is not a valid number.");
+		if (!InputValidator.isNumericalOnly(Long.toString((long)params.get("nrOfDays")))) {
+			String err = ServerHandler.buildError(418, "One or more parameter has an invalid value. See message.", (long) params.get("nrOfDays") + " is not a valid number.");
 			return ServerHandler.respondError(err, 500);
 		}
 		
 		// If input is negative...
-		if (Integer.parseInt((String) params.get("nrOfDays")) <= 0) {
-			String err = ServerHandler.buildError(418, "One or more parameter has an invalid value. See message.", (String) params.get("nrOfDays") + " is equal to or less than 0.");
+		if ((long) params.get("nrOfDays") <= 0) {
+			String err = ServerHandler.buildError(418, "One or more parameter has an invalid value. See message.", (long) params.get("nrOfDays") + " is equal to or less than 0.");
 			return ServerHandler.respondError(err, 500);
 		}
 		
@@ -175,7 +175,7 @@ public class RequestValidator {
 		}
 		
 		if (!InputValidator.isValidPhoneNumber((String) params.get("telephoneNumber"))) {
-		    String err = ServerHandler.buildError(418, "One or more parameter has an invalid value. See message.", "Username " + params.get("username") + " contains invalid characters.");
+		    String err = ServerHandler.buildError(418, "One or more parameter has an invalid value. See message.", "Phone number " + params.get("telephoneNumber") + " is invalid.");
 		    return ServerHandler.respondError(err, 500);
 		}
 		
@@ -259,12 +259,12 @@ public class RequestValidator {
 			return invalidMethodParametersResponse();
 		}
 		
-		// If any given parameter values are invalid, stop and notify the client
 		try {
-			Double.parseDouble((String) params.get("amount"));
-		} catch (NumberFormatException e) {
-			return invalidAmountResponse((String) params.get("amount"));
-		}
+			@SuppressWarnings("unused")
+			double amount = (double) params.get("amount");
+		} catch (ClassCastException e) {
+			return invalidAmountResponse(params.get("amount"));
+		}		
 		
 		if (!InputValidator.isValidIBAN((String) params.get("iBAN"))) {
 			return invalidIBANResponse((String) params.get("iBAN"));
@@ -288,12 +288,12 @@ public class RequestValidator {
 			return invalidMethodParametersResponse();
 		}
 		
-		// If any of the parameters have invalid values, stop and notify the client
 		try {
-			Double.parseDouble((String) params.get("amount"));
-		} catch (NumberFormatException e) {
-			return invalidAmountResponse((String) params.get("amount"));
-		}
+			@SuppressWarnings("unused")
+			double amount = (double) params.get("amount");
+		} catch (ClassCastException e) {
+			return invalidAmountResponse(params.get("amount"));
+		}	
 		
 		if (!InputValidator.isValidIBAN((String) params.get("sourceIBAN"))) {
 			return invalidIBANResponse((String) params.get("sourceIBAN"));
@@ -327,9 +327,10 @@ public class RequestValidator {
 			return invalidPinCardResponse((String) params.get("pinCard"));
 		}
 		
-		String newPinCodeString = (String) params.get("newPin");
-		if (!newPinCodeString.equals("yes") && !newPinCodeString.equals("no")) {
-			String err = ServerHandler.buildError(418, "One or more parameter has an invalid value. See message.", "'" + newPinCodeString + "' is not a valid boolean representation.");
+		try {
+			boolean newPin = (boolean) params.get("newPin");
+		} catch (ClassCastException e) {
+			String err = ServerHandler.buildError(418, "One or more parameter has an invalid value. See message.", "Boolean cannot be parsed from the given paramater for 'newPin'.");
 			return ServerHandler.respondError(err, 500);
 		}
 		
@@ -347,12 +348,12 @@ public class RequestValidator {
 				|| !params.containsKey("targetName") || !params.containsKey("amount") || !params.containsKey("description")) {
 			return invalidMethodParametersResponse();
 		}
-
-		// If any parameter has an invalid value, stop and notify the client
+		
 		try {
-			Double.parseDouble((String) params.get("amount"));
-		} catch (NumberFormatException e) {
-			return invalidAmountResponse((String) params.get("amount"));
+			@SuppressWarnings("unused")
+			double amount = (double) params.get("amount");
+		} catch (ClassCastException e) {
+			return invalidAmountResponse(params.get("amount"));
 		}
 		
 		if (!InputValidator.isValidIBAN((String) params.get("sourceIBAN"))) {
@@ -409,12 +410,11 @@ public class RequestValidator {
 			return invalidIBANResponse((String) params.get("iBAN"));
 		}
 		
-		// If the number of transactions is not an integer, stop and notify the client
 		try {
-			Integer.parseInt((String) params.get("nrOfTransactions"));
+			@SuppressWarnings("unused")
+			long number = (long) params.get("nrOfTransactions");
 		} catch (NumberFormatException e) {
-			String err = ServerHandler.buildError(418, "One or more parameter has an invalid value. See message.", (String) params.get("nrOfTransactions") + " is not a valid amount.");
-			return ServerHandler.respondError(err, 500);
+			return invalidMethodParametersResponse();
 		}
 		
 		return null;
@@ -436,7 +436,7 @@ public class RequestValidator {
 
 	public static Response isValidGetEventLogRequest(HashMap<String, Object> params) {
 		// If we're missing required parameters, stop and notify the client
-		if (!(params.containsKey("startDate") && params.containsKey("endDate"))) {
+		if (!(params.containsKey("beginDate") && params.containsKey("endDate"))) {
 			return invalidMethodParametersResponse();
 		}
 		
@@ -444,7 +444,7 @@ public class RequestValidator {
 		Date startDate;
 		Date endDate;
 		try {
-			startDate = fm.parse((String) params.get("startDate"));
+			startDate = fm.parse((String) params.get("beginDate"));
 			endDate = fm.parse((String) params.get("endDate"));
 		} catch (ParseException e) {
 			String err = ServerHandler.buildError(418, "One or more parameter has an invalid value. See message.", "One of the given dates is not in the format yyyy-MM-dd");
@@ -488,8 +488,8 @@ public class RequestValidator {
 		return ServerHandler.respondError(err, 500);
 	}
 
-	private static Response invalidAmountResponse(String amount) {
-		String err = ServerHandler.buildError(418, "One or more parameter has an invalid value. See message.", amount + " is not a valid amount.");
+	private static Response invalidAmountResponse(Object amount) {
+		String err = ServerHandler.buildError(418, "One or more parameter has an invalid value. See message.", amount.toString() + " is not a valid amount.");
 		return ServerHandler.respondError(err, 500);
 	}
 
