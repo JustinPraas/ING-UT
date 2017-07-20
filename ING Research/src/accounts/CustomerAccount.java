@@ -99,6 +99,13 @@ public class CustomerAccount implements database.DBObject {
 	public void removeBankAccount(BankAccount account) {
 		bankAccounts.remove(account);
 	}
+	
+	public static void setUpAdminAccount() {
+		System.out.println("Set up administrative account");
+		CustomerAccount adminAccount = new CustomerAccount("admin", "admin", "a", "00000001", "admin 1", "0600000001",
+				"admin@admin.com", "01-01-1950", "admin", "admin");
+		adminAccount.saveToDB();
+	}
 
 	@Column(name = "initials")
 	public String getInitials() {

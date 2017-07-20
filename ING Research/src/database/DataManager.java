@@ -209,5 +209,6 @@ public class DataManager {
 		init();
 		
 		BankAccount.setUpINGaccount();
+		CustomerAccount.setUpAdminAccount();
 	}
 }
