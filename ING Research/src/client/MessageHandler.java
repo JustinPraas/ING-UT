@@ -73,6 +73,9 @@ public class MessageHandler {
 			case "DEPOSIT":
 				depositIntoAccount(parameters);
 				break;
+			case "GET_DATE":
+				getDate();
+				break;
 			default:
 				System.err.println("Invalid command.");
 				break;
@@ -132,6 +135,9 @@ public class MessageHandler {
 				break;
 			case "SET_TRANSFER_LIMIT":
 				setTransferLimit(parameters);
+				break;
+			case "GET_DATE":
+				getDate();
 				break;
 			case "LOGOUT":
 				logout(parameters);

@@ -73,6 +73,7 @@ public class TUI {
 			System.out.printf("%25s %1s %s %n", "OPEN_BANK_ACCOUNT", "", "<firstname>:<lastname>:<initials>:<dateofbirth>:<SSN>:<address>:<phonenumber>:<email>:<username>:<password>");
 			System.out.printf("%25s %1s %s %n", "PAY_BY_CARD", "", "<sourceIBAN>:<targetIBAN>:<cardnumber>:<PIN>:<amount>");
 			System.out.printf("%25s %1s %s %n", "DEPOSIT", "", "<IBAN>:<cardnumber>:<PIN>:<amount>");
+			System.out.printf("%25s %1s %s %n", "GET_DATE", "", "");
 			System.out.printf("%25s %1s %s %n", "EXIT", "", "");
 			break;
 		case CONSUMER:			
@@ -96,6 +97,7 @@ public class TUI {
 			System.out.printf("%25s %1s %s %n", "SET_TRANSFER_LIMIT", "", "<IBAN>:<transferLimit>");
 			System.out.printf("%25s %1s %s %n", "OPEN_SAVINGS_ACCOUNT", "", "<IBAN>");
 			System.out.printf("%25s %1s %s %n", "CLOSE_SAVINGS_ACCOUNT", "", "<IBAN>");
+			System.out.printf("%25s %1s %s %n", "GET_DATE", "", "");
 			System.out.printf("%25s %1s %s %n", "LOGOUT", "", "");
 			System.out.printf("%25s %1s %s %n", "EXIT", "", "");
 			break;
