@@ -311,4 +311,34 @@ public class InputValidator {
 			return false;
 		}
 	}
+	
+	/**
+	 * Checks whether a given value is a positive integer.
+	 * @param value The value to be checked
+	 * @return true if the input is a positive integer, false otherwise
+	 */
+	public static boolean isPositiveInteger(String value) {
+		try {
+			Integer.parseInt(value);
+		} catch (NumberFormatException e) {
+			return false;
+		}
+		
+		return Integer.parseInt(value) > 0 ? true : false;
+	}
+	
+	/**
+	 * Checks whether a given value is a positive double.
+	 * @param value The value to be checked
+	 * @return true if the input is a positive double, false otherwise
+	 */
+	public static boolean isPositiveDouble(String value) {
+		try {
+			Double.parseDouble(value);
+		} catch (NumberFormatException e) {
+			return false;
+		}
+		
+		return Double.parseDouble(value) > 0 ? true : false;
+	}
 }

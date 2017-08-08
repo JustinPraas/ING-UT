@@ -459,6 +459,24 @@ public class RequestValidator {
 		return null;
 	}
 
+	public static Response isValidSetValueRequest(HashMap<String, Object> params) {
+		// If we're missing required parameters, stop and notify the client
+		if (!(params.containsKey("authToken") || !params.containsKey("key")) || !params.containsKey("value") || !params.containsKey("date")) {
+			return invalidMethodParametersResponse();
+		}
+		
+		DateFormat fm = new SimpleDateFormat("yyyy-MM-dd");
+		Date date;
+		try {
+			date = fm.parse((String) params.get("date"));
+		} catch (ParseException e) {
+			String err = ServerHandler.buildError(418, "One or more parameter has an invalid value. See message.", "The given date is not in the format yyyy-MM-dd");
+			return ServerHandler.respondError(err, 500);
+		}
+		
+		return null;
+	}
+
 	public static boolean userOwnsBankAccount(CustomerAccount customerAccount, BankAccount bankAccount) {
 		for (BankAccount b : customerAccount.getBankAccounts()) {
 			if (b.getIBAN().equals(bankAccount.getIBAN())) {
