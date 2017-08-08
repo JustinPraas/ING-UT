@@ -148,6 +148,9 @@ public class MessageHandler {
 			}
 		} else if (userState == UserState.ADMINISTRATOR) {
 			switch (command) {
+			case "SET_VALUE":
+				setValue(parameters);
+				break;
 			case "SIMULATE_TIME":
 				simulateTime(parameters);
 				break;
@@ -187,6 +190,44 @@ public class MessageHandler {
 		AUTHTOKEN = "";
 		userState = UserState.NO_USER;
 		System.out.println("Logout successful.");
+	}
+
+	/**
+	 * Extension 12: 'Administrative User (3)' related.
+	 * Sets the value for the banking system.
+	 */
+	private void setValue(String parameters) {
+		String parameterArray[] = parameters.split(":");
+		String method = "setValue";
+		HashMap<String, Object> params = new HashMap<>();
+		
+		if (parameterArray.length != 3) {
+			System.err.println("Please enter the requested parameters.");
+			return;
+		}
+
+		params.put("authToken", AUTHTOKEN);
+		params.put("key", parameterArray[0]);
+		params.put("value", parameterArray[1]);
+		params.put("date", parameterArray[2]);
+		
+		JSONRPC2Request request = new JSONRPC2Request(method, params,
+				"request-" + java.lang.System.currentTimeMillis());
+		String resp = sendToServer(request);
+		try {
+			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
+			if (!jResp.indicatesSuccess()) {
+				System.out.printf("Error " + jResp.getError().getCode() + ": " + jResp.getError().getMessage());
+				if (jResp.getError().getData() != null) {
+					System.out.println((String) jResp.getError().getData());
+				}
+				return;
+			}
+			System.out.println("System will update the value " + 
+					parameterArray[0] + " to " + parameterArray[1] + " on " + parameterArray[2] + ".");
+		} catch (JSONRPC2ParseException e) {
+			System.out.println("Discarded invalid JSON-RPC response from server.");
+		}		
 	}
 
 	/**
