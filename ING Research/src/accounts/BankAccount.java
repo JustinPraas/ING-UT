@@ -50,36 +50,58 @@ import server.rest.ServerModel;
  */
 @Entity
 @Table(name = "bankaccounts")
-public class BankAccount implements database.DBObject {
+public class BankAccount implements database.DBObject {	
+
+	public static final String CLASSNAME = "accounts.BankAccount";
+	public static final String PRIMARYKEYNAME = "IBAN";
+	
+	/**
+	 * The static country code for the Netherlands.
+	 */
 	private final static String COUNTRY_CODE = "NL";
+	
+	/**
+	 * The bank code for ING.
+	 */
 	private final static String BANK_CODE = "INGB";
+	
+	/**
+	 * A static IBAN for the ING bank account that will be used for 
+	 * savings interest and negative interest.
+	 */
 	public final static String ING_BANK_ACCOUNT_IBAN = "NL36INGB8278309172";
 
+	/*
+	 * Properties of the bank account.
+	 */
 	private float balance;
 	private String IBAN;
 	private String mainHolderBSN;
 	private Set<CustomerAccount> owners = new HashSet<CustomerAccount>();
 	private SavingsAccount savingsAccount;
-
 	private boolean closed;
 	private double overdraftLimit;
 	private double transferLimit;
-	public static final String CLASSNAME = "accounts.BankAccount";
-	public static final String PRIMARYKEYNAME = "IBAN";
 
+	/**
+	 * Prints a representation of the bank account.
+	 */
 	public String toString() {
-		String output = "";
-		String ownerBSNs = "";
-
+		String ownersBSNs = "";
 		for (CustomerAccount key : this.getOwners()) {
-			ownerBSNs += key.getBSN() + "; ";
+			ownersBSNs += key.getBSN() + "; ";
 		}
-
-		output += "IBAN: " + IBAN;
-		output += "\nHolder BSN: " + mainHolderBSN;
-		output += "\nBalance: " + balance;
-		output += "\nCustomers with access: " + ownerBSNs + "\n";
-		return output;
+		ownersBSNs = ownersBSNs.substring(0, ownersBSNs.length() - 1);
+		
+		StringBuilder result = new StringBuilder();
+		result.append(String.format("%25s- %s- %n", "IBAN", IBAN));
+		result.append(String.format("%25s- %s- %n", "Holder BSN", mainHolderBSN));
+		result.append(String.format("%25s- %s- %n", "Balance", balance));
+		result.append(String.format("%25s- %s- %n", "Customers with access", ownersBSNs));
+		result.append(String.format("%25s- %s- %n", "Overdraft limit", overdraftLimit));
+		result.append(String.format("%25s- %s- %n", "Transfer limit", transferLimit));
+		
+		return result.toString();
 	}
 
 	public BankAccount() {
@@ -138,10 +160,8 @@ public class BankAccount implements database.DBObject {
 	}
 
 	/**
-	 * Generates a random personal account number of 10 digits long.
-	 * 
-	 * @return personalAccountNumber.toString() The personal accountNumber for
-	 *         the IBAN
+	 * Generates a random personal account number of 10 digits long. 
+	 * @return The personal accountNumber for the IBAN
 	 */
 	private String randomPAN() {
 		// The personalAccountNumber (last 10 digits) should be hierarchically
@@ -152,19 +172,14 @@ public class BankAccount implements database.DBObject {
 		for (int i = 0; i < 10; i++) {
 			personalAccountNumber.append((int) (Math.random() * 10));
 		}
-
 		return personalAccountNumber.toString();
 	}
 
 	/**
-	 * Generates an IBAN for this BankAccount
-	 * 
-	 * @param countryCode
-	 *            The code that represents a country (e.g. NL, BE, DE, etc.)
-	 * @param bankCode
-	 *            The code that represents the Bank (e.g. INGB, ABNA, etc.)
-	 * @param pan
-	 *            The personal account number of the BankAccount
+	 * Generates an IBAN for this BankAccount. 
+	 * @param countryCode The code that represents a country (e.g. NL, BE, DE, etc.)
+	 * @param bankCode The code that represents the Bank (e.g. INGB, ABNA, etc.)
+	 * @param pan The personal account number of the BankAccount
 	 * @return resultIBAN The IBAN
 	 */
 	public static String generateIBAN(String countryCode, String bankCode, String pan) {
@@ -191,18 +206,12 @@ public class BankAccount implements database.DBObject {
 	}
 
 	/**
-	 * Generates the controlNumber for the IBAN (3rd and 4th digit).
-	 * 
-	 * @param countryCode
-	 *            The code that represents a country (e.g. NL, BE, DE, etc.)
-	 * @param bankCode
-	 *            The code that represents the Bank (e.g. INGB, ABNA, etc.)
-	 * @param pan
-	 *            The personal account number (the last 10 digits)
-	 * @return controlNumber The controlNumber that belongs to the combination
-	 *         of countryCode, BankCode and pan
-	 * @see <a href="http://www.ibannl.org/uitleg-over-iban/">Formula for the
-	 *      control number (Dutch)</a>
+	 * Generates the controlNumber for the IBAN (3rd and 4th digit).	 * 
+	 * @param countryCode The code that represents a country (e.g. NL, BE, DE, etc.)
+	 * @param bankCode The code that represents the Bank (e.g. INGB, ABNA, etc.)
+	 * @param pan The personal account number (the last 10 digits)
+	 * @return controlNumber The controlNumber that belongs to the combination of countryCode, BankCode and pan
+	 * @see <a href="http://www.ibannl.org/uitleg-over-iban/">Formula for the control number (Dutch)</a>
 	 */
 	public static int generateControlNumber(String countryCode, String bankCode, String pan) {
 		/*
@@ -240,10 +249,8 @@ public class BankAccount implements database.DBObject {
 	}
 
 	/**
-	 * Deposit a specific sum of money into the <code>BankAccount</code>.
-	 * 
-	 * @param amount
-	 *            The amount of money to be deposited
+	 * Deposit a specific sum of money into the <code>BankAccount</code>.	 * 
+	 * @param amount The amount of money to be deposited
 	 * @throws ClosedAccountTransferException
 	 * @throws PinCardBlockedException
 	 */
@@ -280,8 +287,7 @@ public class BankAccount implements database.DBObject {
 	}
 
 	/**
-	 * Transfers money to the savings account
-	 * 
+	 * Transfers money to the savings account 
 	 * @param amount
 	 * @throws IllegalAmountException
 	 * @throws ExceedLimitException
@@ -320,8 +326,7 @@ public class BankAccount implements database.DBObject {
 	}
 
 	/**
-	 * Used by the ING bank account to transfer interest to savings accounts.
-	 * 
+	 * Used by the ING bank account to transfer interest to savings accounts. 
 	 * @param IBAN
 	 * @param amount
 	 */
@@ -355,15 +360,9 @@ public class BankAccount implements database.DBObject {
 	}
 
 	/**
-	 * Transfers a specific amount of money from this <code>BankAccount</code>
-	 * to another.
-	 * 
-	 * @param destination
-	 *            The <code>BankAccount</code> to which the transferred money
-	 *            should go
-	 * @param amount
-	 *            The amount of money to be transferred from this
-	 *            <code>BankAccount</code> to the destination
+	 * Transfers a specific amount of money from this <code>BankAccount</code> to another.
+	 * @param destination The <code>BankAccount</code> to which the transferred money should go
+	 * @param amount The amount of money to be transferred from this <code>BankAccount</code> to the destination
 	 * @throws ExceedLimitException
 	 */
 	public void transfer(BankAccount destination, float amount)
@@ -404,11 +403,10 @@ public class BankAccount implements database.DBObject {
 
 	/**
 	 * Transfers money from a PIN transaction to a destination account. Also
-	 * handles the negative interest credition.
-	 * 
-	 * @param destinationIBAN
-	 * @param amount
-	 * @param description
+	 * handles the negative interest credition. 
+	 * @param destinationIBAN The <code>BankAccount</code> to which the transferred money should go
+	 * @param amount The amount of money to be transferred from this <code>BankAccount</code> to the destination
+	 * @param description An optional description that belongs to this transaction.
 	 * @throws IllegalAmountException
 	 * @throws InsufficientFundsTransferException
 	 * @throws ClosedAccountTransferException
@@ -478,15 +476,9 @@ public class BankAccount implements database.DBObject {
 	/**
 	 * Transfers, with a PIN transaction, a specific amount of money from this
 	 * <code>BankAccount</code> to another.
-	 * 
-	 * @param destination
-	 *            The <code>BankAccount</code> to which the transferred money
-	 *            should go
-	 * @param amount
-	 *            The amount of money to be transferred from this
-	 *            <code>BankAccount</code> to the destination
-	 * @param description
-	 *            Description of the transfer
+	 * @param destination The <code>BankAccount</code> to which the transferred money should go
+	 * @param amount The amount of money to be transferred from this <code>BankAccount</code> to the destination
+	 * @param description Description of the transfer
 	 * @throws ExceedLimitException
 	 */
 	public void transfer(BankAccount destination, double amount, String description)
@@ -529,12 +521,11 @@ public class BankAccount implements database.DBObject {
 
 	/**
 	 * Transfers money from one account to another account and is used to credit
-	 * the fee for a new pin card.
-	 * 
-	 * @param destination
-	 * @param amount
-	 * @param description
-	 * @param targetName
+	 * the fee for a new pin card.	 
+	 * @param destination The <code>BankAccount</code> to which the transferred money should go
+	 * @param amount The amount of money to be transferred from this <code>BankAccount</code> to the destination
+	 * @param description Description of the transfer
+	 * @param targetName The name of the receiver
 	 * @throws IllegalAmountException
 	 * @throws IllegalTransferException
 	 * @throws ExceedLimitException
@@ -689,13 +680,9 @@ public class BankAccount implements database.DBObject {
 	}
 
 	/**
-	 * Credits a <code>BankAccount</code> with a specific amount of money
-	 * 
-	 * @param amount
-	 *            The amount of money to credit the <code>BankAccount</code>
-	 *            with
-	 * @throws IllegalAmountException
-	 *             Thrown when the specified amount is 0 or negative
+	 * Credits a <code>BankAccount</code> with a specific amount of money. 
+	 * @param amount The amount of money to credit the <code>BankAccount</code> with
+	 * @throws IllegalAmountException Thrown when the specified amount is 0 or negative
 	 */
 	public void credit(double amount) throws IllegalAmountException {
 		if (amount <= 0) {
@@ -705,12 +692,9 @@ public class BankAccount implements database.DBObject {
 	}
 
 	/**
-	 * Debits a <code>BankAccount</code> with a specific amount of money
-	 * 
-	 * @param amount
-	 *            The amount of money to debit the <code>BankAccount</code> with
-	 * @throws Thrown
-	 *             when the specified amount is 0 or negative
+	 * Debits a <code>BankAccount</code> with a specific amount of money. 
+	 * @param amount The amount of money to debit the <code>BankAccount</code> with
+	 * @throws Thrown when the specified amount is 0 or negative
 	 */
 	public void debit(double amount) throws IllegalAmountException {
 		if (amount <= 0) {
@@ -719,6 +703,10 @@ public class BankAccount implements database.DBObject {
 		balance += amount;
 	}
 
+	/**
+	 * Removes one of the owners of this bank account.
+	 * @param BSN the owner's BSN
+	 */
 	public void removeOwner(String BSN) {
 		CustomerAccount cAcc = null;
 		for (CustomerAccount c : owners) {
@@ -733,6 +721,10 @@ public class BankAccount implements database.DBObject {
 		}
 	}
 
+	/**
+	 * Closes this bank account if possible.
+	 * @throws IllegalAccountCloseException
+	 */
 	public void close() throws IllegalAccountCloseException {
 		if (balance != 0) {
 			throw new IllegalAccountCloseException(IBAN, balance, false);
@@ -843,6 +835,9 @@ public class BankAccount implements database.DBObject {
 		this.owners = owners;
 	}
 
+	/**
+	 * Sets up a static ING bank account that is used for interests and deposits.
+	 */
 	public static void setUpINGaccount() {
 		System.out.println("Set up ING account");
 		CustomerAccount ingAccount = new CustomerAccount("ING", "BANK", "I.B", "00000000", "ING Street 1", "0600000000",
