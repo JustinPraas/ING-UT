@@ -47,6 +47,7 @@ import exceptions.ObjectDoesNotExistException;
 import exceptions.PinCardBlockedException;
 import logging.Logger;
 import logging.Log.Type;
+import server.core.InputValidator;
 
 @Path("/banking")
 public class ServerHandler {
@@ -128,6 +129,8 @@ public class ServerHandler {
 			return getEventLog(jReq);
 		case "setTransferLimit":
 			return setTransferLimit(jReq);
+		case "setValue":
+			return setValue(jReq);
 		default:
 			String err = buildError(-32601, "The requested remote-procedure does not exist.");
 			Logger.addMethodErrorLog(jReq.getMethod(), err, -32601);
@@ -168,6 +171,116 @@ public class ServerHandler {
 	
 	public static Response respondError(String error, int code) {
 		return Response.status(code).entity(error).build();
+	}
+	
+	/**
+	 * Extension 12: 'Administrative User (3)' related.
+	 * Sets the value for the banking system.
+	 */
+	private static Response setValue(JSONRPC2Request jReq) {
+		HashMap<String, Object> params = (HashMap<String, Object>) jReq.getNamedParams();	
+		
+		// Check Request validity, return an error Response if the Request is invalid
+		Response invalidRequest = RequestValidator.isValidSetValueRequest(params);
+		if (invalidRequest != null) {
+			return invalidRequest;
+		}
+		
+		String authToken = (String) params.get("authToken");
+		String key = (String) params.get("key");
+		String value = (String) params.get("value");
+		String date = (String) params.get("date");		
+		
+		// An non-administrator can not set the bank system values
+		if (!isAdministrativeUser(authToken)) {
+			String err = buildError(419, "Only an administrator can not request the event logs.");
+			return respondError(err);
+		}
+		
+		String err = buildError(418, "One or more parameter has an invalid value. See message.", "The value " + value + " is not a valid value.");
+		switch(key) {
+		/*case "CREDIT_CARD_MONTHLY_FEE":
+			// TODO: necessary extension not implemented yet
+			break;
+		case "CREDIT_CARD_DEFAULT_CREDIT":
+			//TODO: necessary extension not implemented yet
+			break;*/
+		case "CARD_EXPIRATION_LENGTH":
+			if (InputValidator.isPositiveInteger(value)) {
+				TimeOperator.updateBankSystemValue(BankSystemValue.CARD_EXPIRATION_LENGTH, value, date);
+			} else {
+				return respondError(err);
+			}
+			break;
+		case "NEW_CARD_COST":
+			if (InputValidator.isPositiveDouble(value)) {
+				TimeOperator.updateBankSystemValue(BankSystemValue.NEW_CARD_COST, value, date);
+			} else {
+				return respondError(err);
+			}
+			break;
+		case "CARD_USAGE_ATTEMPTS":
+			if (InputValidator.isPositiveInteger(value)) {
+				TimeOperator.updateBankSystemValue(BankSystemValue.CARD_USAGE_ATTEMPTS, value, date);
+			} else {
+				return respondError(err);
+			}
+			break;
+		case "MAX_OVERDRAFT_LIMIT":
+			if (InputValidator.isPositiveDouble(value)) {
+				TimeOperator.updateBankSystemValue(BankSystemValue.MAX_OVERDRAFT_LIMIT, value, date);
+			} else {
+				return respondError(err);
+			}
+			break;
+		case "INTEREST_RATE_1":
+			if (InputValidator.isPositiveDouble(value)) {
+				TimeOperator.updateBankSystemValue(BankSystemValue.INTEREST_RATE_1, value, date);
+			} else {
+				return respondError(err);
+			}
+			break;
+		case "INTEREST_RATE_2":
+			if (InputValidator.isPositiveDouble(value)) {
+				TimeOperator.updateBankSystemValue(BankSystemValue.INTEREST_RATE_2, value, date);
+			} else {
+				return respondError(err);
+			}
+			break;
+		case "INTEREST_RATE_3":
+			if (InputValidator.isPositiveDouble(value)) {
+				TimeOperator.updateBankSystemValue(BankSystemValue.INTEREST_RATE_3, value, date);
+			} else {
+				return respondError(err);
+			}
+			break;
+		case "OVERDRAFT_INTEREST_RATE":
+			if (InputValidator.isPositiveDouble(value)) {
+				TimeOperator.updateBankSystemValue(BankSystemValue.OVERDRAFT_INTEREST_RATE, value, date);
+			} else {
+				return respondError(err);
+			}
+			break;
+		case "DAILY_WITHDRAW_LIMIT":
+			if (InputValidator.isPositiveDouble(value)) {
+				TimeOperator.updateBankSystemValue(BankSystemValue.DAILY_WITHDRAW_LIMIT, value, date);
+			} else {
+				return respondError(err);
+			}
+			break;
+		case "WEEKLY_TRANSFER_LIMIT":
+			if (InputValidator.isPositiveDouble(value)) {
+				TimeOperator.updateBankSystemValue(BankSystemValue.WEEKLY_TRANSFER_LIMIT, value, date);
+			} else {
+				return respondError(err);
+			}
+			break;
+		default:
+			String error = buildError(500, "Unknown banking value key: " + key);
+			return respondError(error);
+		}
+	
+		return sendEmptyResult(jReq.getMethod());
 	}
 
 	/**
