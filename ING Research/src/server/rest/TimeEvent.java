@@ -22,15 +22,17 @@ public class TimeEvent implements database.DBObject {
 	private String name;
 	private long timestamp;
 	private String description;
+	private boolean executed;
 	
 	public TimeEvent() {
 		
 	}
 	
-	public TimeEvent(String name, long timestamp, String description) {
+	public TimeEvent(String name, long timestamp, String description, boolean executed) {
 		this.name = name;
 		this.timestamp = timestamp;
 		this.description = description;
+		this.executed = executed;
 	}
 	
 	@Id
@@ -57,15 +59,24 @@ public class TimeEvent implements database.DBObject {
 		return description;
 	}
 	
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
+	@Column(name = "executed")
+	public boolean isExecuted() {
+		return executed;
+	}
+
+	public void setExecuted(boolean executed) {
+		this.executed = executed;
+	}
+
 	@Transient
 	public Calendar getCalendar() {
 		Calendar c = Calendar.getInstance();
 		c.setTimeInMillis(timestamp);
 		return c;
-	}
-
-	public void setDescription(String description) {
-		this.description = description;
 	}
 	
 	@Transient
