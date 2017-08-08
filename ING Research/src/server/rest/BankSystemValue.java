@@ -15,7 +15,7 @@ public enum BankSystemValue {
 	DAILY_WITHDRAW_LIMIT		(250.0), 
 	WEEKLY_TRANSFER_LIMIT		(2500.0);
 	
-	private final double amount;
+	private double amount;
 	
     BankSystemValue(double amount) {
         this.amount = amount;
@@ -23,5 +23,9 @@ public enum BankSystemValue {
 
 	public double getAmount() {
 		return amount;
+	}
+
+	public void setAmount(double amount) {
+		this.amount = amount;
 	}
 }
