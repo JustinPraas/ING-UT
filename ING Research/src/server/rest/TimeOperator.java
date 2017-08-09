@@ -55,6 +55,10 @@ public class TimeOperator extends Thread {
 		SQLiteDB.connectionLock.unlock();
 	}
 	
+	/**
+	 * Updates the system if there are any TimeEvents with the current given Calendar date.
+	 * @param c the server date that will be used to check for TimeEvents
+	 */
 	private static void updateSystem(Calendar c) {
 		String date = c.get(Calendar.YEAR) + "-" + (c.get(Calendar.MONTH) + 1) + "-" + c.get(Calendar.DATE);
 		long startMillis = 0;
@@ -80,6 +84,10 @@ public class TimeOperator extends Thread {
 		}
 	}
 	
+	/**
+	 * Updates the BankSystemValue for the given description of the given TimeEvent
+	 * @param t the TimeEvent for the update the bank system value.
+	 */
 	private static void updateBankSystemValue(TimeEvent t) {
 		String[] descriptionArray = t.getDescription().split(":");
 		String key = descriptionArray[0];
@@ -89,6 +97,10 @@ public class TimeOperator extends Thread {
 		t.saveToDB();
 	}
 	
+	/**
+	 * Updates the transferLimit for each and every bank account that has requested such update.
+	 * @param t The TimeEvent that indicates that the transfer limits should be updated
+	 */
 	private static void updateTransferLimit(TimeEvent t) {
 		HashMap<String, Double> updatedTransferLimitMap = ServerDataHandler.getUpdatedTransferLimitMap();
 		for (Map.Entry<String, Double> entry : updatedTransferLimitMap.entrySet()) {
@@ -116,6 +128,12 @@ public class TimeOperator extends Thread {
 		nextMonthUpdate.saveToDB();
 	}
 
+	/**
+	 * Returns all TimeEvents which are not executed and are between 0:00 23:59 of a day.
+	 * @param startMillis the start of milliseconds
+	 * @param endMillis the end of milliseconds
+	 * @return the list of TimeEvents which should be handled today
+	 */
 	private static ArrayList<TimeEvent> getTodaysEvents(long startMillis, long endMillis) {
 		ArrayList<TimeEvent> result = new ArrayList<>();
     	Connection c = SQLiteDB.openConnection();	
