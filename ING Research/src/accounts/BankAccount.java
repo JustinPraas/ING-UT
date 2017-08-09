@@ -40,12 +40,12 @@ import exceptions.InsufficientFundsTransferException;
 import exceptions.ObjectDoesNotExistException;
 import exceptions.PinCardBlockedException;
 import exceptions.SameAccountTransferException;
+import server.rest.BankSystemValue;
 import server.rest.InterestHandler;
 import server.rest.ServerModel;
 
 /**
  * A simple model of a bank account in an abstract currency.
- * 
  * @author Andrei Cojocaru
  */
 @Entity
@@ -122,7 +122,7 @@ public class BankAccount implements database.DBObject {
 		this.IBAN = generateIBAN(COUNTRY_CODE, BANK_CODE, randomPAN());
 		this.mainHolderBSN = mainHolderBSN;
 		this.overdraftLimit = 0;
-		this.transferLimit = 2500;
+		this.transferLimit = BankSystemValue.WEEKLY_TRANSFER_LIMIT.getAmount();
 		this.savingsAccount = new SavingsAccount(this);
 		this.savingsAccount.saveToDB();
 	}
@@ -147,7 +147,7 @@ public class BankAccount implements database.DBObject {
 		this.balance = balance;
 		this.IBAN = IBAN;
 		this.overdraftLimit = 0;
-		this.transferLimit = 2500;
+		this.transferLimit = BankSystemValue.WEEKLY_TRANSFER_LIMIT.getAmount();
 
 		if (!IBAN.equals(ING_BANK_ACCOUNT_IBAN)) {
 			this.savingsAccount = new SavingsAccount(this);
@@ -666,7 +666,7 @@ public class BankAccount implements database.DBObject {
 			result.close();
 			con.close();
 			
-			if (totalSum > 250.00) {
+			if (totalSum > BankSystemValue.DAILY_WITHDRAW_LIMIT.getAmount()) {
 				return true;
 			} else {
 				return false;
