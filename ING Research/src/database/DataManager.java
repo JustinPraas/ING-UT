@@ -1,6 +1,8 @@
 package database;
 
+import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 import org.hibernate.Criteria;
@@ -17,6 +19,8 @@ import accounts.CustomerAccount;
 import accounts.DebitCard;
 import accounts.SavingsAccount;
 import exceptions.ObjectDoesNotExistException;
+import logging.Logger;
+import server.rest.TimeEvent;
 
 /**
  * Provides utility methods to store/retrieve objects from DB
@@ -210,5 +214,24 @@ public class DataManager {
 		
 		BankAccount.setUpINGaccount();
 		CustomerAccount.setUpAdminAccount();
+		
+		// Set up time events
+		Calendar c = Calendar.getInstance();
+		c.add(Calendar.MONTH, 1);
+		int year = c.get(Calendar.YEAR);
+		int month = c.get(Calendar.MONTH) + 1;
+		String date = year + "-" + month + "-01";
+		TimeEvent timeEvent = new TimeEvent();
+		timeEvent.setName("TRANSFER_LIMIT_UPDATE");
+		try {
+			timeEvent.setTimestamp(Logger.parseDateToMillis(date));
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		timeEvent.setExecuted(false);
+		timeEvent.setDescription("Update the transfer limits for concerning bank accounts");
+		timeEvent.saveToDB();
+		
 	}
 }
