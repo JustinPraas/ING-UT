@@ -4,6 +4,8 @@ import java.util.Calendar;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.persistence.Transient;
@@ -19,6 +21,7 @@ public class TimeEvent implements database.DBObject {
 	
 	public static final String UPDATE_TRANSFER_LIMITS = "transferLimitUpdate";
 
+	private int ID;
 	private String name;
 	private long timestamp;
 	private String description;
@@ -36,6 +39,16 @@ public class TimeEvent implements database.DBObject {
 	}
 	
 	@Id
+	@GeneratedValue(strategy=GenerationType.AUTO)
+	@Column(name = "ID")
+	public int getID() {
+		return ID;
+	}
+
+	public void setID(int iD) {
+		ID = iD;
+	}
+
 	@Column(name = "name")
 	public String getName() {
 		return name;
