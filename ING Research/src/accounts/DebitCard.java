@@ -16,6 +16,7 @@ import exceptions.IllegalTransferException;
 import exceptions.InvalidPINException;
 import exceptions.ObjectDoesNotExistException;
 import exceptions.PinCardBlockedException;
+import server.rest.BankSystemValue;
 
 import java.sql.Date;
 import java.text.ParseException;
@@ -132,7 +133,7 @@ public class DebitCard implements database.DBObject {
 		c.add(Calendar.DATE, Client.getSimulatedDays());		
 		
 		//Add the specified amount of time to the given calendar field
-		c.add(Calendar.YEAR, 4);
+		c.add(Calendar.YEAR, (int) BankSystemValue.CARD_EXPIRATION_LENGTH.getAmount());
 		
 		return new Date(c.getTime().getTime()).toString();
 	}
