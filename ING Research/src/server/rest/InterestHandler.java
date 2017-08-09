@@ -47,13 +47,17 @@ public class InterestHandler extends Thread {
 	/**
 	 * The monthly interest rate of this bank.
 	 */
-	private static final double MONTHLY_INTEREST_RATE = 0.00797414042;
+	private static final double MONTHLY_INTEREST_RATE = 
+			Math.pow((1 + BankSystemValue.OVERDRAFT_INTEREST_RATE.getAmount()), (1 / 12)) - 1;
 
-	private static final double DAILY_INTEREST_RATE_RANGE_1 = 0.00000411;
+	private static final double DAILY_INTEREST_RATE_RANGE_1 =
+			BankSystemValue.INTEREST_RATE_1.getAmount() / (365 * 100);
 	
-	private static final double DAILY_INTEREST_RATE_RANGE_2 = 0.00000411;
+	private static final double DAILY_INTEREST_RATE_RANGE_2 = 
+			BankSystemValue.INTEREST_RATE_2.getAmount() / (365 * 100);
 	
-	private static final double DAILY_INTEREST_RATE_RANGE_3 = 0.0000054795;
+	private static final double DAILY_INTEREST_RATE_RANGE_3 = 
+			BankSystemValue.INTEREST_RATE_3.getAmount() / (365 * 100);
 	
 	/**
 	 * A map that keeps track of the lowest daily balances of accounts.
