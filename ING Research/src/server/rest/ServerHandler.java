@@ -198,6 +198,16 @@ public class ServerHandler {
 		}
 		
 		String err = buildError(418, "One or more parameter has an invalid value. See message.", "The value " + value + " is not a valid value.");
+		TimeEvent t = new TimeEvent();
+		t.setName("BANK_SYSTEM_VALUE_UPDATE");
+		t.setExecuted(false);
+		try {
+			t.setTimestamp(Logger.parseDateToMillis(date));
+		} catch (ParseException e) {
+			e.printStackTrace();
+			String error = buildError(418, "One or more parameter has an invalid value. See message.", "Invalid date format.");
+			return respondError(error);
+		}
 		switch(key) {
 		/*case "CREDIT_CARD_MONTHLY_FEE":
 			// TODO: necessary extension not implemented yet
@@ -206,71 +216,23 @@ public class ServerHandler {
 			//TODO: necessary extension not implemented yet
 			break;*/
 		case "CARD_EXPIRATION_LENGTH":
+		case "CARD_USAGE_ATTEMPTS":
 			if (InputValidator.isPositiveInteger(value)) {
-				TimeOperator.updateBankSystemValue(BankSystemValue.CARD_EXPIRATION_LENGTH, value, date);
+				t.setDescription(key + ":" + value);
 			} else {
 				return respondError(err);
 			}
 			break;
 		case "NEW_CARD_COST":
-			if (InputValidator.isPositiveDouble(value)) {
-				TimeOperator.updateBankSystemValue(BankSystemValue.NEW_CARD_COST, value, date);
-			} else {
-				return respondError(err);
-			}
-			break;
-		case "CARD_USAGE_ATTEMPTS":
-			if (InputValidator.isPositiveInteger(value)) {
-				TimeOperator.updateBankSystemValue(BankSystemValue.CARD_USAGE_ATTEMPTS, value, date);
-			} else {
-				return respondError(err);
-			}
-			break;
 		case "MAX_OVERDRAFT_LIMIT":
-			if (InputValidator.isPositiveDouble(value)) {
-				TimeOperator.updateBankSystemValue(BankSystemValue.MAX_OVERDRAFT_LIMIT, value, date);
-			} else {
-				return respondError(err);
-			}
-			break;
 		case "INTEREST_RATE_1":
-			if (InputValidator.isPositiveDouble(value)) {
-				TimeOperator.updateBankSystemValue(BankSystemValue.INTEREST_RATE_1, value, date);
-			} else {
-				return respondError(err);
-			}
-			break;
 		case "INTEREST_RATE_2":
-			if (InputValidator.isPositiveDouble(value)) {
-				TimeOperator.updateBankSystemValue(BankSystemValue.INTEREST_RATE_2, value, date);
-			} else {
-				return respondError(err);
-			}
-			break;
 		case "INTEREST_RATE_3":
-			if (InputValidator.isPositiveDouble(value)) {
-				TimeOperator.updateBankSystemValue(BankSystemValue.INTEREST_RATE_3, value, date);
-			} else {
-				return respondError(err);
-			}
-			break;
 		case "OVERDRAFT_INTEREST_RATE":
-			if (InputValidator.isPositiveDouble(value)) {
-				TimeOperator.updateBankSystemValue(BankSystemValue.OVERDRAFT_INTEREST_RATE, value, date);
-			} else {
-				return respondError(err);
-			}
-			break;
 		case "DAILY_WITHDRAW_LIMIT":
-			if (InputValidator.isPositiveDouble(value)) {
-				TimeOperator.updateBankSystemValue(BankSystemValue.DAILY_WITHDRAW_LIMIT, value, date);
-			} else {
-				return respondError(err);
-			}
-			break;
 		case "WEEKLY_TRANSFER_LIMIT":
 			if (InputValidator.isPositiveDouble(value)) {
-				TimeOperator.updateBankSystemValue(BankSystemValue.WEEKLY_TRANSFER_LIMIT, value, date);
+				t.setDescription(key + ":" + value);
 			} else {
 				return respondError(err);
 			}
@@ -279,6 +241,7 @@ public class ServerHandler {
 			String error = buildError(500, "Unknown banking value key: " + key);
 			return respondError(error);
 		}
+		t.saveToDB();
 	
 		return sendEmptyResult(jReq.getMethod());
 	}
@@ -363,40 +326,6 @@ public class ServerHandler {
 		return respond(jResp.toJSONString(), jReq.getMethod());
 	}
 
-	private static Response getOverdraftLimit(JSONRPC2Request jReq) {
-		HashMap<String, Object> params = (HashMap<String, Object>) jReq.getNamedParams();
-		
-		// Check Request validity, return an error Response if the Request is invalid
-		Response invalidRequest = RequestValidator.isValidGetOverdraftLimitRequest(params);
-		if (invalidRequest != null) {
-			return invalidRequest;
-		}
-
-		String authToken = (String) params.get("authToken");
-		String IBAN = (String) params.get("iBAN");		
-
-		CustomerAccount customerAccount = accounts.get(authToken);
-		BankAccount bankAccount;
-		try {
-			bankAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, IBAN);
-		} catch (ObjectDoesNotExistException e) {
-			String err = buildError(418, "One or more parameter has an invalid value. See message.", e.toString());
-			return respondError(err);
-		}
-		
-		if (!RequestValidator.userOwnsBankAccount(customerAccount, bankAccount) && !isAdministrativeUser(authToken)) {
-			String err = buildError(419, "The authenticated user is not authorized to perform this action. You can not peek at the overdraft limit of another person's bank account.");
-			Logger.addLogToDB(ServerModel.getServerCalendar().getTimeInMillis(), Type.WARNING, "Possible harmful activity: trying to access information from another account.");
-			return respondError(err);
-		}
-		
-		HashMap<String, Object> resp = new HashMap<>();	
-		resp.put("overdraftLimit", Double.toString(bankAccount.getOverdraftLimit()));
-		
-		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
-		return respond(jResp.toJSONString(), jReq.getMethod());
-	}	
-	
 	private static Response openSavingsAccount(JSONRPC2Request jReq) {
 		HashMap<String, Object> params = (HashMap<String, Object>) jReq.getNamedParams();	
 		
@@ -504,6 +433,40 @@ public class ServerHandler {
 		}
 	}
 
+	private static Response getOverdraftLimit(JSONRPC2Request jReq) {
+		HashMap<String, Object> params = (HashMap<String, Object>) jReq.getNamedParams();
+		
+		// Check Request validity, return an error Response if the Request is invalid
+		Response invalidRequest = RequestValidator.isValidGetOverdraftLimitRequest(params);
+		if (invalidRequest != null) {
+			return invalidRequest;
+		}
+	
+		String authToken = (String) params.get("authToken");
+		String IBAN = (String) params.get("iBAN");		
+	
+		CustomerAccount customerAccount = accounts.get(authToken);
+		BankAccount bankAccount;
+		try {
+			bankAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, IBAN);
+		} catch (ObjectDoesNotExistException e) {
+			String err = buildError(418, "One or more parameter has an invalid value. See message.", e.toString());
+			return respondError(err);
+		}
+		
+		if (!RequestValidator.userOwnsBankAccount(customerAccount, bankAccount) && !isAdministrativeUser(authToken)) {
+			String err = buildError(419, "The authenticated user is not authorized to perform this action. You can not peek at the overdraft limit of another person's bank account.");
+			Logger.addLogToDB(ServerModel.getServerCalendar().getTimeInMillis(), Type.WARNING, "Possible harmful activity: trying to access information from another account.");
+			return respondError(err);
+		}
+		
+		HashMap<String, Object> resp = new HashMap<>();	
+		resp.put("overdraftLimit", Double.toString(bankAccount.getOverdraftLimit()));
+		
+		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
+		return respond(jResp.toJSONString(), jReq.getMethod());
+	}
+
 	/**
 	 * Extension 5: 'Overdraft' related.
 	 * Sets the overdraft limit of the given IBAN
@@ -543,7 +506,7 @@ public class ServerHandler {
 		} else if (overdraftLimit == bankAccount.getOverdraftLimit()) {
 			String err = buildError(420, "The action has no effect. See message.", "The bank account already has this overdraft limit.");
 			return respondError(err);
-		} else if (overdraftLimit > 5000f) {
+		} else if (overdraftLimit > BankSystemValue.MAX_OVERDRAFT_LIMIT.getAmount()) {
 			String err = buildError(418, "One or more parameter has an invalid value. See message.", "The overdraft limit cannot be greater than 5000.00.");
 			return respondError(err);
 		}
@@ -650,8 +613,9 @@ public class ServerHandler {
 		
 		// Wipe all data from database
 		DataManager.wipeAllData();
-		ServerModel.resetSimulatedDays();
+		ServerModel.reset();
 		InterestHandler.reset();
+		BankSystemValue.reset();
 		
 		return sendEmptyResult(jReq.getMethod());
 	}
@@ -1215,7 +1179,7 @@ public class ServerHandler {
 			Logger.addLogToDB(ServerModel.getServerCalendar().getTimeInMillis(), Type.WARNING, "Possible harmful activity: PINcard, -code or -combination was incorrect.");
 			serverModel.increaseInvalidPinAttempt(pinCard);
 			
-			if (!dc.isBlocked() && serverModel.getPreviousPinAttempts().get(pinCard) >= 3) {
+			if (!dc.isBlocked() && serverModel.getPreviousPinAttempts().get(pinCard) >= BankSystemValue.CARD_USAGE_ATTEMPTS.getAmount()) {
 				dc.setBlocked(true);
 				dc.saveToDB();
 			}
@@ -1304,7 +1268,7 @@ public class ServerHandler {
 			String err = buildError(421, "An invalid PINcard, -code or -combination was used.");
 			serverModel.increaseInvalidPinAttempt(pinCard);
 			
-			if (serverModel.getPreviousPinAttempts().get(pinCard) >= 3) {
+			if (serverModel.getPreviousPinAttempts().get(pinCard) >= BankSystemValue.CARD_USAGE_ATTEMPTS.getAmount()) {
 				card.setBlocked(true);
 				card.saveToDB();
 			}
@@ -1394,7 +1358,7 @@ public class ServerHandler {
 		BankAccount feeDestinationBankAccount;
 		try {
 			feeDestinationBankAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, "NL36INGB8278309172");
-			bankAccount.transfer(feeDestinationBankAccount, 7.50, "Fee for new pincard", "ING");
+			bankAccount.transfer(feeDestinationBankAccount, BankSystemValue.NEW_CARD_COST.getAmount(), "Fee for new pincard", "ING");
 		} catch (ObjectDoesNotExistException | IllegalAmountException | IllegalTransferException | ExceedLimitException e) {
 			String err = buildError(500, "An unexpected error occured, see error details.", e.toString());
 			return respondError(err);
