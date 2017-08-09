@@ -11,7 +11,7 @@ public class ServerModel {
 	
 	// Extension 2: 'PIN block' related.	
 	// previousPinAttempts[pincard, No. attempts]
-	private HashMap<String, Integer> previousPinAttempts = new HashMap<>();
+	private static HashMap<String, Integer> previousPinAttempts = new HashMap<>();
 	
 	// Extension 4: 'Time simulation' related
 	private static int simulatedDays = 0;
@@ -67,9 +67,10 @@ public class ServerModel {
 		return Integer.parseInt(ServerDataHandler.getServerPropertyValue(ServerDataHandler.SIMULATED_DAYS_LINE));		
 	}
 	
-	public static void resetSimulatedDays() {
+	public static void reset() {
 		ServerDataHandler.setServerPropertyValue(ServerDataHandler.SIMULATED_DAYS_LINE, "0");
 		simulatedDays = 0;
+		previousPinAttempts = new HashMap<>();
 	}
 
 }
