@@ -203,6 +203,17 @@ public class ServerHandler {
 		t.setExecuted(false);
 		try {
 			t.setTimestamp(Logger.parseDateToMillis(date));
+			Calendar c = Calendar.getInstance();
+			Calendar serverC = ServerModel.getServerCalendar();
+			c.setTimeInMillis(t.getTimestamp());
+			
+			// if the given date is less or equal to the current date, return an error.
+			if (c.get(Calendar.YEAR) == serverC.get(Calendar.YEAR) && 
+					c.get(Calendar.MONTH) == serverC.get(Calendar.MONTH) && 
+					c.get(Calendar.DATE) <= serverC.get(Calendar.DATE)) {
+				String error = buildError(500, "The given date is previous or equal to the current Server date.");
+				return respondError(error);
+			}
 		} catch (ParseException e) {
 			e.printStackTrace();
 			String error = buildError(418, "One or more parameter has an invalid value. See message.", "Invalid date format.");
