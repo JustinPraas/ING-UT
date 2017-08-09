@@ -39,7 +39,7 @@ public class InterestHandlerTest {
 		
 		// Reset all data
 		InterestHandler.reset();
-		ServerModel.resetSimulatedDays();
+		ServerModel.reset();
 		DataManager.wipeAllData();	
 		
 		// Set up necessary data
@@ -372,7 +372,7 @@ public class InterestHandlerTest {
 	public void reset() {	
 		// Reset all data
 		InterestHandler.reset();
-		ServerModel.resetSimulatedDays();
+		ServerModel.reset();
 		DataManager.wipeAllData();	
 	}
 }
