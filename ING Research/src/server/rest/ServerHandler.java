@@ -204,7 +204,7 @@ public class ServerHandler {
 		t.setName("BANK_SYSTEM_VALUE_UPDATE");
 		t.setExecuted(false);
 		try {
-			t.setTimestamp(Logger.parseDateToMillis(date));
+			t.setTimestamp(Logger.parseDateToMillis(date, "yyyy-MM-dd"));
 			Calendar c = Calendar.getInstance();
 			Calendar serverC = ServerModel.getServerCalendar();
 			c.setTimeInMillis(t.getTimestamp());
@@ -867,10 +867,10 @@ public class ServerHandler {
 			Calendar c = Calendar.getInstance();
 			long millis = 0;
 			try {
-				millis = Logger.parseDateToMillis((String) params.get("dob"));
+				millis = Logger.parseDateToMillis((String) params.get("dob"), "dd-MM-yyyy");
 				c.setTimeInMillis(millis);
 				c.add(Calendar.YEAR, 18);
-				t.setTimestamp(millis);
+				t.setTimestamp(c.getTimeInMillis());
 				t.setExecuted(false);
 				t.saveToDB();
 			} catch (ParseException e) {
