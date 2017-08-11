@@ -59,6 +59,9 @@ public class InterestHandler extends Thread {
 	private static final double DAILY_INTEREST_RATE_RANGE_3 = 
 			BankSystemValue.INTEREST_RATE_3.getAmount() / (365 * 100);
 	
+	private static final double CHILD_INTEREST_RATE = 
+			BankSystemValue.CHILD_INTEREST_RATE.getAmount() / (365 * 100);
+	
 	/**
 	 * A map that keeps track of the lowest daily balances of accounts.
 	 */
@@ -261,9 +264,15 @@ public class InterestHandler extends Thread {
 			SQLiteDB.connectionLock.lock();
 			Connection c = SQLiteDB.openConnection();
 			Statement s = c.createStatement();
-			ResultSet rs = s.executeQuery("SELECT IBAN, balance FROM savingsaccounts WHERE balance > 0;");
-			while (rs.next()) {
-				newLowestPositiveDailyReachMap.put(rs.getString("IBAN"), rs.getDouble("balance"));
+			ResultSet rs1 = s.executeQuery("SELECT IBAN, balance FROM savingsaccounts WHERE balance > 0;");
+			while (rs1.next()) {
+				newLowestPositiveDailyReachMap.put(rs1.getString("IBAN"), rs1.getDouble("balance"));
+			}
+			
+			// Child bank accounts should have their interest calculated over their normal bank accounts
+			ResultSet rs2 = s.executeQuery("SELECT IBAN, balance FROM bankaccounts WHERE accounttype = 'child';");
+			while (rs2.next()) {
+				newLowestPositiveDailyReachMap.put(rs2.getString("IBAN"), rs2.getDouble("balance"));
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -413,16 +422,24 @@ public class InterestHandler extends Thread {
 		return balance * MONTHLY_INTEREST_RATE / maxDateOfMonth; 
 	}
 	
-	public static double calculatePositiveInterest(double balance) {
-		if (balance < 25000) {
-			return balance * DAILY_INTEREST_RATE_RANGE_1;
-		} else if (balance >= 2500 && balance < 75000) {
-			return balance * DAILY_INTEREST_RATE_RANGE_2;
-		} else if (balance >= 75000 && balance < 1000000) {
-			return balance * DAILY_INTEREST_RATE_RANGE_3;
+	public static double calculatePositiveInterest(double balance, boolean child) {
+		if (child) {
+			if (balance < 2500) {
+				return balance * CHILD_INTEREST_RATE;
+			} else {
+				return 2500 * CHILD_INTEREST_RATE;
+			}			
 		} else {
-			return 0;
-		}
+			if (balance < 25000) {
+				return balance * DAILY_INTEREST_RATE_RANGE_1;
+			} else if (balance >= 2500 && balance < 75000) {
+				return balance * DAILY_INTEREST_RATE_RANGE_2;
+			} else if (balance >= 75000 && balance < 1000000) {
+				return balance * DAILY_INTEREST_RATE_RANGE_3;
+			} else {
+				return 0;
+			}
+		}		
 	}
 	
 	/**
@@ -586,14 +603,21 @@ public class InterestHandler extends Thread {
 		// For all IBAN entries, add the interest to the total interest map 
 		for (Entry<String, Double> entry : currentLowestPositiveDailyReachMap.entrySet()) {
 			String IBAN = entry.getKey();
+			BankAccount b = null;
+			try {
+				b = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, IBAN);
+			} catch (ObjectDoesNotExistException e) {
+				e.printStackTrace();
+			}
+			boolean isChild = b.getAccountType().equals("child");
 			double currentInterest;
 			double totalInterest; 
 			if (!currentTotalPositiveInterestMap.containsKey(IBAN)) {
 				currentInterest = 0;
-				totalInterest = calculatePositiveInterest(entry.getValue());
+				totalInterest = calculatePositiveInterest(entry.getValue(), isChild);
 			} else {
 				currentInterest = currentTotalPositiveInterestMap.get(IBAN);
-				totalInterest = currentInterest + calculatePositiveInterest(entry.getValue());
+				totalInterest = currentInterest + calculatePositiveInterest(entry.getValue(), isChild);
 			}
 			System.out.println("Current total positive interest for " + IBAN + " is " + totalInterest);
 			currentTotalPositiveInterestMap.put(IBAN, totalInterest);
