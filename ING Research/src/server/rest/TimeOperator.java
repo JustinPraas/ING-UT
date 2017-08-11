@@ -63,7 +63,7 @@ public class TimeOperator extends Thread {
 		String date = c.get(Calendar.YEAR) + "-" + (c.get(Calendar.MONTH) + 1) + "-" + c.get(Calendar.DATE);
 		long startMillis = 0;
 		try {
-			startMillis = Logger.parseDateToMillis(date);
+			startMillis = Logger.parseDateToMillis(date, "yyyy-MM-dd");
 		} catch (ParseException e) {
 			e.printStackTrace();
 			return;
@@ -98,6 +98,7 @@ public class TimeOperator extends Thread {
 		try {
 			BankAccount b = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, IBAN);
 			b.setAccountType("regular");
+			b.saveToDB();
 		} catch (ObjectDoesNotExistException e) {
 			e.printStackTrace();
 			return;
