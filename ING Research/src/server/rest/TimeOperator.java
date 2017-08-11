@@ -80,19 +80,44 @@ public class TimeOperator extends Thread {
 			case "TRANSFER_LIMIT_UPDATE":
 				updateTransferLimit(t);
 				break;
+			case "ACCOUNT_TYPE_CHANGE":
+				updateAccountType(t);
+				break;
 			}
 		}
 	}
 	
+	/**
+	 * Updates the account type for a child bank account to a regular bank account.
+	 * @param t The TimeEvent containing the date and description info needed to execute this 
+	 * account type change
+	 */
+	private static void updateAccountType(TimeEvent t) {
+		String[] descriptionArray = t.getDescription().split(":");
+		String IBAN = descriptionArray[1];
+		try {
+			BankAccount b = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, IBAN);
+			b.setAccountType("regular");
+		} catch (ObjectDoesNotExistException e) {
+			e.printStackTrace();
+			return;
+		}
+		
+		t.setExecuted(true);
+		t.saveToDB();		
+	}
+
 	/**
 	 * Updates the BankSystemValue for the given description of the given TimeEvent
 	 * @param t the TimeEvent for the update the bank system value.
 	 */
 	private static void updateBankSystemValue(TimeEvent t) {
 		String[] descriptionArray = t.getDescription().split(":");
+		
 		String key = descriptionArray[0];
 		String value = descriptionArray[1];
 		BankSystemValue.updateBankSystemValue(key, value);
+		
 		t.setExecuted(true);
 		t.saveToDB();
 	}
