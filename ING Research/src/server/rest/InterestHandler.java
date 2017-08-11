@@ -270,7 +270,7 @@ public class InterestHandler extends Thread {
 			}
 			
 			// Child bank accounts should have their interest calculated over their normal bank accounts
-			ResultSet rs2 = s.executeQuery("SELECT IBAN, balance FROM bankaccounts WHERE accounttype = 'child';");
+			ResultSet rs2 = s.executeQuery("SELECT IBAN, balance FROM bankaccounts WHERE accounttype = 'child' AND balance > 0;");
 			while (rs2.next()) {
 				newLowestPositiveDailyReachMap.put(rs2.getString("IBAN"), rs2.getDouble("balance"));
 			}
