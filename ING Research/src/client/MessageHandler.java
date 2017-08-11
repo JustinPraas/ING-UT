@@ -1178,7 +1178,7 @@ public class MessageHandler {
 		String[] parameterArray = parameters.split(":");
 
 		// Check if the required parameters are given.
-		if (parameterArray.length != 10) {
+		if (parameterArray.length != 10 && parameterArray.length != 12) {
 			System.err.println("Please enter the requested parameters.");
 			return;
 		}
@@ -1197,6 +1197,7 @@ public class MessageHandler {
 
 		String method = "openAccount";
 		HashMap<String, Object> params = new HashMap<>();
+		
 		params.put("name", firstName);
 		params.put("surname", lastName);
 		params.put("initials", initials);
@@ -1206,7 +1207,20 @@ public class MessageHandler {
 		params.put("telephoneNumber", phoneNumber);
 		params.put("email", email);
 		params.put("username", username);
-		params.put("password", password);
+		params.put("password", password);	
+
+		boolean isChild = parameterArray.length == 12;
+		String[] guardians = null;
+		if (isChild) {
+			params.put("type", "child");
+			guardians = parameterArray[11].split(";");
+			if (guardians.length < 1) {
+				System.err.println("Please specify one or more guardians.");
+				return;
+			}
+			params.put("guardians", guardians);
+		}
+		
 
 		JSONRPC2Request request = new JSONRPC2Request(method, params,
 				"request-" + java.lang.System.currentTimeMillis());
@@ -1230,6 +1244,12 @@ public class MessageHandler {
 			System.out.println("Your new IBAN is: " + iBAN);
 			System.out.println("Your new card number is: " + pinCard);
 			System.out.println("Your new PIN is: " + pinCode);
+			
+			if (isChild) {
+				System.out.println("This account is a child bank account.");
+				System.out.println("Your guardians are: " + Arrays.toString(guardians));
+			}
+			
 		} catch (JSONRPC2ParseException e) {
 			System.out.println("Discarded invalid JSON-RPC response from server.");
 		}

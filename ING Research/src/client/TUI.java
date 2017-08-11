@@ -70,7 +70,7 @@ public class TUI {
 			System.out.println("=====================================================================================================");
 			System.out.printf("%25s %1s %s %n", "Command:", "", "Parameters:");
 			System.out.printf("%25s %1s %s %n", "LOGIN", "", "<username>:<password>");
-			System.out.printf("%25s %1s %s %n", "OPEN_BANK_ACCOUNT", "", "<firstname>:<lastname>:<initials>:<dateofbirth>:<SSN>:<address>:<phonenumber>:<email>:<username>:<password>");
+			System.out.printf("%25s %1s %s %n", "OPEN_BANK_ACCOUNT", "", "<firstname>:<lastname>:<initials>:<dateofbirth>:<SSN>:<address>:<phonenumber>:<email>:<username>:<password>[:<child>:<{guardianUserName1;guardianUserName2;...}>]");
 			System.out.printf("%25s %1s %s %n", "PAY_BY_CARD", "", "<sourceIBAN>:<targetIBAN>:<cardnumber>:<PIN>:<amount>");
 			System.out.printf("%25s %1s %s %n", "DEPOSIT", "", "<IBAN>:<cardnumber>:<PIN>:<amount>");
 			System.out.printf("%25s %1s %s %n", "GET_DATE", "", "");
