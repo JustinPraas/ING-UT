@@ -19,8 +19,8 @@ import server.rest.ServerModel;
 public class Logger {
     
 	public static ArrayList<Log> getLogs(String startDate, String endDate) throws ParseException {
-    	long start = parseDateToMillis(startDate);
-    	long end = parseDateToMillis(endDate) + 1000 * 3600 * 24 /*add one day so the criteria 'between' can be used*/;
+    	long start = parseDateToMillis(startDate, "yyyy-MM-dd");
+    	long end = parseDateToMillis(endDate, "yyyy-MM-dd") + 1000 * 3600 * 24 /*add one day so the criteria 'between' can be used*/;
 
 		ArrayList<Log> result = new ArrayList<>();
 		SQLiteDB.connectionLock.lock();
@@ -65,8 +65,8 @@ public class Logger {
     	return result;
     }
 
-	public static long parseDateToMillis(String date) throws ParseException {
-		DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+	public static long parseDateToMillis(String date, String format) throws ParseException {
+		DateFormat df = new SimpleDateFormat(format);
 		Date parsedDate = df.parse(date);
 		return parsedDate.getTime();
 	}
