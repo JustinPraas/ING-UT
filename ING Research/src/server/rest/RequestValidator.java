@@ -158,6 +158,12 @@ public class RequestValidator {
 			return invalidMethodParametersResponse();
 		}
 		
+		// If one of the type/guardian parameters is given but not the other, return an error
+		if (params.containsKey("type") && !params.containsKey("guardians") || 
+				params.containsKey("guardians") && !params.containsKey("type")) {
+			return invalidMethodParametersResponse();
+		}
+		
 		// Check some of the param values for validity
 		if (!InputValidator.isValidEmailAddress((String) params.get("email"))) {
 			String err = ServerHandler.buildError(418, "One or more parameter has an invalid value. See message.", params.get("email") + " is not a valid email address.");

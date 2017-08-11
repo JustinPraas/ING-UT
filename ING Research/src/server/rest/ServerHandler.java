@@ -8,6 +8,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
@@ -47,6 +48,7 @@ import exceptions.ObjectDoesNotExistException;
 import exceptions.PinCardBlockedException;
 import logging.Logger;
 import logging.Log.Type;
+import net.minidev.json.JSONArray;
 import server.core.InputValidator;
 
 @Path("/banking")
@@ -365,6 +367,12 @@ public class ServerHandler {
 			return respondError(err);
 		}
 		
+		// A child can not set up a savings account
+		if (bankAccount.getAccountType().equals("child")) {
+			String err = buildError(500, "A child can not open a savings account.");
+			return respondError(err);
+		}
+		
 		if (!RequestValidator.userOwnsBankAccount(customerAccount, bankAccount)) {
 			String err = buildError(419, "The authenticated user is not authorized to perform this action. You can not peek at the overdraft limit of another person's bank account.");
 			Logger.addLogToDB(ServerModel.getServerCalendar().getTimeInMillis(), Type.WARNING, "Possible harmful activity: trying to access information from another account.");
@@ -413,6 +421,12 @@ public class ServerHandler {
 		// An administrator can not close a savings account
 		if (isAdministrativeUser(authToken)) {
 			String err = buildError(500, "An administrator can not close a savings account.");
+			return respondError(err);
+		}
+		
+		// An administrator can not close a savings account
+		if (bankAccount.getAccountType().equals("child")) {
+			String err = buildError(500, "A child can not close a savings account.");
 			return respondError(err);
 		}
 		
@@ -508,6 +522,12 @@ public class ServerHandler {
 		if (!RequestValidator.userOwnsBankAccount(customerAccount, bankAccount)) {
 			String err = buildError(419, "The authenticated user is not authorized to perform this action. You can not change the overdraft limit for someone else's bank account.");
 			Logger.addLogToDB(ServerModel.getServerCalendar().getTimeInMillis(), Type.WARNING, "Possible harmful activity: trying to manipulate information from another account.");
+			return respondError(err);
+		}
+		
+		// A child can not set their overdraft limit
+		if (bankAccount.getAccountType().equals("child")) {
+			String err = buildError(419, "The authenticated user is not authorized to perform this action. Overdraft limit cannot be changed for a child bank account.");
 			return respondError(err);
 		}
 		
@@ -783,7 +803,9 @@ public class ServerHandler {
 		Response invalidRequest = RequestValidator.isValidOpenAccountRequest(params);
 		if (invalidRequest != null) {
 			return invalidRequest;
-		}		
+		}
+		
+		boolean isChild = params.containsKey("type") && params.get("type").equals("child");
 		
 		// Create a CustomerAccount instance with the given details
 		newAcc.setName((String)params.get("name"));
@@ -811,6 +833,51 @@ public class ServerHandler {
 		
 		// If this is not a duplicate account, open a bank account for it and save it to DB
 		BankAccount bankAcc = newAcc.openBankAccount();
+		
+		// If it is a child account, add the guardians with access to this account
+		if (isChild) {
+			// Check of the age of the child is below 18
+			if (!CustomerAccount.isYoungerThan(18, newAcc)) {
+				String err = buildError(500, "The child account should be owned by a child younger than 18 years old.");
+				return respondError(err);
+			}
+			bankAcc.setAccountType("child");
+			int nrOfGuardians = ((JSONArray) params.get("guardians")).size();
+			String[] guardians = new String[nrOfGuardians];
+			((JSONArray) params.get("guardians")).toArray(guardians);
+			System.out.println(Arrays.toString(guardians));
+			if (guardians.length < 1) {
+				String err = buildError(500, "No guardians are specified; at least one guardian should be specified");
+				return respondError(err);
+			}
+			for (int i = 0; i < guardians.length; i++) {
+				CustomerAccount guardian = CustomerAccount.getAccountByName(guardians[i]);
+				if (CustomerAccount.isValidGuardian(guardian)) {
+					guardian.addBankAccount(bankAcc);
+					guardian.saveToDB();
+				} else {
+					String err = buildError(500, "Person " + guardians[i] + " is not a valid guardian.");
+					return respondError(err);
+				}
+			}
+			
+			TimeEvent t = new TimeEvent();
+			t.setName("ACCOUNT_TYPE_CHANGE");
+			t.setDescription("FOR:" + bankAcc.getIBAN());
+			Calendar c = Calendar.getInstance();
+			long millis = 0;
+			try {
+				millis = Logger.parseDateToMillis((String) params.get("dob"));
+				c.setTimeInMillis(millis);
+				c.add(Calendar.YEAR, 18);
+				t.setTimestamp(millis);
+				t.setExecuted(false);
+				t.saveToDB();
+			} catch (ParseException e) {
+				e.printStackTrace();
+			}
+		}
+		
 		DebitCard card = new DebitCard(newAcc.getBSN(), bankAcc.getIBAN());
 		newAcc.addBankAccount(bankAcc);
 		newAcc.saveToDB();
@@ -852,6 +919,13 @@ public class ServerHandler {
 		
 		// If the user IS authorized, open a new account under his user account.
 		CustomerAccount acc = accounts.get(authToken);
+		
+		// A child can not open multiple accounts
+		if (CustomerAccount.isYoungerThan(18, acc)) {
+			String err = buildError(419, "The authenticated user is not authorized to perform this action. A child can not open multiple bank accounts.");
+			return respondError(err);
+		}
+		
 		BankAccount bAcc = acc.openBankAccount();
 		DebitCard card = new DebitCard(acc.getBSN(), bAcc.getIBAN());
 		String IBAN = bAcc.getIBAN();
@@ -994,6 +1068,12 @@ public class ServerHandler {
 			return respondError(err);
 		}
 		
+		// A child can not provide access
+		if (bAcc.getAccountType().equals("child")) {
+			String err = buildError(419, "The authenticated user is not authorized to perform this action. A child can not provide access to the bank account.");
+			return respondError(err);
+		}
+		
 		// If the sender is not the owner of the account, stop and notify the client
 		if (!bAcc.getMainHolderBSN().equals(cAcc.getBSN())) {
 			String err = buildError(419, "The authenticated user is not authorized to perform this action. You are not the owner of this account.");
@@ -1084,6 +1164,12 @@ public class ServerHandler {
 		// If we couldn't find the bank account, tell the client
 		if (!found) {
 			String err = buildError(500, "Could not find the specified bank account with IBAN " + IBAN + ".");
+			return respondError(err);
+		}
+		
+		// A child can not provide access
+		if (bAcc.getAccountType().equals("child")) {
+			String err = buildError(419, "The authenticated user is not authorized to perform this action. A child can not provide access to the bank account.");
 			return respondError(err);
 		}
 		
