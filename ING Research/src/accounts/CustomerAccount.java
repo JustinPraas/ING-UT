@@ -3,6 +3,12 @@ package accounts;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -17,8 +23,12 @@ import javax.persistence.ManyToMany;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
+import org.hibernate.criterion.Criterion;
+import org.hibernate.criterion.Restrictions;
+
 import database.DataManager;
 import database.SQLiteDB;
+import server.rest.ServerModel;
 
 /**
  * A bank customer's main account, to which multiple <code>BankAccounts</code> may be tied.
@@ -246,5 +256,53 @@ public class CustomerAccount implements database.DBObject {
 
 	public void setPassword(String password) {
 		this.password = password;
+	}
+
+	public static boolean isValidGuardian(CustomerAccount candidate) {
+		
+		// Check for existence
+		if (candidate == null) {
+			return false;
+		}
+		
+		if (isYoungerThan(18, candidate)) {
+			return false;
+		}
+	    
+		return true;
+	}
+
+	/**
+	 * @param candidate
+	 */
+	public static boolean isYoungerThan(int age, CustomerAccount candidate) {
+		// Check for age
+		Calendar a = null;
+		try {   
+			DateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
+		 	Date date = (Date) formatter.parse(candidate.getBirthdate()); 
+		 	a = Calendar.getInstance();
+		 	a.setTime(date);
+		} catch (ParseException e) {
+			e.printStackTrace();
+			return false;
+		}
+		
+	    Calendar b = ServerModel.getServerCalendar();
+	    int diff = b.get(Calendar.YEAR) - a.get(Calendar.YEAR);
+	    if (a.get(Calendar.MONTH) > b.get(Calendar.MONTH) || 
+	    		(a.get(Calendar.MONTH) == b.get(Calendar.MONTH) && a.get(Calendar.DATE) > b.get(Calendar.DATE))) {
+	    	diff--;
+	    }
+	    
+	    return diff < age;
+	}
+
+	public static CustomerAccount getAccountByName(String username) {
+		ArrayList<Criterion> cr = new ArrayList<>();
+		cr.add(Restrictions.eq("username", username));
+		@SuppressWarnings("unchecked")
+		ArrayList<CustomerAccount> target = (ArrayList<CustomerAccount>) DataManager.getObjectsFromDB(CustomerAccount.CLASSNAME, cr);
+		return target.size() != 0 ? target.get(0) : null;
 	}
 }
