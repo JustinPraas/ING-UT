@@ -226,7 +226,6 @@ public class DataManager {
 		try {
 			timeEvent.setTimestamp(Logger.parseDateToMillis(date));
 		} catch (ParseException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		timeEvent.setExecuted(false);
