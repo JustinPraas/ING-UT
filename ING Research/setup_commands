@@ -1,5 +1,7 @@
 Setup commands:
 OPEN_BANK_ACCOUNT Justin:Praas:J.W:27-11-1997:22222222:Steenanjer 3:0651027395:jw.praas@gmail.com:Justin:Praas
+OPEN_BANK_ACCOUNT Doetje:Praas:D.W:10-11-2011:22222223:Steenanjer 3:0651027396:dw.praas@gmail.com:Doetje:Praas:child:Justin
+
 LOGIN Justin:Praas
 SET_OVERDRAFT_LIMIT NL16INGB6460526137:1000
 
