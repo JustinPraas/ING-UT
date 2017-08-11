@@ -674,7 +674,6 @@ public class ServerHandler {
 		
 		int newlySimulatedDays = Integer.parseInt(Long.toString((long) params.get("nrOfDays")));
 		
-		InterestHandler.calculateTimeSimulatedInterest(newlySimulatedDays);
 		TimeOperator.simulateDays(newlySimulatedDays);		
 		ServerModel.setSimulatedDays(newlySimulatedDays, true);
 		

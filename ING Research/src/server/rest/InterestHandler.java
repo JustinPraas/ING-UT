@@ -458,6 +458,25 @@ public class InterestHandler extends Thread {
 	    return bd.doubleValue();
 	}
 	
+	public static void handleInterest(Calendar serverCalendar) {
+		initializeLowestNegativeDailyReachMap();
+		initializeLowestPositiveDailyReachMap();		
+		
+		// Add balances
+		addNegativeBalancesToTotalNegativeInterest(serverCalendar);
+		addPositiveBalancesToTotalPositiveInterest(serverCalendar);			
+		
+		// Transfer the money
+		if (serverCalendar.get(Calendar.DATE) == 1) {
+			transferNegativeInterest();
+		}
+		
+		if (serverCalendar.get(Calendar.DAY_OF_YEAR) == 1) {
+			transferPositiveInterest();
+		}
+		
+	}
+	
 	/**
 	 * Calculates the interest on all bank accounts for the given number of days.
 	 * @param days the number of days on which all bank accounts need to be simulated
@@ -470,8 +489,7 @@ public class InterestHandler extends Thread {
 		initializeLowestNegativeDailyReachMap();
 		initializeLowestPositiveDailyReachMap();
 		
-		for (int i = 1; i <= days; i++) {	
-			System.out.println("============" + c.getTime().toString() + "===========");			
+		for (int i = 1; i <= days; i++) {				
 			
 			// Add balances
 			addNegativeBalancesToTotalNegativeInterest(c);
@@ -619,7 +637,7 @@ public class InterestHandler extends Thread {
 				currentInterest = currentTotalPositiveInterestMap.get(IBAN);
 				totalInterest = currentInterest + calculatePositiveInterest(entry.getValue(), isChild);
 			}
-			System.out.println("Current total positive interest for " + IBAN + " is " + totalInterest);
+			System.out.println("[INFO] Current total positive interest for " + IBAN + " is " + totalInterest);
 			currentTotalPositiveInterestMap.put(IBAN, totalInterest);
 		}
 		

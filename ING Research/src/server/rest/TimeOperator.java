@@ -33,6 +33,7 @@ public class TimeOperator extends Thread {
 
 			// Update events on a daily basis
 			SQLiteDB.connectionLock.lock();
+			System.out.println("[INFO] updating system");
 			updateSystem(c);
 			SQLiteDB.connectionLock.unlock();
 			
@@ -49,7 +50,11 @@ public class TimeOperator extends Thread {
 		SQLiteDB.connectionLock.lock();
 		Calendar serverCalendar = ServerModel.getServerCalendar();
 		for (int i = 1; i <= newlySimulatedDays; i++) {
-			serverCalendar.add(Calendar.DATE, 1);		
+			System.out.println("[INFO] Passing " + serverCalendar.getTime().toString());
+			serverCalendar.add(Calendar.DATE, 1);
+			System.out.println("[INFO] -> handling interest");
+			InterestHandler.handleInterest(serverCalendar);
+			System.out.println("[INFO] -> updating system");
 			updateSystem(serverCalendar);
 		}	
 		SQLiteDB.connectionLock.unlock();
@@ -71,6 +76,7 @@ public class TimeOperator extends Thread {
 		long endMillis = startMillis + 1000 * 3600 * 24;
 		
 		ArrayList<TimeEvent> todaysUnfinishedEvents = getTodaysEvents(startMillis, endMillis);
+		System.out.println("[INFO] Handling " + todaysUnfinishedEvents.size() + " event(s)");
 		
 		for (TimeEvent t : todaysUnfinishedEvents) {
 			switch (t.getName()) {
@@ -95,15 +101,34 @@ public class TimeOperator extends Thread {
 	private static void updateAccountType(TimeEvent t) {
 		String[] descriptionArray = t.getDescription().split(":");
 		String IBAN = descriptionArray[1];
+		
+		BankAccount ingBankAccount;
 		try {
-			BankAccount b = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, IBAN);
-			b.setAccountType("regular");
-			b.saveToDB();
+			Double positiveInterest = ServerDataHandler.getTotalPositiveInterestMap().get(IBAN);
+			
+			// Delete this IBAN's entry from the map
+			HashMap<String, Double> map = ServerDataHandler.getTotalPositiveInterestMap();
+			map.remove(IBAN);
+			ServerDataHandler.setTotalPositiveInterestMap(map);
+			
+			// Transfer the money
+			ingBankAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, BankAccount.ING_BANK_ACCOUNT_IBAN);
+			ingBankAccount.transfer(IBAN, positiveInterest);
+		} catch (ObjectDoesNotExistException e) {
+			e.printStackTrace();
+		}
+		
+		System.out.println("[UPDATE] Updating account type for " + IBAN + "; transfering built-up interest");
+		
+		BankAccount b = null;
+		try {
+			b = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, IBAN);
 		} catch (ObjectDoesNotExistException e) {
 			e.printStackTrace();
 			return;
 		}
-		
+		b.setAccountType("regular");
+		b.saveToDB();
 		t.setExecuted(true);
 		t.saveToDB();		
 	}
@@ -118,6 +143,7 @@ public class TimeOperator extends Thread {
 		String key = descriptionArray[0];
 		String value = descriptionArray[1];
 		BankSystemValue.updateBankSystemValue(key, value);
+		System.out.println("[UPDATE] System setting '" + key + "' has been set to " + value);
 		
 		t.setExecuted(true);
 		t.saveToDB();
@@ -142,6 +168,8 @@ public class TimeOperator extends Thread {
 		// Update events
 		t.setExecuted(true);
 		t.saveToDB();
+		
+		System.out.println("[UPDATE] Transfer limits have been updated for " + updatedTransferLimitMap.size());
 		
 		TimeEvent nextMonthUpdate = new TimeEvent();
 		Calendar c = Calendar.getInstance();
