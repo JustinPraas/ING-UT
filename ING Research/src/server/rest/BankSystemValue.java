@@ -22,7 +22,8 @@ public enum BankSystemValue {
 	INTEREST_RATE_3				(0.20),
 	OVERDRAFT_INTEREST_RATE		(10.0),
 	DAILY_WITHDRAW_LIMIT		(250.0), 
-	WEEKLY_TRANSFER_LIMIT		(2500.0);
+	WEEKLY_TRANSFER_LIMIT		(2500.0), 
+	CHILD_INTEREST_RATE			(2.017);
 	
 	private double amount;
 	
