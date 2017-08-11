@@ -224,7 +224,7 @@ public class DataManager {
 		TimeEvent timeEvent = new TimeEvent();
 		timeEvent.setName("TRANSFER_LIMIT_UPDATE");
 		try {
-			timeEvent.setTimestamp(Logger.parseDateToMillis(date));
+			timeEvent.setTimestamp(Logger.parseDateToMillis(date, "yyyy-MM-dd"));
 		} catch (ParseException e) {
 			e.printStackTrace();
 		}
