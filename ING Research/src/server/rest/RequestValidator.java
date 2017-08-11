@@ -334,6 +334,7 @@ public class RequestValidator {
 		}
 		
 		try {
+			@SuppressWarnings("unused")
 			boolean newPin = (boolean) params.get("newPin");
 		} catch (ClassCastException e) {
 			String err = ServerHandler.buildError(418, "One or more parameter has an invalid value. See message.", "Boolean cannot be parsed from the given paramater for 'newPin'.");
@@ -472,9 +473,8 @@ public class RequestValidator {
 		}
 		
 		DateFormat fm = new SimpleDateFormat("yyyy-MM-dd");
-		Date date;
 		try {
-			date = fm.parse((String) params.get("date"));
+			fm.parse((String) params.get("date"));
 		} catch (ParseException e) {
 			String err = ServerHandler.buildError(418, "One or more parameter has an invalid value. See message.", "The given date is not in the format yyyy-MM-dd");
 			return ServerHandler.respondError(err, 500);
