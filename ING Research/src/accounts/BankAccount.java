@@ -77,6 +77,7 @@ public class BankAccount implements database.DBObject {
 	private float balance;
 	private String IBAN;
 	private String mainHolderBSN;
+	private String accountType;
 	private Set<CustomerAccount> owners = new HashSet<CustomerAccount>();
 	private SavingsAccount savingsAccount;
 	private boolean closed;
@@ -96,6 +97,7 @@ public class BankAccount implements database.DBObject {
 		StringBuilder result = new StringBuilder();
 		result.append(String.format("%25s- %s- %n", "IBAN", IBAN));
 		result.append(String.format("%25s- %s- %n", "Holder BSN", mainHolderBSN));
+		result.append(String.format("%25s- %s- %n", "Account type", accountType));
 		result.append(String.format("%25s- %s- %n", "Balance", balance));
 		result.append(String.format("%25s- %s- %n", "Customers with access", ownersBSNs));
 		result.append(String.format("%25s- %s- %n", "Overdraft limit", overdraftLimit));
@@ -122,6 +124,7 @@ public class BankAccount implements database.DBObject {
 		this.IBAN = generateIBAN(COUNTRY_CODE, BANK_CODE, randomPAN());
 		this.mainHolderBSN = mainHolderBSN;
 		this.overdraftLimit = 0;
+		this.accountType = "regular";
 		this.transferLimit = BankSystemValue.WEEKLY_TRANSFER_LIMIT.getAmount();
 		this.savingsAccount = new SavingsAccount(this);
 		this.savingsAccount.saveToDB();
@@ -335,7 +338,12 @@ public class BankAccount implements database.DBObject {
 		if (!DataManager.isPrimaryKeyUnique(BankAccount.CLASSNAME, BankAccount.PRIMARYKEYNAME, IBAN)) {
 			try {
 				destination = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, IBAN);
-				destination.getSavingsAccount().debit(amount);
+				boolean isChild = destination.getAccountType().equals("child");
+				if (isChild) {
+					destination.debit(amount);
+				} else {
+					destination.getSavingsAccount().debit(amount);
+				}				
 				destination.saveToDB();
 			} catch (ObjectDoesNotExistException | IllegalAmountException e) {
 				System.err.println(e.toString());
@@ -765,6 +773,15 @@ public class BankAccount implements database.DBObject {
 		this.transferLimit = transferLimit;
 	}
 
+	public void setAccountType(String accountType) {
+		this.accountType = accountType;
+	}
+
+	@Column(name = "accounttype")
+	public String getAccountType() {
+		return accountType;
+	}
+
 	@Column(name = "transferlimit")
 	public double getTransferLimit() {
 		return transferLimit;
@@ -845,6 +862,7 @@ public class BankAccount implements database.DBObject {
 		BankAccount ingBankAccount = new BankAccount("00000000", 1000000f, ING_BANK_ACCOUNT_IBAN);
 		ingBankAccount.setTransferLimit(1000000000);
 		ingBankAccount.setOverdraftLimit(1000000000);
+		ingBankAccount.setAccountType("regular");
 		HashSet<BankAccount> bankAccountSet = new HashSet<>();
 		bankAccountSet.add(ingBankAccount);
 		ingAccount.setBankAccounts(bankAccountSet);
