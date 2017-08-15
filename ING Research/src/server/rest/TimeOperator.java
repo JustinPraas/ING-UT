@@ -10,9 +10,15 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.hibernate.criterion.Criterion;
+import org.hibernate.criterion.Restrictions;
+
 import accounts.BankAccount;
+import accounts.CreditAccount;
+import cards.CreditCard;
 import database.DataManager;
 import database.SQLiteDB;
+import exceptions.IllegalAmountException;
 import exceptions.ObjectDoesNotExistException;
 import logging.Logger;
 
@@ -89,10 +95,30 @@ public class TimeOperator extends Thread {
 			case "ACCOUNT_TYPE_CHANGE":
 				updateAccountType(t);
 				break;
+			case "ACTIVATE_CREDIT_CARD":
+				activateCreditCard(t);
+				break;
+			case "CREDIT_CARD_RESET":
+				updateCreditCardAndFee(t);
+				break;
 			}
 		}
 	}
 	
+	private static void activateCreditCard(TimeEvent t) {
+		String[] descriptionArray = t.getDescription().split(":");
+		String cardNumber = descriptionArray[1];
+		
+		try {
+			CreditCard creditCard = (CreditCard) DataManager.getObjectByPrimaryKey(CreditCard.CLASSNAME, cardNumber);
+			creditCard.setActive(true);
+			creditCard.saveToDB();
+			System.out.println("[UPDATE] Set credit card " + cardNumber + " to active.");
+		} catch (ObjectDoesNotExistException e) {
+			e.printStackTrace();
+		}
+	}
+
 	/**
 	 * Updates the account type for a child bank account to a regular bank account.
 	 * @param t The TimeEvent containing the date and description info needed to execute this 
@@ -170,6 +196,50 @@ public class TimeOperator extends Thread {
 		t.saveToDB();
 		
 		System.out.println("[UPDATE] Transfer limits have been updated for " + updatedTransferLimitMap.size());
+		
+		TimeEvent nextMonthUpdate = new TimeEvent();
+		Calendar c = Calendar.getInstance();
+		c.setTimeInMillis(t.getTimestamp());
+		c.add(Calendar.MONTH, 1);
+		nextMonthUpdate.setName(t.getName());
+		nextMonthUpdate.setDescription(t.getDescription());
+		nextMonthUpdate.setTimestamp(c.getTimeInMillis());
+		nextMonthUpdate.setExecuted(false);
+		nextMonthUpdate.saveToDB();
+	}
+	
+	/**
+	 * Updates the transferLimit for each and every bank account that has requested such update.
+	 * @param t The TimeEvent that indicates that the transfer limits should be updated
+	 */
+	private static void updateCreditCardAndFee(TimeEvent t) {
+		ArrayList<Criterion> cr = new ArrayList<>();
+		cr.add(Restrictions.eq("closed", false));
+		@SuppressWarnings("unchecked")
+		ArrayList<CreditAccount> creditCardUsers = (ArrayList<CreditAccount>) DataManager.getObjectsFromDB(CreditAccount.CLASSNAME, cr);
+		
+		for (CreditAccount c : creditCardUsers) {
+			try {			
+				// Equalize balance
+				BankAccount b = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, c.getIBAN());
+				double moneyToTransfer = BankSystemValue.CREDIT_CARD_DEFAULT_CREDIT.getAmount() - c.getBalance();
+				b.credit(moneyToTransfer);
+				c.debit(moneyToTransfer);
+
+				// Subtract fee
+				b.credit(BankSystemValue.CREDIT_CARD_MONTHLY_FEE.getAmount());
+				b.saveToDB();
+				c.saveToDB();
+			} catch (IllegalAmountException | ObjectDoesNotExistException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		// Update events
+		t.setExecuted(true);
+		t.saveToDB();
+		
+		System.out.println("[UPDATE] Credit cards reset and fees subtracted for " + creditCardUsers.size() + " users.");
 		
 		TimeEvent nextMonthUpdate = new TimeEvent();
 		Calendar c = Calendar.getInstance();
