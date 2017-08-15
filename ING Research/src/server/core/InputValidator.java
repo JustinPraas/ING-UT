@@ -290,7 +290,7 @@ public class InputValidator {
 	 * @return true if the input is a valid debit card number, false otherwise
 	 */
 	public static boolean isValidCardNumber(String input) {
-		if (input.matches("^\\d{7}$")) {
+		if (input.matches("^\\d{7}$") || input.matches("^\\d{16}$")) {
 			return true;
 		} else {
 			System.err.print("Card number " + input + " is invalid.");
