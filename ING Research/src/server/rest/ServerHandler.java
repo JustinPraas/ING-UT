@@ -32,12 +32,17 @@ import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
 
 import accounts.BankAccount;
+import accounts.CreditAccount;
 import accounts.CustomerAccount;
-import accounts.DebitCard;
+import accounts.SavingsAccount;
 import accounts.Transaction;
+import cards.Card;
+import cards.CreditCard;
+import cards.DebitCard;
 import database.DataManager;
 import database.SQLiteDB;
 import exceptions.ClosedAccountTransferException;
+import exceptions.CreditCardNotActiveException;
 import exceptions.ExceedLimitException;
 import exceptions.ExpiredCardException;
 import exceptions.IllegalAccountCloseException;
@@ -133,6 +138,8 @@ public class ServerHandler {
 			return setTransferLimit(jReq);
 		case "setValue":
 			return setValue(jReq);
+		case "requestCreditCard":
+			return requestCreditCard(jReq);
 		default:
 			String err = buildError(-32601, "The requested remote-procedure does not exist.");
 			Logger.addMethodErrorLog(jReq.getMethod(), err, -32601);
@@ -173,6 +180,71 @@ public class ServerHandler {
 	
 	public static Response respondError(String error, int code) {
 		return Response.status(code).entity(error).build();
+	}
+
+	/**
+	 * Extension 11: 'Credit card' related.
+	 * Responds to and handles a credit card request
+	 */
+	private static Response requestCreditCard(JSONRPC2Request jReq) {
+		HashMap<String, Object> params = (HashMap<String, Object>) jReq.getNamedParams();	
+		
+		// Check Request validity, return an error Response if the Request is invalid
+		Response invalidRequest = RequestValidator.isValidRequestCreditCardRequest(params);
+		if (invalidRequest != null) {
+			return invalidRequest;
+		}
+		
+		String authToken = (String) params.get("authToken");
+		String IBAN = (String) params.get("iBAN");	
+
+		CustomerAccount customerAccount = accounts.get(authToken);
+		BankAccount bankAccount;
+		try {
+			bankAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, IBAN);
+		} catch (ObjectDoesNotExistException e) {
+			String err = buildError(418, "One or more parameter has an invalid value. See message.", e.toString());
+			return respondError(err);
+		}
+		
+		// Check if the user actually owns the bank account
+		if (!RequestValidator.userOwnsBankAccount(customerAccount, bankAccount)) {
+			String err = buildError(419, "The authenticated user is not authorized to perform this action. You can not change the transfer limit for someone else's bank account.");
+			Logger.addLogToDB(ServerModel.getServerCalendar().getTimeInMillis(), Type.WARNING, "Possible harmful activity: trying to manipulate information from another account.");
+			return respondError(err);
+		}
+		
+		// Check if the user is a child
+		if (bankAccount.getAccountType().equals("child")) {
+			String error = buildError(419, "The authenticated user is not authorized to perform this action. A child can not request a credit card");
+			return respondError(error);
+		}
+		
+		// Create a credit account
+		CreditAccount creditAccount = new CreditAccount(bankAccount);
+		creditAccount.saveToDB();
+		
+		// Create a credit card
+		CreditCard creditCard = new CreditCard(bankAccount.getMainHolderBSN(), bankAccount.getIBAN(), CreditCard.generateCardNumber());
+		creditCard.saveToDB();
+		
+		// Set up a time event for card activation
+		TimeEvent t = new TimeEvent();
+		t.setName("ACTIVATE_CREDIT_CARD");
+		t.setExecuted(false);
+		t.setDescription("CARD:" + creditCard.getCardNumber());
+		Calendar c = ServerModel.getServerCalendar();
+		c.add(Calendar.DATE, 1);
+		t.setTimestamp(c.getTimeInMillis());
+		t.saveToDB();
+		
+		// Send the response
+		HashMap<String, Object> resp = new HashMap<>();	
+		resp.put("pinCard", creditCard.getCardNumber());
+		resp.put("pinCode", creditCard.getPIN());
+		
+		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
+		return respond(jResp.toJSONString(), jReq.getMethod());
 	}
 	
 	/**
@@ -222,12 +294,6 @@ public class ServerHandler {
 			return respondError(error);
 		}
 		switch(key) {
-		/*case "CREDIT_CARD_MONTHLY_FEE":
-			// TODO: necessary extension not implemented yet
-			break;
-		case "CREDIT_CARD_DEFAULT_CREDIT":
-			//TODO: necessary extension not implemented yet
-			break;*/
 		case "CARD_EXPIRATION_LENGTH":
 		case "CARD_USAGE_ATTEMPTS":
 			if (InputValidator.isPositiveInteger(value)) {
@@ -236,6 +302,8 @@ public class ServerHandler {
 				return respondError(err);
 			}
 			break;
+		case "CREDIT_CARD_MONTHLY_FEE":
+		case "CREDIT_CARD_DEFAULT_CREDIT":
 		case "NEW_CARD_COST":
 		case "MAX_OVERDRAFT_LIMIT":
 		case "INTEREST_RATE_1":
@@ -380,7 +448,7 @@ public class ServerHandler {
 		}
 		
 		// Check if the bank account is closed
-		if (bankAccount.getClosed()) {
+		if (bankAccount.isClosed()) {
 			String err = buildError(419, "The authenticated user is not authorized to perform this action. The main bank account is closed.");
 			return respondError(err);	
 		} else {
@@ -396,66 +464,69 @@ public class ServerHandler {
 		}
 	}
 
+	@Deprecated
 	private static Response closeSavingsAccount(JSONRPC2Request jReq) {
-		HashMap<String, Object> params = (HashMap<String, Object>) jReq.getNamedParams();	
-		
-		// Check Request validity, return an error Response if the Request is invalid
-		Response invalidRequest = RequestValidator.isValidSavingsAccountRequest(params);
-		if (invalidRequest != null) {
-			return invalidRequest;
-		}
-		
-		String authToken = (String) params.get("authToken");
-		String IBAN = (String) params.get("iBAN");
-		
-		// Check if the customer has a bank account with this IBAN
-		CustomerAccount customerAccount = accounts.get(authToken);
-		BankAccount bankAccount;
-		try {
-			bankAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, IBAN);
-		} catch (ObjectDoesNotExistException e) {
-			String err = buildError(500, "An unexpected error occured, see error details", "A bank account with the given IBAN does not exist.");
-			return respondError(err);
-		}
-		
-		// An administrator can not close a savings account
-		if (isAdministrativeUser(authToken)) {
-			String err = buildError(500, "An administrator can not close a savings account.");
-			return respondError(err);
-		}
-		
-		// An administrator can not close a savings account
-		if (bankAccount.getAccountType().equals("child")) {
-			String err = buildError(500, "A child can not close a savings account.");
-			return respondError(err);
-		}
-		
-		if (!RequestValidator.userOwnsBankAccount(customerAccount, bankAccount)) {
-			String err = buildError(419, "The authenticated user is not authorized to perform this action. You can not peek at the overdraft limit of another person's bank account.");
-			Logger.addLogToDB(ServerModel.getServerCalendar().getTimeInMillis(), Type.WARNING, "Possible harmful activity: trying to access information from another account.");
-			return respondError(err);
-		}
-		
-		// Check if the savings account is already closed
-		if (bankAccount.getSavingsAccount().isClosed()) {
-			String err = buildError(420, "The action has no effect. See message.", "The savings account is already closed.");
-			return respondError(err);
-		} else {
-			// Transfer the balance of the savings account to the real account
-			double savingsBalance = bankAccount.getSavingsAccount().getBalance();
-			if (savingsBalance != 0) {
-				try {
-					bankAccount.getSavingsAccount().transfer(savingsBalance);
-				} catch (IllegalAmountException | IllegalTransferException e) {
-					e.printStackTrace();
-				}
-			}
-			
-			// Close account 
-			bankAccount.getSavingsAccount().setClosed(true);
-			bankAccount.getSavingsAccount().saveToDB();
-			return sendEmptyResult(jReq.getMethod());
-		}
+//		HashMap<String, Object> params = (HashMap<String, Object>) jReq.getNamedParams();	
+//		
+//		// Check Request validity, return an error Response if the Request is invalid
+//		Response invalidRequest = RequestValidator.isValidSavingsAccountRequest(params);
+//		if (invalidRequest != null) {
+//			return invalidRequest;
+//		}
+//		
+//		String authToken = (String) params.get("authToken");
+//		String IBAN = (String) params.get("iBAN");
+//		
+//		// Check if the customer has a bank account with this IBAN
+//		CustomerAccount customerAccount = accounts.get(authToken);
+//		BankAccount bankAccount;
+//		try {
+//			bankAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, IBAN);
+//		} catch (ObjectDoesNotExistException e) {
+//			String err = buildError(500, "An unexpected error occured, see error details", "A bank account with the given IBAN does not exist.");
+//			return respondError(err);
+//		}
+//		
+//		// An administrator can not close a savings account
+//		if (isAdministrativeUser(authToken)) {
+//			String err = buildError(500, "An administrator can not close a savings account.");
+//			return respondError(err);
+//		}
+//		
+//		// An administrator can not close a savings account
+//		if (bankAccount.getAccountType().equals("child")) {
+//			String err = buildError(500, "A child can not close a savings account.");
+//			return respondError(err);
+//		}
+//		
+//		if (!RequestValidator.userOwnsBankAccount(customerAccount, bankAccount)) {
+//			String err = buildError(419, "The authenticated user is not authorized to perform this action. You can not peek at the overdraft limit of another person's bank account.");
+//			Logger.addLogToDB(ServerModel.getServerCalendar().getTimeInMillis(), Type.WARNING, "Possible harmful activity: trying to access information from another account.");
+//			return respondError(err);
+//		}
+//		
+//		// Check if the savings account is already closed
+//		if (bankAccount.getSavingsAccount().isClosed()) {
+//			String err = buildError(420, "The action has no effect. See message.", "The savings account is already closed.");
+//			return respondError(err);
+//		} else {
+//			// Transfer the balance of the savings account to the real account
+//			double savingsBalance = bankAccount.getSavingsAccount().getBalance();
+//			if (savingsBalance != 0) {
+//				try {
+//					bankAccount.getSavingsAccount().transfer(savingsBalance);
+//				} catch (IllegalAmountException | IllegalTransferException e) {
+//					e.printStackTrace();
+//				}
+//			}
+//			
+//			// Close account 
+//			bankAccount.getSavingsAccount().setClosed(true);
+//			bankAccount.getSavingsAccount().saveToDB();
+//			return sendEmptyResult(jReq.getMethod());
+//		}
+		String error = buildError(500, "Method is deprecated");
+		return respondError(error);
 	}
 
 	private static Response getOverdraftLimit(JSONRPC2Request jReq) {
@@ -877,7 +948,7 @@ public class ServerHandler {
 			}
 		}
 		
-		DebitCard card = new DebitCard(newAcc.getBSN(), bankAcc.getIBAN());
+		DebitCard card = new DebitCard(newAcc.getBSN(), bankAcc.getIBAN(), DebitCard.generateCardNumber());
 		newAcc.addBankAccount(bankAcc);
 		newAcc.saveToDB();
 		card.saveToDB();
@@ -926,7 +997,7 @@ public class ServerHandler {
 		}
 		
 		BankAccount bAcc = acc.openBankAccount();
-		DebitCard card = new DebitCard(acc.getBSN(), bAcc.getIBAN());
+		DebitCard card = new DebitCard(acc.getBSN(), bAcc.getIBAN(), DebitCard.generateCardNumber());
 		String IBAN = bAcc.getIBAN();
 		String pinCard = card.getCardNumber();
 		String pinCode = card.getPIN();
@@ -951,6 +1022,11 @@ public class ServerHandler {
 		
 		String authToken = (String) params.get("authToken");
 		String IBAN = (String) params.get("iBAN");
+		char type = '-';
+		if (IBAN.length() == 19) {
+			type = IBAN.charAt(18);
+			IBAN = IBAN.substring(0, IBAN.length() - 1);
+		}
 
 		// Check Request validity, return an error Response if the Request is invalid
 		Response invalidRequest = RequestValidator.isValidCloseAccountRequest(params);		
@@ -960,24 +1036,30 @@ public class ServerHandler {
 		
 		CustomerAccount acc = accounts.get(authToken);
 		boolean found = false;
-		BankAccount target = null;
-		
-		// An admin can not open an additional account
+		BankAccount bankAccount = null;
+
+		// An admin can not close an account
 		if (isAdministrativeUser(authToken)) {
-			String err = buildError(500, "An administrator can not close an account.");
+			String err = buildError(419, "An administrator can not close an account.");
+			return respondError(err);
+		}
+		
+		// A child can not close an account
+		if (CustomerAccount.isYoungerThan(18, acc)) {
+			String err = buildError(419, "A child can not close an account.");
 			return respondError(err);
 		}
 		
 		// Look for the bank account
 		for (BankAccount b : acc.getBankAccounts()) {
 			if (b.getIBAN().equals(IBAN)) {
-				if (b.getClosed()) {
+				if (b.isClosed()) {
 					String err = buildError(420, "The action has no effect. See message.", "Account " + IBAN + " is already closed");
 					return respondError(err);
 				}
 				found = true;
 				try {
-					target = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, IBAN);
+					bankAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, IBAN);
 				} catch (ObjectDoesNotExistException e) {
 					e.printStackTrace();
 				}
@@ -992,43 +1074,96 @@ public class ServerHandler {
 		}
 		
 		// If the target account is not owned by the user, stop and notify the client
-		if (!acc.getBSN().equals(target.getMainHolderBSN()) ) {
+		if (!acc.getBSN().equals(bankAccount.getMainHolderBSN()) ) {
 			String err = buildError(419, "The authenticated user is not authorized to perform this action. User does not own this account.");
 			Logger.addLogToDB(ServerModel.getServerCalendar().getTimeInMillis(), Type.WARNING, "Possible harmful activity: trying to manipulate information from another account.");
 			return respondError(err);
 		}		
 
-		try {
-			target.close();
-			target.saveToDB();
-		} catch (IllegalAccountCloseException e1) {
-			String err = buildError(419, "The authenticated user is not authorized to perform this action. " + e1.toString());
-			return respondError(err);
-		}
+		if (type == '-') {
+			try {
+				bankAccount.close();
+				bankAccount.saveToDB();
+			} catch (IllegalAccountCloseException e1) {
+				String err = buildError(419, "The authenticated user is not authorized to perform this action. " + e1.toString());
+				return respondError(err);
+			}
 		
-		// Check if this was the customer's last bank account
-		boolean lastAcc = true;
-		for (BankAccount b : acc.getBankAccounts()) {
-			if (!b.getClosed()) {
-				lastAcc = false;
+			// Check if this was the customer's last bank account
+			boolean lastAcc = true;
+			for (BankAccount b : acc.getBankAccounts()) {
+				if (!b.isClosed()) {
+					lastAcc = false;
+				}
+			}
+			
+			// If this was the customer's last bank account, vaporize the customer
+			if (lastAcc) {
+				try {
+					acc.SQLdeleteFromDB();
+				} catch (SQLException e) {
+					String err = buildError(500, "One or more parameter has an invalid value. See message.", "An SQL error occurred on the server.");
+					return respondError(err);
+				}
 			}
 		}
 		
-		// If this was the customer's last bank account, vaporize the customer
-		if (lastAcc) {
+		if (type == 'C') {
+			CreditCard creditCard = null;
+			CreditAccount creditAccount = null;
 			try {
-				acc.SQLdeleteFromDB();
-			} catch (SQLException e) {
-				String err = buildError(500, "One or more parameter has an invalid value. See message.", "An SQL error occurred on the server.");
+				creditAccount = (CreditAccount) DataManager.getObjectByPrimaryKey(CreditAccount.CLASSNAME, IBAN);
+				creditCard= creditAccount.getCreditCard().get(0);
+			} catch (ObjectDoesNotExistException e) {
+				String err = buildError(500, "Creditcard or credit account does not exist.");
 				return respondError(err);
+			}
+			
+			// Set creditCard to inactive
+			if (creditCard.isActive()) {
+				creditCard.setActive(false);
+				creditCard.saveToDB();
+			}
+			
+			if (!creditAccount.isClosed()) {
+				try {
+					creditAccount.close();
+					creditAccount.saveToDB();
+				} catch (IllegalAccountCloseException e) {
+					String err = buildError(500, "Unexpected error occurred: " + e.getMessage());
+					return respondError(err);
+				}
+			} else {
+				String err = buildError(420, "The action has no effect. See message.", "Credit account for bank account with IBAN " + IBAN + " is already closed.");
+				return respondError(err);
+			}			
+		}
+		
+		if (type == 'S') {
+			SavingsAccount savingsAccount = bankAccount.getSavingsAccount();			
+			// Check if the savings account is already closed
+			if (savingsAccount.isClosed()) {
+				String err = buildError(420, "The action has no effect. See message.", "The savings account is already closed.");
+				return respondError(err);
+			} else {
+				// Transfer the balance of the savings account to the real account
+				double savingsBalance = bankAccount.getSavingsAccount().getBalance();
+				if (savingsBalance != 0) {
+					try {
+						bankAccount.getSavingsAccount().transfer(savingsBalance);
+					} catch (IllegalAmountException | IllegalTransferException e) {
+						e.printStackTrace();
+					}
+				}
+				
+				// Close account 
+				savingsAccount.setClosed(true);
+				savingsAccount.saveToDB();
 			}
 		}
 		
 		// If all is well, respond with true.
-		HashMap<String, Object> resp = new HashMap<>();
-		
-		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
-		return respond(jResp.toJSONString(), jReq.getMethod());
+		return sendEmptyResult("closeAccount");
 	}
 
 	private static Response provideAccess(JSONRPC2Request jReq) {
@@ -1108,7 +1243,7 @@ public class ServerHandler {
 		
 		// If everything is fine, create the new card for the target user, tell the client the details
 		targetAcc.addBankAccount(bAcc);
-		DebitCard card = new DebitCard(targetAcc.getBSN(), bAcc.getIBAN());
+		DebitCard card = new DebitCard(targetAcc.getBSN(), bAcc.getIBAN(), DebitCard.generateCardNumber());
 		card.saveToDB();
 		targetAcc.saveToDB();
 		String pinCard = card.getCardNumber();
@@ -1253,39 +1388,31 @@ public class ServerHandler {
 		String IBAN = (String) params.get("iBAN");
 		String pinCard = (String) params.get("pinCard");
 		String pinCode = (String) params.get("pinCode");
-		double amount = (double) params.get("amount");		
+		double amount = (double) params.get("amount");
 		
-		// If the card could not be found, notify the client and stop
-		if (DataManager.isPrimaryKeyUnique(DebitCard.CLASSNAME, DebitCard.PRIMARYKEYNAME, pinCard)) {
-			String err = buildError(500, "Could not find debit card " + pinCard);
-			return respondError(err);
-		}
+		boolean isCreditCard = pinCard.length() == 16;
 		
-		DebitCard dc;
+		Card card;
 		try {
-			dc = (DebitCard) DataManager.getObjectByPrimaryKey(DebitCard.CLASSNAME, pinCard);
+			if (isCreditCard) {
+				card = (CreditCard) DataManager.getObjectByPrimaryKey(CreditCard.CLASSNAME, pinCard);
+			} else {
+				card = (DebitCard) DataManager.getObjectByPrimaryKey(DebitCard.CLASSNAME, pinCard);				
+			}
 		} catch (ObjectDoesNotExistException e) {
 			String err = buildError(418, "One or more parameter has an invalid value. See message.", e.toString());
 			return respondError(err);
 		}
 		
 		// If the card is not yet blocked and the wrong PIN is given, slap the client
-		if (!dc.isBlocked() && !dc.isValidPIN(pinCode)) {
+		if (!card.isBlocked() && !card.isValidPIN(pinCode)) {
 			String err = buildError(421, "An invalid PINcard, -code or -combination was used.");
 			Logger.addLogToDB(ServerModel.getServerCalendar().getTimeInMillis(), Type.WARNING, "Possible harmful activity: PINcard, -code or -combination was incorrect.");
-			serverModel.increaseInvalidPinAttempt(pinCard);
-			
-			if (!dc.isBlocked() && serverModel.getPreviousPinAttempts().get(pinCard) >= BankSystemValue.CARD_USAGE_ATTEMPTS.getAmount()) {
-				dc.setBlocked(true);
-				dc.saveToDB();
-			}
-			
-			return respondError(err);
-		}
-		
-		// If the specified account does not exist, stop and notify the client
-		if (DataManager.isPrimaryKeyUnique(BankAccount.CLASSNAME, BankAccount.PRIMARYKEYNAME, IBAN)) {
-			String err = buildError(500, "Could not find bank account with IBAN " + IBAN);
+			serverModel.increaseInvalidPinAttempt(pinCard);			
+			if (!card.isBlocked() && serverModel.getPreviousPinAttempts().get(pinCard) >= BankSystemValue.CARD_USAGE_ATTEMPTS.getAmount()) {
+				card.setBlocked(true);
+				card.saveToDB();
+			}			
 			return respondError(err);
 		}
 		
@@ -1302,20 +1429,14 @@ public class ServerHandler {
 		} catch (PinCardBlockedException e) {
 			String err = buildError(419, "An unexpected error occured, see error details.", e.toString());
 			return respondError(err);
-		} catch (IllegalAmountException e) {
-			String err = buildError(500, "An unexpected error occured, see error details.", e.toString());
-			return respondError(err);
-		} catch (ClosedAccountTransferException e) {
+		} catch (ObjectDoesNotExistException | IllegalAmountException | CreditCardNotActiveException | ClosedAccountTransferException e) {
 			String err = buildError(500, "An unexpected error occured, see error details.", e.toString());
 			return respondError(err);
 		}
 		
 		bAcc.saveToDB();
 		
-		HashMap<String, Object> resp = new HashMap<>();
-		
-		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
-		return respond(jResp.toJSONString(), jReq.getMethod());
+		return sendEmptyResult(jReq.getMethod());
 	}
 
 	private static Response payFromAccount(JSONRPC2Request jReq) {
@@ -1333,6 +1454,8 @@ public class ServerHandler {
 		String pinCode = (String) params.get("pinCode");
 		double amount = (double) params.get("amount");
 		
+		boolean isCreditCard = pinCard.length() == 16;
+		
 		
 		// If the source bank account could not be found, stop and notify the client.
 		if (DataManager.isPrimaryKeyUnique(BankAccount.CLASSNAME, BankAccount.PRIMARYKEYNAME, sourceIBAN)) {
@@ -1340,19 +1463,32 @@ public class ServerHandler {
 			return respondError(err);
 		}
 		
-		// If the debit card could not be found, stop and notify the client
-		if (DataManager.isPrimaryKeyUnique(DebitCard.CLASSNAME, DebitCard.PRIMARYKEYNAME, "" + pinCard)) {
-			String err = buildError(500, "An unexpected error occured, see error details.", "Card " + pinCard + " could not be found.");
-			return respondError(err);
-		}
-		
-		DebitCard card;
-		try {
-			card = (DebitCard) DataManager.getObjectByPrimaryKey(DebitCard.CLASSNAME, "" + pinCard);
-		} catch (ObjectDoesNotExistException e) {
-			String err = buildError(418, "One or more parameter has an invalid value. See message.", e.toString());
-			return respondError(err);
-		}
+		Card card;
+		if (!isCreditCard) {
+			// If the debit card could not be found, stop and notify the client
+			if (DataManager.isPrimaryKeyUnique(DebitCard.CLASSNAME, DebitCard.PRIMARYKEYNAME, "" + pinCard)) {
+				String err = buildError(500, "An unexpected error occured, see error details.", "Debit Card " + pinCard + " could not be found.");
+				return respondError(err);
+			}			
+			try {
+				card = (DebitCard) DataManager.getObjectByPrimaryKey(DebitCard.CLASSNAME, "" + pinCard);
+			} catch (ObjectDoesNotExistException e) {
+				String err = buildError(418, "One or more parameter has an invalid value. See message.", e.toString());
+				return respondError(err);
+			}
+		} else {
+			// If the credit card could not be found, stop and notify the client
+			if (DataManager.isPrimaryKeyUnique(CreditCard.CLASSNAME, CreditCard.PRIMARYKEYNAME, "" + pinCard)) {
+				String err = buildError(500, "An unexpected error occured, see error details.", "Credit Card " + pinCard + " could not be found.");
+				return respondError(err);
+			}			
+			try {
+				card = (CreditCard) DataManager.getObjectByPrimaryKey(CreditCard.CLASSNAME, "" + pinCard);
+			} catch (ObjectDoesNotExistException e) {
+				String err = buildError(418, "One or more parameter has an invalid value. See message.", e.toString());
+				return respondError(err);
+			}
+		}		
 		
 		// If the payment goes wrong, stop and report the exception
 		try {
@@ -1362,23 +1498,18 @@ public class ServerHandler {
 			return respondError(err);
 		} catch (InvalidPINException e) {
 			String err = buildError(421, "An invalid PINcard, -code or -combination was used.");
-			serverModel.increaseInvalidPinAttempt(pinCard);
-			
+			serverModel.increaseInvalidPinAttempt(pinCard);			
 			if (serverModel.getPreviousPinAttempts().get(pinCard) >= BankSystemValue.CARD_USAGE_ATTEMPTS.getAmount()) {
 				card.setBlocked(true);
 				card.saveToDB();
-			}
-			
+			}			
 			return respondError(err);
-		} catch (IllegalAmountException | IllegalTransferException | ExpiredCardException | ExceedLimitException e) {
+		} catch (IllegalAmountException | CreditCardNotActiveException | IllegalTransferException | ExpiredCardException | ExceedLimitException e) {
 			String err = buildError(500, "An unexpected error occured, see error details.", e.toString());
 			return respondError(err);
 		}
-		
-		HashMap<String, Object> resp = new HashMap<>();
-		
-		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
-		return respond(jResp.toJSONString(), jReq.getMethod());
+		 
+		return sendEmptyResult(jReq.getMethod());
 	}
 
 	private static Response invalidateCard(JSONRPC2Request jReq) {
@@ -1446,9 +1577,9 @@ public class ServerHandler {
 		
 		DebitCard newDebitCard = null;
 		if (newPinCode) {
-			newDebitCard = new DebitCard(customerAccount.getBSN(), bankAccount.getIBAN());
+			newDebitCard = new DebitCard(customerAccount.getBSN(), bankAccount.getIBAN(), DebitCard.generateCardNumber());
 		} else {
-			newDebitCard = new DebitCard(customerAccount.getBSN(), bankAccount.getIBAN(), currentDebitCard.getPIN());
+			newDebitCard = new DebitCard(customerAccount.getBSN(), bankAccount.getIBAN(), currentDebitCard.getPIN(), DebitCard.generateCardNumber(), true);
 		}
 		
 		BankAccount feeDestinationBankAccount;
@@ -1692,6 +1823,14 @@ public class ServerHandler {
 		// If there's a savings account open, send the balance of it
 		if (source.getSavingsAccount() != null && !source.getSavingsAccount().isClosed()) {
 			resp.put("savingAccountBalance", source.getSavingsAccount().getBalance());
+		}
+		
+		// If there's a credit account open, send the balance of it
+		try {
+			CreditAccount creditAccount = (CreditAccount) DataManager.getObjectByPrimaryKey(CreditAccount.CLASSNAME, IBAN);
+			resp.put("creditAccountBalance", creditAccount.getBalance());
+		} catch (ObjectDoesNotExistException e) {
+			// Do nothing because it doesn't exist.
 		}
 		
 		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());
