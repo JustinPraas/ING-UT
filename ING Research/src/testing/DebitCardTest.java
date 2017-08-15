@@ -9,8 +9,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 import accounts.BankAccount;
-import accounts.DebitCard;
 import accounts.Transaction;
+import cards.DebitCard;
 import database.DataManager;
 import exceptions.ExceedLimitException;
 import exceptions.ExpiredCardException;

@@ -12,8 +12,8 @@ import org.junit.Test;
 
 import accounts.BankAccount;
 import accounts.CustomerAccount;
-import accounts.DebitCard;
 import accounts.Transaction;
+import cards.DebitCard;
 import database.DataManager;
 import exceptions.ClosedAccountTransferException;
 import exceptions.ExceedLimitException;

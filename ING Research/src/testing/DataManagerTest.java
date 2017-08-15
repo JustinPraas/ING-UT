@@ -8,7 +8,7 @@ import org.junit.Test;
 
 import accounts.BankAccount;
 import accounts.CustomerAccount;
-import accounts.DebitCard;
+import cards.DebitCard;
 import database.DataManager;
 
 public class DataManagerTest {
