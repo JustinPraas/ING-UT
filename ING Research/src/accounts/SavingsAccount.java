@@ -2,14 +2,11 @@ package accounts;
 
 import java.util.Calendar;
 
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
-import javax.persistence.Id;
 import javax.persistence.OneToOne;
 import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.Table;
-import javax.persistence.Transient;
 
 import database.DataManager;
 import exceptions.ClosedAccountTransferException;
@@ -21,12 +18,9 @@ import server.rest.ServerModel;
 
 @Entity
 @Table(name = "savingsaccounts")
-public class SavingsAccount implements database.DBObject {
+public class SavingsAccount extends Account {
 	
-	private float balance;
-	private String IBAN;
 	private BankAccount bankAccount;	
-	private boolean closed;
 	
 	public static final String CLASSNAME = "accounts.SavingsAccount";
 	public static final String PRIMARYKEYNAME = "IBAN";
@@ -36,25 +30,21 @@ public class SavingsAccount implements database.DBObject {
 	}
 	
 	public SavingsAccount(BankAccount bankAccount) {
+		super(bankAccount.getIBAN(), 0, true);
 		this.bankAccount = bankAccount;
-		this.IBAN = bankAccount.getIBAN();
-		this.balance = 0;
-		this.closed = true;
 	}
 	
 	public SavingsAccount(String IBAN) throws ObjectDoesNotExistException {
+		super(IBAN, 0, true);
 		this.bankAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, IBAN);
-		this.IBAN = IBAN;
-		this.balance = 0;
-		this.closed = true;
 	}
 	
 	public void transfer(double amount) throws IllegalAmountException, IllegalTransferException {
 		if (amount <= 0) {
 			throw new IllegalAmountException(amount);
-		} else if (balance - amount < 0) {
+		} else if (super.getBalance() - amount < 0) {
 			throw new IllegalTransferException();
-		} else if (closed) {
+		} else if (super.isClosed()) {
 			throw new ClosedAccountTransferException();
 		}
 		
@@ -66,21 +56,21 @@ public class SavingsAccount implements database.DBObject {
 		Transaction t = new Transaction();
 		t.setDateTime(date);
 		t.setDateTimeMilis(c.getTimeInMillis());
-		t.setSourceIBAN(IBAN + "S");
+		t.setSourceIBAN(super.getBalance() + "S");
 		t.setDestinationIBAN(bankAccount.getIBAN());
 		t.setAmount(amount);
 		t.setDescription("Transfer from savings account to main account.");
 		t.saveToDB();
 		this.saveToDB();
 		bankAccount.saveToDB();
-		InterestHandler.setLowestPositiveDailyReachMapEntry(IBAN, balance);
+		InterestHandler.setLowestPositiveDailyReachMapEntry(super.getIBAN(), super.getBalance());
 	}
 	
 	public void credit(double amount) throws IllegalAmountException {
 		if (amount <= 0) {
 			throw new IllegalAmountException(amount);
 		}
-		balance -= amount;
+		super.setBalance(super.getBalance() - (float) amount);
 	}
 	
 	/**
@@ -92,26 +82,7 @@ public class SavingsAccount implements database.DBObject {
 		if (amount <= 0) {
 			throw new IllegalAmountException(amount);
 		}
-		balance += amount;
-	}
-
-	@Column(name = "balance")
-	public float getBalance() {
-		return balance;
-	}
-
-	public void setBalance(float balance) {
-		this.balance = balance;
-	}
-
-	@Id
-	@Column(name = "IBAN")
-	public String getIBAN() {
-		return IBAN;
-	}
-
-	public void setIBAN(String iBAN) {
-		IBAN = iBAN;
+		super.setBalance(super.getBalance() + (float) amount);
 	}
 
 	@OneToOne(fetch = FetchType.LAZY)
@@ -122,37 +93,5 @@ public class SavingsAccount implements database.DBObject {
 
 	public void setBankAccount(BankAccount bankAccount) {
 		this.bankAccount = bankAccount;
-	}
-
-	@Column(name = "closed")
-	public boolean isClosed() {
-		return closed;
-	}
-
-	public void setClosed(boolean closed) {
-		this.closed = closed;
-	}
-
-	@Transient
-	public String getPrimaryKeyName() {
-		return PRIMARYKEYNAME;
-	}
-
-	@Transient
-	public Object getPrimaryKeyVal() {
-		return IBAN;
-	}
-
-	@Transient
-	public String getClassName() {
-		return CLASSNAME;
-	}
-
-	public void saveToDB() {
-		DataManager.save(this);
-	}
-
-	public void deleteFromDB() {
-		DataManager.removeEntryFromDB(this);
 	}
 }

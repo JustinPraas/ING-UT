@@ -11,7 +11,6 @@ import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
-import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
@@ -20,6 +19,9 @@ import javax.persistence.Transient;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
 
+import cards.Card;
+import cards.CreditCard;
+import cards.DebitCard;
 import client.Client;
 import database.DataManager;
 import database.SQLiteDB;
@@ -31,6 +33,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import exceptions.ClosedAccountTransferException;
+import exceptions.CreditCardNotActiveException;
 import exceptions.ExceedLimitException;
 import exceptions.ExceedLimitException.LimitType;
 import exceptions.IllegalAccountCloseException;
@@ -50,7 +53,7 @@ import server.rest.ServerModel;
  */
 @Entity
 @Table(name = "bankaccounts")
-public class BankAccount implements database.DBObject {	
+public class BankAccount extends Account {	
 
 	public static final String CLASSNAME = "accounts.BankAccount";
 	public static final String PRIMARYKEYNAME = "IBAN";
@@ -74,13 +77,10 @@ public class BankAccount implements database.DBObject {
 	/*
 	 * Properties of the bank account.
 	 */
-	private float balance;
-	private String IBAN;
 	private String mainHolderBSN;
 	private String accountType;
 	private Set<CustomerAccount> owners = new HashSet<CustomerAccount>();
 	private SavingsAccount savingsAccount;
-	private boolean closed;
 	private double overdraftLimit;
 	private double transferLimit;
 
@@ -95,10 +95,10 @@ public class BankAccount implements database.DBObject {
 		ownersBSNs = ownersBSNs.substring(0, ownersBSNs.length() - 1);
 		
 		StringBuilder result = new StringBuilder();
-		result.append(String.format("%25s- %s- %n", "IBAN", IBAN));
+		result.append(String.format("%25s- %s- %n", "IBAN", super.getIBAN()));
 		result.append(String.format("%25s- %s- %n", "Holder BSN", mainHolderBSN));
 		result.append(String.format("%25s- %s- %n", "Account type", accountType));
-		result.append(String.format("%25s- %s- %n", "Balance", balance));
+		result.append(String.format("%25s- %s- %n", "Balance", super.getBalance()));
 		result.append(String.format("%25s- %s- %n", "Customers with access", ownersBSNs));
 		result.append(String.format("%25s- %s- %n", "Overdraft limit", overdraftLimit));
 		result.append(String.format("%25s- %s- %n", "Transfer limit", transferLimit));
@@ -120,8 +120,7 @@ public class BankAccount implements database.DBObject {
 	 *            holder of this <code>BankAccount</code>
 	 */
 	public BankAccount(String mainHolderBSN) {
-		this.balance = 0;
-		this.IBAN = generateIBAN(COUNTRY_CODE, BANK_CODE, randomPAN());
+		super(generateIBAN(COUNTRY_CODE, BANK_CODE, randomPAN()), 0, false);
 		this.mainHolderBSN = mainHolderBSN;
 		this.overdraftLimit = 0;
 		this.accountType = "regular";
@@ -146,9 +145,8 @@ public class BankAccount implements database.DBObject {
 	 *            The account's IBAN
 	 */
 	public BankAccount(String mainHolderBSN, float balance, String IBAN) {
+		super(IBAN, balance, false);
 		this.mainHolderBSN = mainHolderBSN;
-		this.balance = balance;
-		this.IBAN = IBAN;
 		this.overdraftLimit = 0;
 		this.transferLimit = BankSystemValue.WEEKLY_TRANSFER_LIMIT.getAmount();
 
@@ -166,7 +164,7 @@ public class BankAccount implements database.DBObject {
 	 * Generates a random personal account number of 10 digits long. 
 	 * @return The personal accountNumber for the IBAN
 	 */
-	private String randomPAN() {
+	private static String randomPAN() {
 		// The personalAccountNumber (last 10 digits) should be hierarchically
 		// distributed.
 		// However, we do not keep track of used numbers yet, so for now assign
@@ -256,27 +254,33 @@ public class BankAccount implements database.DBObject {
 	 * @param amount The amount of money to be deposited
 	 * @throws ClosedAccountTransferException
 	 * @throws PinCardBlockedException
+	 * @throws CreditCardNotActiveException 
+	 * @throws ObjectDoesNotExistException 
 	 */
 	public void deposit(double amount, String cardNum)
-			throws IllegalAmountException, ClosedAccountTransferException, PinCardBlockedException {
-		try {
-			if (((DebitCard) DataManager.getObjectByPrimaryKey(DebitCard.CLASSNAME, cardNum)).isBlocked()) {
-				throw new PinCardBlockedException(cardNum);
-			} else if (amount <= 0) {
-				throw new IllegalAmountException(amount);
-			} else if (this.closed) {
-				throw new ClosedAccountTransferException();
+			throws IllegalAmountException, ClosedAccountTransferException, PinCardBlockedException, CreditCardNotActiveException, ObjectDoesNotExistException {
+		Card card;
+		boolean isCreditCard = cardNum.length() == 16;
+		if (isCreditCard) {
+			card = (CreditCard) DataManager.getObjectByPrimaryKey(CreditCard.CLASSNAME, cardNum);
+			if (!((CreditCard) card).isActive()) {
+				throw new CreditCardNotActiveException(cardNum);
 			}
-		} catch (ObjectDoesNotExistException e) {
-			System.err.println(e.toString());
-			return;
+		} else {
+			card = (DebitCard) DataManager.getObjectByPrimaryKey(DebitCard.CLASSNAME, cardNum);
+			if (card.isBlocked()) {
+				throw new PinCardBlockedException(cardNum);
+			}
+		}
+		
+		if (amount <= 0) {
+			throw new IllegalAmountException(amount);
+		} else if (super.isClosed()) {
+			throw new ClosedAccountTransferException();
 		}
 		this.debit(amount);
 
-		Calendar c = Calendar.getInstance();
-
-		// Add simulated days
-		c.add(Calendar.DATE, Client.getSimulatedDays());
+		Calendar c = ServerModel.getServerCalendar();
 
 		String date = c.getTime().toString();
 		Transaction t = new Transaction();
@@ -302,7 +306,7 @@ public class BankAccount implements database.DBObject {
 			throw new IllegalAmountException(amount);
 		} else if (exceedsLimit(amount, LimitType.OVERDRAFT_LIMIT)) {
 			throw new ExceedLimitException(amount, this, LimitType.OVERDRAFT_LIMIT);
-		} else if (this.closed || savingsAccount.isClosed()) {
+		} else if (super.isClosed() || savingsAccount.isClosed()) {
 			throw new ClosedAccountTransferException();
 		}
 
@@ -383,7 +387,7 @@ public class BankAccount implements database.DBObject {
 			throw new ExceedLimitException(amount, this, LimitType.OVERDRAFT_LIMIT);
 		} else if (destination.getIBAN().equals(this.getIBAN())) {
 			throw new SameAccountTransferException();
-		} else if (this.closed || destination.getClosed()) {
+		} else if (super.isClosed() || destination.isClosed()) {
 			throw new ClosedAccountTransferException();
 		}
 
@@ -406,7 +410,7 @@ public class BankAccount implements database.DBObject {
 		t.saveToDB();
 		this.saveToDB();
 		destination.saveToDB();
-		InterestHandler.setLowestNegativeDailyReachMapEntry(IBAN, balance);
+		InterestHandler.setLowestNegativeDailyReachMapEntry(super.getIBAN(), super.getBalance());
 	}
 
 	/**
@@ -428,11 +432,11 @@ public class BankAccount implements database.DBObject {
 			throw new IllegalAmountException(amount);
 		} else if (exceedsLimit(amount, LimitType.OVERDRAFT_LIMIT) && !description.equals("Negative interest credit")) {
 			throw new ExceedLimitException(amount, this, LimitType.OVERDRAFT_LIMIT);
-		} else if (exceedsLimit(amount, LimitType.DEBITCARD_LIMIT)) {
-			throw new ExceedLimitException(amount, this, LimitType.DEBITCARD_LIMIT);
+		} else if (exceedsLimit(amount, LimitType.DEBIT_CARD_LIMIT)) {
+			throw new ExceedLimitException(amount, this, LimitType.DEBIT_CARD_LIMIT);
 		} else if (exceedsLimit(amount, LimitType.TRANSFER_LIMIT)) {
 			throw new ExceedLimitException(amount, this, LimitType.TRANSFER_LIMIT);
-		} else if (this.closed) {
+		} else if (super.isClosed()) {
 			throw new ClosedAccountTransferException();
 		}
 
@@ -450,7 +454,7 @@ public class BankAccount implements database.DBObject {
 		}
 
 		if (knownAccount) {
-			if (destination.getClosed()) {
+			if (destination.isClosed()) {
 				throw new ClosedAccountTransferException();
 			} else if (destination.getIBAN().equals(this.getIBAN())) {
 				throw new SameAccountTransferException();
@@ -478,7 +482,7 @@ public class BankAccount implements database.DBObject {
 			destination.debit(amount);
 			destination.saveToDB();
 		}
-		InterestHandler.setLowestNegativeDailyReachMapEntry(IBAN, balance);
+		InterestHandler.setLowestNegativeDailyReachMapEntry(super.getIBAN(), super.getBalance());
 	}
 
 	/**
@@ -495,13 +499,13 @@ public class BankAccount implements database.DBObject {
 			throw new IllegalAmountException(amount);
 		} else if (exceedsLimit(amount, LimitType.OVERDRAFT_LIMIT) && !description.equals("Negative interest credit")) {
 			throw new ExceedLimitException(amount, this, LimitType.OVERDRAFT_LIMIT);
-		} else if (exceedsLimit(amount, LimitType.DEBITCARD_LIMIT)) {
-			throw new ExceedLimitException(amount, this, LimitType.DEBITCARD_LIMIT);
+		} else if (exceedsLimit(amount, LimitType.DEBIT_CARD_LIMIT)) {
+			throw new ExceedLimitException(amount, this, LimitType.DEBIT_CARD_LIMIT);
 		} else if (exceedsLimit(amount, LimitType.TRANSFER_LIMIT)) {
 			throw new ExceedLimitException(amount, this, LimitType.TRANSFER_LIMIT);
 		} else if (destination.getIBAN().equals(this.getIBAN())) {
 			throw new SameAccountTransferException();
-		} else if (this.closed || destination.getClosed()) {
+		} else if (super.isClosed() || destination.isClosed()) {
 			throw new ClosedAccountTransferException();
 		}
 
@@ -524,7 +528,7 @@ public class BankAccount implements database.DBObject {
 		t.saveToDB();
 		this.saveToDB();
 		destination.saveToDB();
-		InterestHandler.setLowestNegativeDailyReachMapEntry(IBAN, balance);
+		InterestHandler.setLowestNegativeDailyReachMapEntry(super.getIBAN(), super.getBalance());
 	}
 
 	/**
@@ -549,7 +553,7 @@ public class BankAccount implements database.DBObject {
 			throw new ExceedLimitException(amount, this, LimitType.TRANSFER_LIMIT);
 		} else if (destination.getIBAN().equals(this.getIBAN())) {
 			throw new SameAccountTransferException();
-		} else if (this.closed || destination.getClosed()) {
+		} else if (super.isClosed() || destination.isClosed()) {
 			throw new ClosedAccountTransferException();
 		}
 
@@ -573,7 +577,7 @@ public class BankAccount implements database.DBObject {
 		t.saveToDB();
 		this.saveToDB();
 		destination.saveToDB();
-		InterestHandler.setLowestNegativeDailyReachMapEntry(IBAN, balance);
+		InterestHandler.setLowestNegativeDailyReachMapEntry(super.getIBAN(), super.getBalance());
 	}
 
 	/**
@@ -583,10 +587,10 @@ public class BankAccount implements database.DBObject {
 	 */
 	public boolean exceedsLimit(double amount, LimitType limitType) {
 		if (limitType == LimitType.OVERDRAFT_LIMIT) {
-			return balance - amount < overdraftLimit * -1;
+			return super.getBalance() - amount < overdraftLimit * -1;
 		} 
 		
-		if (limitType == LimitType.DEBITCARD_LIMIT) {
+		if (limitType == LimitType.DEBIT_CARD_LIMIT) {
 			return exceedsDebitCardLimit(amount);
 		} 
 		
@@ -616,7 +620,7 @@ public class BankAccount implements database.DBObject {
 		try {
 			SQLiteDB.connectionLock.lock();
 			con = SQLiteDB.openConnection();
-			statement = con.prepareStatement("SELECT sum(amount) FROM transactions WHERE source_IBAN = '" + IBAN + 
+			statement = con.prepareStatement("SELECT sum(amount) FROM transactions WHERE source_IBAN = '" + super.getIBAN() + 
 					"' AND date_time_milis >= " + firstDay.getTimeInMillis() + " AND date_time_milis < " + today.getTimeInMillis());
 			result = statement.executeQuery();
 			result.next();
@@ -659,7 +663,7 @@ public class BankAccount implements database.DBObject {
 		try {
 			SQLiteDB.connectionLock.lock();
 			con = SQLiteDB.openConnection();
-			statement = con.prepareStatement("SELECT sum(amount) FROM transactions WHERE source_IBAN = '" + IBAN + 
+			statement = con.prepareStatement("SELECT sum(amount) FROM transactions WHERE source_IBAN = '" + super.getIBAN() + 
 					"' AND date_time LIKE '% " + thisMonthDisplayName + " " + today.get(Calendar.DAY_OF_MONTH) + " % " + today.get(Calendar.YEAR) + "'  AND pin_transaction = 1");
 			result = statement.executeQuery();
 			result.next();
@@ -696,7 +700,7 @@ public class BankAccount implements database.DBObject {
 		if (amount <= 0) {
 			throw new IllegalAmountException(amount);
 		}
-		balance -= amount;
+		super.setBalance(super.getBalance() - (float)amount);
 	}
 
 	/**
@@ -708,7 +712,7 @@ public class BankAccount implements database.DBObject {
 		if (amount <= 0) {
 			throw new IllegalAmountException(amount);
 		}
-		balance += amount;
+		super.setBalance(super.getBalance() + (float)amount);
 	}
 
 	/**
@@ -734,35 +738,36 @@ public class BankAccount implements database.DBObject {
 	 * @throws IllegalAccountCloseException
 	 */
 	public void close() throws IllegalAccountCloseException {
-		if (balance != 0) {
-			throw new IllegalAccountCloseException(IBAN, balance, false);
+		CreditAccount creditAccount = null;
+		try {
+			creditAccount = (CreditAccount) DataManager.getObjectByPrimaryKey(CreditAccount.CLASSNAME, super.getIBAN());
+		} catch (ObjectDoesNotExistException e) {
+			// All fine if credit account does note exist, no need to close
+		}
+		if (super.getBalance() != 0) {
+			throw new IllegalAccountCloseException(super.getIBAN(), "Bank account has a non-zero balance of " + super.getBalance() + ".");
 		} else if (savingsAccount.getBalance() != 0) {
-			throw new IllegalAccountCloseException(IBAN, balance, true);
+			throw new IllegalAccountCloseException(super.getIBAN(), "Savings account has a non-zero balance of " + savingsAccount.getBalance() + ".");
+		} else if (creditAccount != null && !creditAccount.isClosed()) {
+			throw new IllegalAccountCloseException(super.getIBAN(), "Credit account is not closed.");
 		}
 
 		setClosed(true);
 		savingsAccount.setClosed(true);
+		savingsAccount.saveToDB();
+		
+		DebitCard db = getDebitCards().get(0);
+		db.setBlocked(true);
+		db.saveToDB();
 
-	}
-
-	public void setIBAN(String IBAN) {
-		this.IBAN = IBAN;
 	}
 
 	public void setOverdraftLimit(double overdraftLimit) {
 		this.overdraftLimit = overdraftLimit;
 	}
 
-	public void setBalance(float balance) {
-		this.balance = balance;
-	}
-
 	public void setMainHolderBSN(String BSN) {
 		mainHolderBSN = BSN;
-	}
-
-	public void setClosed(boolean closed) {
-		this.closed = closed;
 	}
 
 	public void setSavingsAccount(SavingsAccount savingsAccount) {
@@ -792,45 +797,14 @@ public class BankAccount implements database.DBObject {
 		return savingsAccount;
 	}
 
-	@Column(name = "balance")
-	public float getBalance() {
-		return balance;
-	}
-
-	@Id
-	@Column(name = "IBAN")
-	public String getIBAN() {
-		return IBAN;
-	}
-
 	@Column(name = "customer_BSN")
 	public String getMainHolderBSN() {
 		return mainHolderBSN;
 	}
 
-	@Column(name = "closed")
-	public boolean getClosed() {
-		return closed;
-	}
-
 	@Column(name = "overdraftlimit")
 	public double getOverdraftLimit() {
 		return overdraftLimit;
-	}
-
-	@Transient
-	public String getPrimaryKeyName() {
-		return PRIMARYKEYNAME;
-	}
-
-	@Transient
-	public String getPrimaryKeyVal() {
-		return IBAN;
-	}
-
-	@Transient
-	public String getClassName() {
-		return CLASSNAME;
 	}
 
 	@ManyToMany(fetch = FetchType.EAGER, mappedBy = "bankAccounts")
@@ -868,10 +842,6 @@ public class BankAccount implements database.DBObject {
 		ingAccount.setBankAccounts(bankAccountSet);
 		ingAccount.saveToDB();
 		ingBankAccount.saveToDB();
-	}
-
-	public void saveToDB() {
-		DataManager.save(this);
 	}
 
 	public void deleteFromDB() {
