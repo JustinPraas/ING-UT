@@ -85,6 +85,9 @@ public class MessageHandler {
 			case "OPEN_ADDITIONAL_ACCOUNT":
 				openAdditionalAccount();
 				break;
+			case "REQUEST_CREDIT_CARD":
+				requestCreditCard(parameters);
+				break;
 			case "PAY_BY_CARD":
 				payFromAccount(parameters);
 				break;
@@ -123,9 +126,6 @@ public class MessageHandler {
 				break;
 			case "OPEN_SAVINGS_ACCOUNT":
 				openSavingsAccount(parameters);
-				break;
-			case "CLOSE_SAVINGS_ACCOUNT":
-				closeSavingsAccount(parameters);
 				break;
 			case "SET_OVERDRAFT_LIMIT":
 				setOverdraftLimit(parameters);
@@ -193,6 +193,34 @@ public class MessageHandler {
 	}
 
 	/**
+	 * Extension 11: 'Credit card' related.
+	 * Requests a credit card for the given bank account.
+	 */
+	private void requestCreditCard(String parameters) {
+		String parameterArray[] = parameters.split(":");
+		String method = "requestCreditCard";
+		HashMap<String, Object> params = new HashMap<>();
+		
+		if (parameterArray.length != 1) {
+			System.err.println("Please enter the requested parameters.");
+			return;
+		}
+
+		params.put("authToken", AUTHTOKEN);
+		params.put("iBAN", parameterArray[0]);
+		
+		// Send the request and check for success
+		HashMap<Boolean, JSONRPC2Response> response = sendRequest(method, params);
+		if (response.containsKey(true)) {
+			@SuppressWarnings("unchecked")
+			HashMap<String, Object> results = (HashMap<String, Object>) response.get(true).getResult();
+			System.out.println("Succesfully requested a credit card. Credit card info: \n"
+					+ "Card number: " + results.get("pinCard") + "\n"
+					+ "Pin code: " + results.get("pinCode"));			
+		}
+	}
+
+	/**
 	 * Extension 12: 'Administrative User (3)' related.
 	 * Sets the value for the banking system.
 	 */
@@ -211,22 +239,11 @@ public class MessageHandler {
 		params.put("value", parameterArray[1]);
 		params.put("date", parameterArray[2]);
 		
-		JSONRPC2Request request = new JSONRPC2Request(method, params,
-				"request-" + java.lang.System.currentTimeMillis());
-		String resp = sendToServer(request);
-		try {
-			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
-			if (!jResp.indicatesSuccess()) {
-				System.out.printf("Error " + jResp.getError().getCode() + ": " + jResp.getError().getMessage());
-				if (jResp.getError().getData() != null) {
-					System.out.println((String) jResp.getError().getData());
-				}
-				return;
-			}
+		// Send the request and check for success
+		HashMap<Boolean, JSONRPC2Response> response = sendRequest(method, params);
+		if (response.containsKey(true)) {
 			System.out.println("System will update the value " + 
-					parameterArray[0] + " to " + parameterArray[1] + " on " + parameterArray[2] + ".");
-		} catch (JSONRPC2ParseException e) {
-			System.out.println("Discarded invalid JSON-RPC response from server.");
+					parameterArray[0] + " to " + parameterArray[1] + " on " + parameterArray[2] + ".");			
 		}		
 	}
 
@@ -247,22 +264,11 @@ public class MessageHandler {
 		params.put("authToken", AUTHTOKEN);
 		params.put("iBAN", parameterArray[0]);
 		params.put("transferLimit", parameterArray[1]);
-		
-		JSONRPC2Request request = new JSONRPC2Request(method, params,
-				"request-" + java.lang.System.currentTimeMillis());
-		String resp = sendToServer(request);
-		try {
-			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
-			if (!jResp.indicatesSuccess()) {
-				System.out.printf("Error " + jResp.getError().getCode() + ": " + jResp.getError().getMessage());
-				if (jResp.getError().getData() != null) {
-					System.out.println((String) jResp.getError().getData());
-				}
-				return;
-			}
-			System.out.println("Transfer limit succesfully set to " + Double.parseDouble(parameterArray[1]) + ".");
-		} catch (JSONRPC2ParseException e) {
-			System.out.println("Discarded invalid JSON-RPC response from server.");
+
+		// Send the request and check for success
+		HashMap<Boolean, JSONRPC2Response> response = sendRequest(method, params);
+		if (response.containsKey(true)) {
+			System.out.println("Transfer limit succesfully set to " + Double.parseDouble(parameterArray[1]) + ".");		
 		}		
 	}
 	
@@ -278,30 +284,16 @@ public class MessageHandler {
 		}
 		params.put("beginDate", parameterArray[0]);
 		params.put("endDate", parameterArray[1]);
-		
-		JSONRPC2Request request = new JSONRPC2Request(method, params,
-				"request-" + java.lang.System.currentTimeMillis());
-		String resp = sendToServer(request);
-		try {
-			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
-			if (!jResp.indicatesSuccess()) {
-				System.out.printf("Error " + jResp.getError().getCode() + ": " + jResp.getError().getMessage());
-				if (jResp.getError().getData() != null) {
-					System.out.println((String) jResp.getError().getData());
-				}
-				return;
-			}
-			
+
+		// Send the request and check for success
+		HashMap<Boolean, JSONRPC2Response> response = sendRequest(method, params);
+		if (response.containsKey(true)) {
 			@SuppressWarnings("unchecked")
-			ArrayList<HashMap<String, Object>> results = (ArrayList<HashMap<String, Object>>) jResp.getResult();
-			
-			System.out.println("Error logs: " + results.size());
-			for (HashMap<String, Object> log : results) {
+			ArrayList<HashMap<String, Object>> logs = (ArrayList<HashMap<String, Object>>) response.get(true).getResult();			
+			System.out.println("Error logs: " + logs.size());
+			for (HashMap<String, Object> log : logs) {
 				System.out.println(log.get("timeStamp") + ": " + log.get("eventLog"));
-			}
-			
-		} catch (JSONRPC2ParseException e) {
-			System.out.println("Discarded invalid JSON-RPC response from server.");
+			}		
 		}
 	}
 	
@@ -320,29 +312,20 @@ public class MessageHandler {
 		}
 		params.put("authToken", AUTHTOKEN);
 		params.put("iBAN", parameterArray[0]);
-		
-		JSONRPC2Request request = new JSONRPC2Request(method, params,
-				"request-" + java.lang.System.currentTimeMillis());
-		String resp = sendToServer(request);
-		try {
-			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
-			if (!jResp.indicatesSuccess()) {
-				System.out.printf("Error " + jResp.getError().getCode() + ": " + jResp.getError().getMessage());
-				if (jResp.getError().getData() != null) {
-					System.out.println((String) jResp.getError().getData());
-				}
-				return;
-			}
-			System.out.println("Succesfully opened savings account for " + parameterArray[0]);
-		} catch (JSONRPC2ParseException e) {
-			System.out.println("Discarded invalid JSON-RPC response from server.");
-		}		
+
+		// Send the request and check for success
+		HashMap<Boolean, JSONRPC2Response> response = sendRequest(method, params);
+		if (response.containsKey(true)) {
+			System.out.println("Succesfully opened savings account for " + parameterArray[0]);		
+		}	
 	}
 	
 	/**
 	 * Extension 6: 'Savings account' related.
 	 * Closes a savings account for the given bank account.
 	 */
+	@SuppressWarnings("unused")
+	@Deprecated
 	private void closeSavingsAccount(String parameters) {
 		String parameterArray[] = parameters.split(":");
 		String method = "closeSavingsAccount";
@@ -354,22 +337,11 @@ public class MessageHandler {
 		}
 		params.put("authToken", AUTHTOKEN);
 		params.put("iBAN", parameterArray[0]);
-		
-		JSONRPC2Request request = new JSONRPC2Request(method, params,
-				"request-" + java.lang.System.currentTimeMillis());
-		String resp = sendToServer(request);
-		try {
-			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
-			if (!jResp.indicatesSuccess()) {
-				System.out.printf("Error " + jResp.getError().getCode() + ": " + jResp.getError().getMessage());
-				if (jResp.getError().getData() != null) {
-					System.out.println((String) jResp.getError().getData());
-				}
-				return;
-			}
-			System.out.println("Succesfully closed the savings account for " + parameterArray[0]);
-		} catch (JSONRPC2ParseException e) {
-			System.out.println("Discarded invalid JSON-RPC response from server.");
+
+		// Send the request and check for success
+		HashMap<Boolean, JSONRPC2Response> response = sendRequest(method, params);
+		if (response.containsKey(true)) {	
+			System.out.println("Succesfully closed the savings account for " + parameterArray[0]);		
 		}		
 	}
 	
@@ -398,22 +370,11 @@ public class MessageHandler {
 		params.put("authToken", AUTHTOKEN);
 		params.put("iBAN", parameterArray[0]);
 		params.put("overdraftLimit", amount);
-		
-		JSONRPC2Request request = new JSONRPC2Request(method, params,
-				"request-" + java.lang.System.currentTimeMillis());
-		String resp = sendToServer(request);
-		try {
-			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
-			if (!jResp.indicatesSuccess()) {
-				System.out.printf("Error " + jResp.getError().getCode() + ": " + jResp.getError().getMessage());
-				if (jResp.getError().getData() != null) {
-					System.out.println((String) jResp.getError().getData());
-				}
-				return;
-			}
+
+		// Send the request and check for success
+		HashMap<Boolean, JSONRPC2Response> response = sendRequest(method, params);
+		if (response.containsKey(true)) {		
 			System.out.println("Overdraft limit succesfully set to " + Double.parseDouble(parameterArray[1]) + ".");
-		} catch (JSONRPC2ParseException e) {
-			System.out.println("Discarded invalid JSON-RPC response from server.");
 		}		
 	}
 
@@ -433,27 +394,15 @@ public class MessageHandler {
 		
 		params.put("authToken", AUTHTOKEN);
 		params.put("iBAN", parameterArray[0]);
-		
-		JSONRPC2Request request = new JSONRPC2Request(method, params,
-				"request-" + java.lang.System.currentTimeMillis());
-		String resp = sendToServer(request);
-		try {
-			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
-			if (!jResp.indicatesSuccess()) {
-				System.out.printf("Error " + jResp.getError().getCode() + ": " + jResp.getError().getMessage());
-				if (jResp.getError().getData() != null) {
-					System.out.println((String) jResp.getError().getData());
-				}
-				return;
-			}
-			
+
+		// Send the request and check for success
+		HashMap<Boolean, JSONRPC2Response> response = sendRequest(method, params);
+		if (response.containsKey(true)) {
 			@SuppressWarnings("unchecked")
-			HashMap<String, Object> result = (HashMap<String, Object>) jResp.getResult();
-			String overdraftLimit = (String) result.get("overdraftLimit");
-			System.out.println("Overdraft limit for " + parameterArray[0] + " is " + overdraftLimit + ".");
-		} catch (JSONRPC2ParseException e) {
-			System.out.println("Discarded invalid JSON-RPC response from server.");
-		}		
+			HashMap<String, Object> results = (HashMap<String, Object>) response.get(true).getResult();
+			String overdraftLimit = (String) results.get("overdraftLimit");
+			System.out.println("Overdraft limit for " + parameterArray[0] + " is " + overdraftLimit + ".");			
+		}
 	}
 
 	/**
@@ -474,47 +423,23 @@ public class MessageHandler {
 		params.put("iBAN", parameterArray[0]);
 		params.put("pinCard", parameterArray[1]);
 
-		JSONRPC2Request request = new JSONRPC2Request(method, params,
-				"request-" + java.lang.System.currentTimeMillis());
-		String resp = sendToServer(request);
-		try {
-			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
-			if (!jResp.indicatesSuccess()) {
-				System.out.printf("Error " + jResp.getError().getCode() + ": " + jResp.getError().getMessage());
-				if (jResp.getError().getData() != null) {
-					System.out.println((String) jResp.getError().getData());
-				}
-				return;
-			}
-			System.out.println("Pin card succesfully unblocked.");
-		} catch (JSONRPC2ParseException e) {
-			System.out.println("Discarded invalid JSON-RPC response from server.");
+		// Send the request and check for success
+		HashMap<Boolean, JSONRPC2Response> response = sendRequest(method, params);
+		if (response.containsKey(true)) {	
+			System.out.println("Pin card succesfully unblocked.");	
 		}
 	}
 	
 	private void getDate() {
 		String method = "getDate";
 		HashMap<String, Object> params = new HashMap<>();
-		
-		JSONRPC2Request request = new JSONRPC2Request(method, params,
-				"request-" + java.lang.System.currentTimeMillis());
-		String resp = sendToServer(request);
-		try {
-			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
-			if (!jResp.indicatesSuccess()) {
-				System.out.printf("Error " + jResp.getError().getCode() + ": " + jResp.getError().getMessage());
-				if (jResp.getError().getData() != null) {
-					System.out.println((String) jResp.getError().getData());
-				}
-				return;
-			}
-			
+
+		// Send the request and check for success
+		HashMap<Boolean, JSONRPC2Response> response = sendRequest(method, params);
+		if (response.containsKey(true)) {
 			@SuppressWarnings("unchecked")
-			HashMap<String, Object> result = (HashMap<String, Object>) jResp.getResult();
-			System.out.println("The server's date is: " + (String) result.get("date"));
-			
-		} catch (JSONRPC2ParseException e) {
-			System.out.println("Discarded invalid JSON-RPC response from server.");
+			HashMap<String, Object> result = (HashMap<String, Object>) response.get(true).getResult();		
+			System.out.println("The server's date is: " + (String) result.get("date"));	
 		}
 	}
 	
@@ -522,22 +447,11 @@ public class MessageHandler {
 		String method = "reset";
 		HashMap<String, Object> params = new HashMap<>();
 		params.put("authToken", AUTHTOKEN);
-		
-		JSONRPC2Request request = new JSONRPC2Request(method, params,
-				"request-" + java.lang.System.currentTimeMillis());
-		String resp = sendToServer(request);
-		try {
-			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
-			if (!jResp.indicatesSuccess()) {
-				System.out.printf("Error " + jResp.getError().getCode() + ": " + jResp.getError().getMessage());
-				if (jResp.getError().getData() != null) {
-					System.out.println((String) jResp.getError().getData());
-				}
-				return;
-			}
-			System.out.println("Succesfully reset database and simulated time.");			
-		} catch (JSONRPC2ParseException e) {
-			System.out.println("Discarded invalid JSON-RPC response from server.");
+
+		// Send the request and check for success
+		HashMap<Boolean, JSONRPC2Response> response = sendRequest(method, params);
+		if (response.containsKey(true)) {
+			System.out.println("Succesfully reset database and simulated time.");
 		}
 	}
 
@@ -558,26 +472,13 @@ public class MessageHandler {
 		}
 		
 		params.put("nrOfDays", Integer.parseInt(parameterArray[0]));
-		
-		JSONRPC2Request request = new JSONRPC2Request(method, params,
-				"request-" + java.lang.System.currentTimeMillis());
-		String resp = sendToServer(request);
-		try {
-			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
-			if (!jResp.indicatesSuccess()) {
-				System.out.printf("Error " + jResp.getError().getCode() + ": " + jResp.getError().getMessage());
-				if (jResp.getError().getData() != null) {
-					System.out.println((String) jResp.getError().getData());
-				}
-				return;
-			}
-			System.out.println("Succesfully simulated " + parameterArray[0] + " days ahead.");		
-		} catch (JSONRPC2ParseException e) {
-			System.out.println("Discarded invalid JSON-RPC response from server.");
-		}
-		
+
+		// Send the request and check for success
+		HashMap<Boolean, JSONRPC2Response> response = sendRequest(method, params);
+		if (response.containsKey(true)) {		
+			System.out.println("Succesfully simulated " + parameterArray[0] + " days ahead.");	
+		}		
 	}
-	
 	
 	@SuppressWarnings("rawtypes")
 	private void getBankAccountAccess(String parameters) {
@@ -588,28 +489,15 @@ public class MessageHandler {
 		params.put("authToken", AUTHTOKEN);
 		params.put("iBAN", parameterArray[0]);
 
-		JSONRPC2Request request = new JSONRPC2Request(method, params,
-				"request-" + java.lang.System.currentTimeMillis());
-		String resp = sendToServer(request);
-		try {
-			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
-			if (!jResp.indicatesSuccess()) {
-				System.out.printf("Error " + jResp.getError().getCode() + ": " + jResp.getError().getMessage());
-				if (jResp.getError().getData() != null) {
-					System.out.println((String) jResp.getError().getData());
-				}
-				return;
-			}
-
+		// Send the request and check for success
+		HashMap<Boolean, JSONRPC2Response> response = sendRequest(method, params);
+		if (response.containsKey(true)) {
 			System.out.println("The following users have access to the account:");
 			@SuppressWarnings("unchecked")
-			ArrayList<HashMap> users = (ArrayList<HashMap>) jResp.getResult();
-
+			ArrayList<HashMap> users = (ArrayList<HashMap>) response.get(true).getResult();
 			for (HashMap hm : users) {
 				System.out.print(hm.get("username") + ", ");
 			}
-		} catch (JSONRPC2ParseException e) {
-			System.out.println("Discarded invalid JSON-RPC response from server.");
 		}
 	}
 
@@ -622,33 +510,15 @@ public class MessageHandler {
 		params.put("authToken", AUTHTOKEN);
 		params.put("username", parameterArray[0]);
 
-		JSONRPC2Request request = new JSONRPC2Request(method, params,
-				"request-" + java.lang.System.currentTimeMillis());
-		String resp = sendToServer(request);
-		try {
-			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
-			if (!jResp.indicatesSuccess()) {
-				System.out.printf("Error " + jResp.getError().getCode() + ": " + jResp.getError().getMessage());
-				if (jResp.getError().getData() != null) {
-					System.out.println((String) jResp.getError().getData());
-				}
-				return;
-			}
-
+		// Send the request and check for success
+		HashMap<Boolean, JSONRPC2Response> response = sendRequest(method, params);
+		if (response.containsKey(true)) {
 			System.out.println("You have access to the following accounts:");
 			@SuppressWarnings("unchecked")
-			ArrayList<HashMap> transactions = (ArrayList<HashMap>) jResp.getResult();
-
+			ArrayList<HashMap> transactions = (ArrayList<HashMap>) response.get(true).getResult();
 			for (HashMap hm : transactions) {
 				System.out.printf("%-30s %s %n", "Owner: " + (String)hm.get("owner"), "IBAN: " + (String)hm.get("iBAN"));
-//				System.out.println("==============================");
-//				System.out.println("Owner: " + hm.get("owner"));
-//				System.out.println("IBAN: " + hm.get("iBAN"));
-//				System.out.println("==============================");
-//				System.out.println();
-			}
-		} catch (JSONRPC2ParseException e) {
-			System.out.println("Discarded invalid JSON-RPC response from server.");
+			}			
 		}
 	}
 
@@ -669,23 +539,10 @@ public class MessageHandler {
 			params.put("username", parameterArray[1]);
 		}
 
-		JSONRPC2Request request = new JSONRPC2Request(method, params,
-				"request-" + java.lang.System.currentTimeMillis());
-		String resp = sendToServer(request);
-
-		try {
-			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
-			if (!jResp.indicatesSuccess()) {
-				System.out.printf("Error " + jResp.getError().getCode() + ": " + jResp.getError().getMessage());
-				if (jResp.getError().getData() != null) {
-					System.out.println((String) jResp.getError().getData());
-				}
-				return;
-			}
-
-			System.out.println("Successfully revoked privileges.");
-		} catch (JSONRPC2ParseException e) {
-			System.out.println("Discarded invalid JSON-RPC response from server.");
+		// Send the request and check for success
+		HashMap<Boolean, JSONRPC2Response> response = sendRequest(method, params);
+		if (response.containsKey(true)) {
+			System.out.println("Successfully revoked privileges.");		
 		}
 	}
 
@@ -767,21 +624,10 @@ public class MessageHandler {
 		params.put("pinCode", PIN);
 		params.put("amount", amount);
 
-		JSONRPC2Request request = new JSONRPC2Request(method, params,
-				"request-" + java.lang.System.currentTimeMillis());
-		String resp = sendToServer(request);
-		try {
-			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
-			if (!jResp.indicatesSuccess()) {
-				System.out.printf("Error " + jResp.getError().getCode() + ": " + jResp.getError().getMessage());
-				if (jResp.getError().getData() != null) {
-					System.out.println((String) jResp.getError().getData());
-				}
-				return;
-			}
-			System.out.println("Payment successful.");
-		} catch (JSONRPC2ParseException e) {
-			System.out.println("Discarded invalid JSON-RPC response from server.");
+		// Send the request and check for success
+		HashMap<Boolean, JSONRPC2Response> response = sendRequest(method, params);
+		if (response.containsKey(true)) {		
+			System.out.println("Payment successful.");	
 		}
 	}
 
@@ -810,34 +656,19 @@ public class MessageHandler {
 		} else {
 			params.put("newPin", "NA");
 		}		
-		
-		JSONRPC2Request request = new JSONRPC2Request(method, params, 
-				"request-" + java.lang.System.currentTimeMillis());
-		
-		String resp = sendToServer(request);
-		
-		try {
-			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
-			if (!jResp.indicatesSuccess()) {
-				System.out.printf("Error " + jResp.getError().getCode() + ": " + jResp.getError().getMessage());
-				if (jResp.getError().getData() != null) {
-					System.out.println((String) jResp.getError().getData());
-				}
-				return;
-			}
-			
+
+		// Send the request and check for success
+		HashMap<Boolean, JSONRPC2Response> response = sendRequest(method, params);
+		if (response.containsKey(true)) {
 			@SuppressWarnings("unchecked")
-			HashMap<String, Object> results = (HashMap<String, Object>) jResp.getResult();
+			HashMap<String, Object> results = (HashMap<String, Object>) response.get(true).getResult();
 			String newPinCardNumber = (String)results.get("pinCard");
 			System.out.println("Pincard succesfully invalidated \nNew Pincard card obtained with number: " + newPinCardNumber);
 			
 			if (results.containsKey("pinCode")) {
 				String newPinCode = (String)results.get("pinCode");
 				System.out.println("New Pincode obtained: " + newPinCode);
-			}
-			
-		} catch (JSONRPC2ParseException e) {
-			System.out.println("Discarded invalid JSON-RPC response from server.");
+			}		
 		}
 	}
 
@@ -847,32 +678,28 @@ public class MessageHandler {
 	private void close(String parameters) {
 		String[] parameterArray = parameters.split(":");
 
-		if (parameterArray.length != 1) {
+		if (parameterArray.length != 2) {
 			System.err.println("Please enter the requested parameters.");
 			return;
+		}
+		
+		String type = parameterArray[0];
+		String returnIBAN = parameterArray[1];
+		if (type.equals("savings")) {
+			returnIBAN = returnIBAN + "S";
+		} else if (type.equals("credit")) {
+			returnIBAN = returnIBAN + "C";
 		}
 
 		String method = "closeAccount";
 		HashMap<String, Object> params = new HashMap<>();
 		params.put("authToken", AUTHTOKEN);
-		params.put("iBAN", parameterArray[0]);
+		params.put("iBAN", returnIBAN);
 
-		JSONRPC2Request request = new JSONRPC2Request(method, params,
-				"request-" + java.lang.System.currentTimeMillis());
-		String resp = sendToServer(request);
-
-		try {
-			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
-			if (!jResp.indicatesSuccess()) {
-				System.out.printf("Error " + jResp.getError().getCode() + ": " + jResp.getError().getMessage());
-				if (jResp.getError().getData() != null) {
-					System.out.println((String) jResp.getError().getData());
-				}
-				return;
-			}
-			System.out.println("Account closed successfully.");
-		} catch (JSONRPC2ParseException e) {
-			System.out.println("Discarded invalid JSON-RPC response from server.");
+		// Send the request and check for success
+		HashMap<Boolean, JSONRPC2Response> response = sendRequest(method, params);
+		if (response.containsKey(true)) {		
+			System.out.println("Account (type: " + type + ") closed successfully.");
 		}
 	}
 
@@ -903,31 +730,18 @@ public class MessageHandler {
 		params.put("iBAN", IBAN);		
 		params.put("nrOfTransactions", number);
 
-		JSONRPC2Request request = new JSONRPC2Request(method, params,
-				"request-" + java.lang.System.currentTimeMillis());
-		String resp = sendToServer(request);
-		try {
-			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
-			if (!jResp.indicatesSuccess()) {
-				System.out.printf("Error " + jResp.getError().getCode() + ": " + jResp.getError().getMessage());
-				if (jResp.getError().getData() != null) {
-					System.out.println((String) jResp.getError().getData());
-				}
-				return;
-			}
-
+		// Send the request and check for success
+		HashMap<Boolean, JSONRPC2Response> response = sendRequest(method, params);
+		if (response.containsKey(true)) {	
 			System.out.println("Transaction history:");
 			@SuppressWarnings("unchecked")
-			ArrayList<HashMap<String, Object>> transactions = (ArrayList<HashMap<String, Object>>) jResp.getResult();
+			ArrayList<HashMap<String, Object>> transactions = (ArrayList<HashMap<String, Object>>) response.get(true).getResult();
 			
 			System.out.printf("%-19s %-19s %-15s %-30s %-7s %-100s %n", "Source IBAN:", "Target IBAN:", "Target name:", "Date: ", "Amount:", "Description:");
 			for (HashMap<String, Object> hm : transactions) {
 				System.out.printf("%-19s %-19s %-15s %-30s %-7s %-100s %n", hm.get("sourceIBAN"), hm.get("targetIBAN"), 
 						(String) hm.get("targetName"), hm.get("date"), hm.get("amount"), hm.get("description"));
-			}
-		} catch (JSONRPC2ParseException e) {
-			e.printStackTrace();
-			System.out.println("Discarded invalid JSON-RPC response from server.");
+			}	
 		}
 	}
 
@@ -937,29 +751,18 @@ public class MessageHandler {
 		params.put("authToken", AUTHTOKEN);
 		params.put("iBAN", parameters);
 
-		JSONRPC2Request request = new JSONRPC2Request(method, params,
-				"request-" + java.lang.System.currentTimeMillis());
-		String resp = sendToServer(request);
-		try {
-			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
-			if (!jResp.indicatesSuccess()) {
-				System.out.printf("Error " + jResp.getError().getCode() + ": " + jResp.getError().getMessage());
-				if (jResp.getError().getData() != null) {
-					System.out.println((String) jResp.getError().getData());
-				}
-				return;
-			}
-
+		// Send the request and check for success
+		HashMap<Boolean, JSONRPC2Response> response = sendRequest(method, params);
+		if (response.containsKey(true)) {
 			@SuppressWarnings("unchecked")
-			HashMap<String, Object> results = (HashMap<String, Object>) jResp.getResult();
+			HashMap<String, Object> results = (HashMap<String, Object>) response.get(true).getResult();
 			System.out.println("Balance for account " + params.get("iBAN") + " is " + results.get("result"));
-			
-			if (results.containsKey("savingAccountBalance")) {
-				System.out.println("Balance for savings account is " + results.get("savingAccountBalance"));				
+			if (results.containsKey("savingsAccountBalance")) {
+				System.out.println("Balance for corresponding savings account: " + results.get("savingsAccountBalance"));
 			}
-
-		} catch (JSONRPC2ParseException e) {
-			System.out.println("Discarded invalid JSON-RPC response from server.");
+			if (results.containsKey("creditAccountBalance")) {
+				System.out.println("Balance for corresponding credit account: " + results.get("creditAccountBalance"));
+			}
 		}
 	}
 
@@ -985,22 +788,11 @@ public class MessageHandler {
 		params.put("username", username);
 		params.put("password", password);
 
-		JSONRPC2Request request = new JSONRPC2Request(method, params,
-				"request-" + java.lang.System.currentTimeMillis());
-		String resp = sendToServer(request);
-
-		try {
-			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
-
-			if (!jResp.indicatesSuccess()) {
-				System.out.printf("Error " + jResp.getError().getCode() + ": " + jResp.getError().getMessage());
-				if (jResp.getError().getData() != null) {
-					System.out.println((String) jResp.getError().getData());
-				}
-				return;
-			}
+		// Send the request and check for success
+		HashMap<Boolean, JSONRPC2Response> response = sendRequest(method, params);
+		if (response.containsKey(true)) {
 			@SuppressWarnings("unchecked")
-			HashMap<String, Object> results = (HashMap<String, Object>) jResp.getResult();
+			HashMap<String, Object> results = (HashMap<String, Object>) response.get(true).getResult();
 			AUTHTOKEN = (String) results.get("authToken");
 			userState = UserState.CONSUMER;
 			
@@ -1009,9 +801,7 @@ public class MessageHandler {
 				userState = UserState.ADMINISTRATOR;
 			}
 			
-			System.out.println("Authentication successful.");
-		} catch (JSONRPC2ParseException e) {
-			System.out.println("Discarded invalid JSON-RPC response from server.");
+			System.out.println("Authentication successful.");		
 		}
 	}
 
@@ -1057,22 +847,10 @@ public class MessageHandler {
 		params.put("amount", amount);
 		params.put("description", description);
 
-		JSONRPC2Request request = new JSONRPC2Request(method, params,
-				"request-" + java.lang.System.currentTimeMillis());
-		String resp = sendToServer(request);
-		try {
-			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
-			if (!jResp.indicatesSuccess()) {
-				System.out.printf("Error " + jResp.getError().getCode() + ": " + jResp.getError().getMessage());
-				if (jResp.getError().getData() != null) {
-					System.out.println((String) jResp.getError().getData());
-				}
-				return;
-			}
-
+		// Send the request and check for success
+		HashMap<Boolean, JSONRPC2Response> response = sendRequest(method, params);
+		if (response.containsKey(true)) {		
 			System.out.println("Transfer successful.");
-		} catch (JSONRPC2ParseException e) {
-			System.out.println("Discarded invalid JSON-RPC response from server.");
 		}
 	}
 
@@ -1110,23 +888,10 @@ public class MessageHandler {
 		params.put("pinCode", PIN);
 		params.put("amount", amount);
 
-		JSONRPC2Request request = new JSONRPC2Request(method, params,
-				"request-" + java.lang.System.currentTimeMillis());
-		String resp = sendToServer(request);
-
-		try {
-			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
-			if (!jResp.indicatesSuccess()) {
-				System.out.printf("Error " + jResp.getError().getCode() + ": " + jResp.getError().getMessage());
-				if (jResp.getError().getData() != null) {
-					System.out.println((String) jResp.getError().getData());
-				}
-				return;
-			}
-
+		// Send the request and check for success
+		HashMap<Boolean, JSONRPC2Response> response = sendRequest(method, params);
+		if (response.containsKey(true)) {		
 			System.out.println("Deposit successful.");
-		} catch (JSONRPC2ParseException e) {
-			System.out.println("Discarded invalid JSON-RPC response from server.");
 		}
 	}
 
@@ -1137,32 +902,20 @@ public class MessageHandler {
 	private void openAdditionalAccount() {
 		String method = "openAdditionalAccount";
 		HashMap<String, Object> params = new HashMap<>();
+		
 		params.put("authToken", AUTHTOKEN);
-		JSONRPC2Request request = new JSONRPC2Request(method, params,
-				"request-" + java.lang.System.currentTimeMillis());
-		String resp = sendToServer(request);
 
-		try {
-			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
-			if (!jResp.indicatesSuccess()) {
-				System.out.printf("Error " + jResp.getError().getCode() + ": " + jResp.getError().getMessage());
-				if (jResp.getError().getData() != null) {
-					System.out.println((String) jResp.getError().getData());
-				}
-				return;
-			}
-
+		// Send the request and check for success
+		HashMap<Boolean, JSONRPC2Response> response = sendRequest(method, params);
+		if (response.containsKey(true)) {	
 			@SuppressWarnings("unchecked")
-			HashMap<String, Object> results = (HashMap<String, Object>) jResp.getResult();
-
+			HashMap<String, Object> results = (HashMap<String, Object>) response.get(true).getResult();
 			String iBAN = (String) results.get("iBAN");
 			String pinCard = (String) results.get("pinCard");
 			String pinCode = (String) results.get("pinCode");
 			System.out.println("Your new IBAN is: " + iBAN);
 			System.out.println("Your new card number is: " + pinCard);
-			System.out.println("Your new PIN is: " + pinCode);
-		} catch (JSONRPC2ParseException e) {
-			System.out.println("Discarded invalid JSON-RPC response from server.");
+			System.out.println("Your new PIN is: " + pinCode);	
 		}
 	}
 
@@ -1219,24 +972,12 @@ public class MessageHandler {
 				return;
 			}
 			params.put("guardians", guardians);
-		}
-		
+		}		
 
-		JSONRPC2Request request = new JSONRPC2Request(method, params,
-				"request-" + java.lang.System.currentTimeMillis());
-		String resp = sendToServer(request);
-
-		try {
-			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
-			if (!jResp.indicatesSuccess()) {
-				System.out.printf("Error " + jResp.getError().getCode() + ": " + jResp.getError().getMessage());
-				if (jResp.getError().getData() != null) {
-					System.out.println((String) jResp.getError().getData());
-				}
-				return;
-			}
-
-			HashMap<String, Object> results = (HashMap<String, Object>) jResp.getResult();
+		// Send the request and check for success
+		HashMap<Boolean, JSONRPC2Response> response = sendRequest(method, params);
+		if (response.containsKey(true)) {
+			HashMap<String, Object> results = (HashMap<String, Object>) response.get(true).getResult();
 
 			String iBAN = (String) results.get("iBAN");
 			String pinCard = (String) results.get("pinCard");
@@ -1248,10 +989,7 @@ public class MessageHandler {
 			if (isChild) {
 				System.out.println("This account is a child bank account.");
 				System.out.println("Your guardians are: " + Arrays.toString(guardians));
-			}
-			
-		} catch (JSONRPC2ParseException e) {
-			System.out.println("Discarded invalid JSON-RPC response from server.");
+			}		
 		}
 	}
 
@@ -1275,5 +1013,37 @@ public class MessageHandler {
 		}
 
 		return null;
+	}
+
+	/**
+	 * Sends the requests and checks whether the request has been answered successfully. Returns 
+	 * a map with as key a boolean and value the response (if successful).
+	 * @param method the method name of the request
+	 * @param params the given parameters for the request
+	 * @return a map with key 'true' and the JSONRPC2Response if all went well, otherwise a
+	 * map with key 'false' and null as value.
+	 */
+	public HashMap<Boolean, JSONRPC2Response> sendRequest(String method, HashMap<String, Object> params) {
+		JSONRPC2Request request = new JSONRPC2Request(method, params,
+				"request-" + java.lang.System.currentTimeMillis());
+		String resp = sendToServer(request);
+		HashMap<Boolean, JSONRPC2Response> response = new HashMap<>();
+		try {
+			JSONRPC2Response jResp = JSONRPC2Response.parse(resp);
+			if (!jResp.indicatesSuccess()) {
+				System.out.printf("Error " + jResp.getError().getCode() + ": " + jResp.getError().getMessage());
+				if (jResp.getError().getData() != null) {
+					System.out.println((String) jResp.getError().getData());
+				}
+				response.put(false, null);
+				return response;
+			}
+			response.put(true, jResp);
+			return response;
+		} catch (JSONRPC2ParseException e) {
+			System.out.println("Discarded invalid JSON-RPC response from server.");
+			response.put(false, null);
+			return response;
+		}
 	}
 }
