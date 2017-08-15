@@ -80,6 +80,7 @@ public class TUI {
 			System.out.println("=====================================================================================================");
 			System.out.printf("%25s %1s %s %n", "Command:", "", "Parameters:");
 			System.out.printf("%25s %1s %s %n", "OPEN_ADDITIONAL_ACCOUNT", "", "");
+			System.out.printf("%25s %1s %s %n", "REQUEST_CREDIT_CARD", "", "<IBAN>");
 			System.out.printf("%25s %1s %s %n", "PAY_BY_CARD", "", "<sourceIBAN>:<targetIBAN>:<cardnumber>:<PIN>:<amount>");
 			System.out.printf("%25s %1s %s %n", "INVALIDATE_PIN_CARD", "", "<IBAN>:<nrOfPinCard>:<New Pin Code: yes | no>");
 			System.out.printf("%25s %1s %s %n", "DEPOSIT", "", "<IBAN>:<cardnumber>:<PIN>:<amount>");
@@ -90,13 +91,12 @@ public class TUI {
 			System.out.printf("%25s %1s %s %n", "REMOVE_OWNER", "", "<IBAN>[:username]");
 			System.out.printf("%25s %1s %s %n", "GET_USER_ACCESS", "", "");
 			System.out.printf("%25s %1s %s %n", "GET_BANK_ACCOUNT_ACCESS", "", "<IBAN>");
-			System.out.printf("%25s %1s %s %n", "CLOSE", "", "<IBAN>");
+			System.out.printf("%25s %1s %s %n", "CLOSE", "", "<bank | savings | credit>:<IBAN>");
 			System.out.printf("%25s %1s %s %n", "UNBLOCK_PINCARD", "", "<IBAN>:<cardNumber>");
 			System.out.printf("%25s %1s %s %n", "GET_OVERDRAFT_LIMIT", "", "<IBAN>");
 			System.out.printf("%25s %1s %s %n", "SET_OVERDRAFT_LIMIT", "", "<IBAN>:<overdraftLimit>");
 			System.out.printf("%25s %1s %s %n", "SET_TRANSFER_LIMIT", "", "<IBAN>:<transferLimit>");
 			System.out.printf("%25s %1s %s %n", "OPEN_SAVINGS_ACCOUNT", "", "<IBAN>");
-			System.out.printf("%25s %1s %s %n", "CLOSE_SAVINGS_ACCOUNT", "", "<IBAN>");
 			System.out.printf("%25s %1s %s %n", "GET_DATE", "", "");
 			System.out.printf("%25s %1s %s %n", "LOGOUT", "", "");
 			System.out.printf("%25s %1s %s %n", "EXIT", "", "");
