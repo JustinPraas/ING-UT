@@ -11,8 +11,8 @@ import database.SQLiteDB;
 
 public enum BankSystemValue {
 
-	CREDIT_CARD_MONTHLY_FEE		(0.0),
-	CREDIT_CARD_DEFAULT_CREDIT	(0.0),
+	CREDIT_CARD_MONTHLY_FEE		(5.0),
+	CREDIT_CARD_DEFAULT_CREDIT	(1000.0),
 	CARD_EXPIRATION_LENGTH		(4.0),
 	NEW_CARD_COST				(7.5),
 	CARD_USAGE_ATTEMPTS			(3.0),
@@ -42,12 +42,12 @@ public enum BankSystemValue {
 	public static void updateBankSystemValue(String key, String value) {
 		double amount = Double.parseDouble(value);
 		switch(key) {
-		/*case "CREDIT_CARD_MONTHLY_FEE":
-			// TODO: necessary extension not implemented yet
+		case "CREDIT_CARD_MONTHLY_FEE":
+			CREDIT_CARD_MONTHLY_FEE.setAmount(amount);
 			break;
 		case "CREDIT_CARD_DEFAULT_CREDIT":
-			//TODO: necessary extension not implemented yet
-			break;*/
+			CREDIT_CARD_DEFAULT_CREDIT.setAmount(amount);
+			break;
 		case "CARD_EXPIRATION_LENGTH":
 			CARD_EXPIRATION_LENGTH.setAmount(amount);
 			break;
@@ -83,8 +83,8 @@ public enum BankSystemValue {
 	}
 	
 	public static void reset() {
-		CREDIT_CARD_MONTHLY_FEE.setAmount(0.0);
-		CREDIT_CARD_DEFAULT_CREDIT.setAmount(0.0);
+		CREDIT_CARD_MONTHLY_FEE.setAmount(5.0);
+		CREDIT_CARD_DEFAULT_CREDIT.setAmount(1000.0);
 		CARD_EXPIRATION_LENGTH.setAmount(4.0);
 		NEW_CARD_COST.setAmount(7.5);
 		CARD_USAGE_ATTEMPTS.setAmount(3.0);
