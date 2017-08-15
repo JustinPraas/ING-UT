@@ -9,21 +9,14 @@ public class IllegalAccountCloseException extends Exception {
 	private static final long serialVersionUID = -554961888345835254L;
 	
 	private String IBAN;
-	private double balance;
-	private boolean isSavingsAccount;
+	private String message;
 	
-	public IllegalAccountCloseException(String IBAN, double balance, boolean isSavingsAccount) {
+	public IllegalAccountCloseException(String IBAN, String message) {
 		this.IBAN = IBAN;
-		this.balance = balance;
-		this.isSavingsAccount = isSavingsAccount;
+		this.message = message;
 	}
 
 	public String toString() {
-		if (!isSavingsAccount) {
-			return "Can not close account with IBAN " + IBAN + ". Account has a non-zero balance of " + balance + ".";
-		} else {
-			return "Can not close account with IBAN " + IBAN + ". Savings account contains money.";
-		}
-		
+		return "Can not close account (" + IBAN + "): " + message;
 	}
 }
