@@ -215,9 +215,14 @@ public class RequestValidator {
 		
 		// If the provided IBAN is invalid, stop and notify the client.
 		if (!InputValidator.isValidIBAN((String) params.get("iBAN"))) {
-			return invalidIBANResponse((String) params.get("iBAN"));
-		}
-		
+			String IBAN = (String) params.get("iBAN");
+			String shorterIBAN = IBAN.substring(0, IBAN.length() - 1);
+			if (InputValidator.isValidIBAN(shorterIBAN)) {
+				// DO NOTHING, ALL FINE
+			} else {
+				return invalidIBANResponse((String) params.get("iBAN"));
+			}			
+		}		
 		return null;
 	}
 
@@ -412,6 +417,11 @@ public class RequestValidator {
 			return invalidMethodParametersResponse();
 		}
 		
+		// If this is a bogus token, slap the client
+		if (!ServerHandler.getAccounts().containsKey((String) params.get("authToken"))) {
+			return invalidAuthTokenResponse();
+		}
+		
 		// If the IBAN is invalid, stop and notify the client
 		if (!InputValidator.isValidIBAN((String) params.get("iBAN"))) {
 			return invalidIBANResponse((String) params.get("iBAN"));
@@ -429,8 +439,13 @@ public class RequestValidator {
 	
 	public static Response isValidSavingsAccountRequest(HashMap<String, Object> params) {
 		// If we're missing required parameters, stop and notify the client
-		if (!(params.containsKey("authToken") && params.containsKey("iBAN"))) {
+		if (!params.containsKey("authToken") || !params.containsKey("iBAN")) {
 			return invalidMethodParametersResponse();
+		}
+		
+		// If this is a bogus token, slap the client
+		if (!ServerHandler.getAccounts().containsKey((String) params.get("authToken"))) {
+			return invalidAuthTokenResponse();
 		}
 		
 		// If the IBAN is invalid, stop and notify the client
@@ -443,8 +458,13 @@ public class RequestValidator {
 
 	public static Response isValidGetEventLogRequest(HashMap<String, Object> params) {
 		// If we're missing required parameters, stop and notify the client
-		if (!(params.containsKey("beginDate") || !params.containsKey("endDate")) || !params.containsKey("authToken")) {
+		if (!params.containsKey("beginDate") || !params.containsKey("endDate") || !params.containsKey("authToken")) {
 			return invalidMethodParametersResponse();
+		}
+		
+		// If this is a bogus token, slap the client
+		if (!ServerHandler.getAccounts().containsKey((String) params.get("authToken"))) {
+			return invalidAuthTokenResponse();
 		}
 		
 		DateFormat fm = new SimpleDateFormat("yyyy-MM-dd");
@@ -468,8 +488,13 @@ public class RequestValidator {
 
 	public static Response isValidSetValueRequest(HashMap<String, Object> params) {
 		// If we're missing required parameters, stop and notify the client
-		if (!(params.containsKey("authToken") || !params.containsKey("key")) || !params.containsKey("value") || !params.containsKey("date")) {
+		if (!params.containsKey("authToken") || !params.containsKey("key") || !params.containsKey("value") || !params.containsKey("date")) {
 			return invalidMethodParametersResponse();
+		}
+		
+		// If this is a bogus token, slap the client
+		if (!ServerHandler.getAccounts().containsKey((String) params.get("authToken"))) {
+			return invalidAuthTokenResponse();
 		}
 		
 		DateFormat fm = new SimpleDateFormat("yyyy-MM-dd");
@@ -478,6 +503,24 @@ public class RequestValidator {
 		} catch (ParseException e) {
 			String err = ServerHandler.buildError(418, "One or more parameter has an invalid value. See message.", "The given date is not in the format yyyy-MM-dd");
 			return ServerHandler.respondError(err, 500);
+		}
+		
+		return null;
+	}
+
+	public static Response isValidRequestCreditCardRequest(HashMap<String, Object> params) {
+		// If we're missing required parameters, stop and notify the client
+		if (!params.containsKey("authToken") || !params.containsKey("iBAN")) {
+			return invalidMethodParametersResponse();
+		}
+		
+		// If this is a bogus token, slap the client
+		if (!ServerHandler.getAccounts().containsKey((String) params.get("authToken"))) {
+			return invalidAuthTokenResponse();
+		}
+		
+		if (!InputValidator.isValidIBAN((String) params.get("iBAN"))) {
+			return invalidIBANResponse((String) params.get("iBAN"));			
 		}
 		
 		return null;
