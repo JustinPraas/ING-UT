@@ -15,9 +15,12 @@ import org.hibernate.criterion.Restrictions;
 import org.hibernate.query.Query;
 
 import accounts.BankAccount;
+import accounts.CreditAccount;
 import accounts.CustomerAccount;
-import accounts.DebitCard;
 import accounts.SavingsAccount;
+import cards.Card;
+import cards.CreditCard;
+import cards.DebitCard;
 import exceptions.ObjectDoesNotExistException;
 import logging.Logger;
 import server.rest.TimeEvent;
@@ -41,9 +44,12 @@ public class DataManager {
     	cfg = new Configuration();
     	cfg.configure(CFGPATH);
     	cfg.addAnnotatedClass(DebitCard.class);
+    	cfg.addAnnotatedClass(CreditCard.class);
+    	cfg.addAnnotatedClass(Card.class);
     	cfg.addAnnotatedClass(BankAccount.class);
     	cfg.addAnnotatedClass(CustomerAccount.class);
     	cfg.addAnnotatedClass(SavingsAccount.class);
+    	cfg.addAnnotatedClass(CreditAccount.class);
     	cfg.addAnnotatedClass(accounts.Transaction.class);
     	cfg.addAnnotatedClass(logging.Log.class);
     	cfg.addAnnotatedClass(server.rest.TimeEvent.class);
@@ -204,8 +210,10 @@ public class DataManager {
 		session.createNativeQuery("DROP TABLE bankaccounts").executeUpdate();
 		session.createNativeQuery("DROP TABLE customerbankaccounts").executeUpdate();
 		session.createNativeQuery("DROP TABLE debitcards").executeUpdate();
+		session.createNativeQuery("DROP TABLE creditcards").executeUpdate();
 		session.createNativeQuery("DROP TABLE transactions").executeUpdate();
 		session.createNativeQuery("DROP TABLE savingsaccounts").executeUpdate();
+		session.createNativeQuery("DROP TABLE creditaccounts").executeUpdate();
 		session.createNativeQuery("DROP TABLE logs").executeUpdate();
 		session.createNativeQuery("DROP TABLE timeevents").executeUpdate();
 		t.commit();
@@ -221,16 +229,22 @@ public class DataManager {
 		int year = c.get(Calendar.YEAR);
 		int month = c.get(Calendar.MONTH) + 1;
 		String date = year + "-" + month + "-01";
-		TimeEvent timeEvent = new TimeEvent();
-		timeEvent.setName("TRANSFER_LIMIT_UPDATE");
+		TimeEvent transferLimitUpdateEvent = new TimeEvent();
+		TimeEvent creditCardMonthlyResetEvent = new TimeEvent();
+		transferLimitUpdateEvent.setName("TRANSFER_LIMIT_UPDATE");
+		creditCardMonthlyResetEvent.setName("CREDIT_CARD_RESET");
 		try {
-			timeEvent.setTimestamp(Logger.parseDateToMillis(date, "yyyy-MM-dd"));
+			creditCardMonthlyResetEvent.setTimestamp(Logger.parseDateToMillis(date, "yyyy-MM-dd"));
+			transferLimitUpdateEvent.setTimestamp(Logger.parseDateToMillis(date, "yyyy-MM-dd"));
 		} catch (ParseException e) {
 			e.printStackTrace();
 		}
-		timeEvent.setExecuted(false);
-		timeEvent.setDescription("Update the transfer limits for concerning bank accounts");
-		timeEvent.saveToDB();
+		creditCardMonthlyResetEvent.setExecuted(false);
+		transferLimitUpdateEvent.setExecuted(false);
+		creditCardMonthlyResetEvent.setDescription("Update the credit cards the base balance and subtract fees.");
+		transferLimitUpdateEvent.setDescription("Update the transfer limits for concerning bank accounts");
+		creditCardMonthlyResetEvent.saveToDB();
+		transferLimitUpdateEvent.saveToDB();
 		
 	}
 }
