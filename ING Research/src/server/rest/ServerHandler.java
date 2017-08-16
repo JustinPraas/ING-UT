@@ -1618,13 +1618,7 @@ public class ServerHandler {
 			return invalidRequest;
 		}		
 		
-		String authToken = (String) params.get("authToken");		
-		
-		// An admin can not transfer money
-		if (isAdministrativeUser(authToken)) {
-			String err = buildError(500, "An administrator can not transfer money.");
-			return respondError(err);
-		}
+		String authToken = (String) params.get("authToken");
 		
 		String sourceIBAN = (String) params.get("sourceIBAN");
 		boolean isSourceSavingsAccount = sourceIBAN.charAt(sourceIBAN.length() - 1) == 'S' ? true : false;
@@ -1647,7 +1641,8 @@ public class ServerHandler {
 		BankAccount destination = null;
 		boolean authorized = false;		
 		
-		customerAccount = accounts.get(authToken);		
+		customerAccount = accounts.get(authToken);
+		boolean isAdmin = customerAccount.getUsername().equals("admin");
 		try {
 			source = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, sourceIBAN);
 			destination = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, targetIBAN);
@@ -1657,7 +1652,7 @@ public class ServerHandler {
 		}
 		
 		// Check if the transferer owns the source bank account
-		if (customerAccount.getBSN().equals(source.getMainHolderBSN())) {
+		if (customerAccount.getBSN().equals(source.getMainHolderBSN()) || isAdmin) {
 			authorized = true;
 		} else {
 			for (CustomerAccount c : source.getOwners()) {
