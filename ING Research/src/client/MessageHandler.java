@@ -169,12 +169,17 @@ public class MessageHandler {
 			case "GET_BANK_ACCOUNT_ACCESS":
 				getBankAccountAccess(parameters);
 				break;
+			case "TRANSFER":
+				transfer(parameters);
+				break;
 			case "GET_BALANCE":
 				getBalance(parameters);
 				break;
 			case "TRANSACTION_OVERVIEW":
 				getTransactionsOverview(parameters);
 				break;
+			case "TRANSFER_BANK_ACCOUNT":
+				transferBankAccount(parameters);
 			case "LOGOUT":
 				logout(parameters);
 				break;
@@ -190,6 +195,27 @@ public class MessageHandler {
 		AUTHTOKEN = "";
 		userState = UserState.NO_USER;
 		System.out.println("Logout successful.");
+	}
+
+	private void transferBankAccount(String parameters) {
+		String parameterArray[] = parameters.split(":");
+		String method = "transferBankAccount";
+		HashMap<String, Object> params = new HashMap<>();
+		
+		if (parameterArray.length != 2) {
+			System.err.println("Please enter the requested parameters.");
+			return;
+		}
+
+		params.put("authToken", AUTHTOKEN);
+		params.put("iBAN", parameterArray[0]);
+		params.put("username", parameterArray[1]);
+
+		// Send the request and check for success
+		HashMap<Boolean, JSONRPC2Response> response = sendRequest(method, params);
+		if (response.containsKey(true)) {
+			System.out.println("Succesfully transfered the bank account to: " + parameterArray[1]);			
+		}	
 	}
 
 	/**
