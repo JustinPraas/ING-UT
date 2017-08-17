@@ -115,6 +115,7 @@ public class TUI {
 			System.out.printf("%25s %1s %s %n", "TRANSFER", "", "<sourceIBAN>:<destinationIBAN>:<targetName>:<amount>:<description>");
 			System.out.printf("%25s %1s %s %n", "GET_BALANCE", "", "<IBAN>");
 			System.out.printf("%25s %1s %s %n", "TRANSFER_BANK_ACCOUNT", "", "<IBAN>:<username of the new owner>");
+			System.out.printf("%25s %1s %s %n", "FREEZE_BANK_ACCOUNT", "", "<IBAN>:<true for freeze, false for unfreeze>");
 			System.out.printf("%25s %1s %s %n", "LOGOUT", "", "");
 			System.out.printf("%25s %1s %s %n", "EXIT", "", "");
 			break;
