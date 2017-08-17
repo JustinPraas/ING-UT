@@ -81,6 +81,7 @@ public class BankAccount extends Account {
 	private String accountType;
 	private Set<CustomerAccount> owners = new HashSet<CustomerAccount>();
 	private SavingsAccount savingsAccount;
+	private boolean frozen;
 	private double overdraftLimit;
 	private double transferLimit;
 
@@ -127,6 +128,7 @@ public class BankAccount extends Account {
 		this.transferLimit = BankSystemValue.WEEKLY_TRANSFER_LIMIT.getAmount();
 		this.savingsAccount = new SavingsAccount(this);
 		this.savingsAccount.saveToDB();
+		this.setFrozen(false);
 	}
 
 	/**
@@ -154,6 +156,7 @@ public class BankAccount extends Account {
 			this.savingsAccount = new SavingsAccount(this);
 			this.savingsAccount.saveToDB();
 		}
+		this.setFrozen(false);
 	}
 
 	public void addOwner(CustomerAccount owner) {
@@ -780,6 +783,15 @@ public class BankAccount extends Account {
 
 	public void setAccountType(String accountType) {
 		this.accountType = accountType;
+	}
+
+	public void setFrozen(boolean frozen) {
+		this.frozen = frozen;
+	}
+
+	@Column(name = "frozen")
+	public boolean isFrozen() {
+		return frozen;
 	}
 
 	@Column(name = "accounttype")
