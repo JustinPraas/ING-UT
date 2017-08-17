@@ -180,6 +180,10 @@ public class MessageHandler {
 				break;
 			case "TRANSFER_BANK_ACCOUNT":
 				transferBankAccount(parameters);
+				break;
+			case "FREEZE_BANK_ACCOUNT":
+				freezeBankAccount(parameters);
+				break;
 			case "LOGOUT":
 				logout(parameters);
 				break;
@@ -195,6 +199,37 @@ public class MessageHandler {
 		AUTHTOKEN = "";
 		userState = UserState.NO_USER;
 		System.out.println("Logout successful.");
+	}
+
+	private void freezeBankAccount(String parameters) {
+		String parameterArray[] = parameters.split(":");
+		String method = "setFreezeUserAccount";
+		HashMap<String, Object> params = new HashMap<>();
+		
+		if (parameterArray.length != 2) {
+			System.err.println("Please enter the requested parameters.");
+			return;
+		}
+		
+		boolean freeze = false;
+		if (parameterArray[1].equals("true")) {
+			freeze = true;
+		} else if (parameterArray[1].equals("false")) {
+			freeze = false;
+		} else {
+			System.err.println("Can't parse boolean from the given parameters.");
+			return;
+		}
+
+		params.put("authToken", AUTHTOKEN);
+		params.put("iBAN", parameterArray[0]);
+		params.put("freeze", freeze);
+
+		// Send the request and check for success
+		HashMap<Boolean, JSONRPC2Response> response = sendRequest(method, params);
+		if (response.containsKey(true)) {
+			System.out.println("Succesfully " + (freeze ? "froze" : "unfroze") + " bank account: " + parameterArray[0]);			
+		}
 	}
 
 	private void transferBankAccount(String parameters) {
