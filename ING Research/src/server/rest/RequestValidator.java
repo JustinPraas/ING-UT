@@ -526,6 +526,41 @@ public class RequestValidator {
 		return null;
 	}
 
+	public static Response isValidTransferBankAcccountRequest(HashMap<String, Object> params) {
+		// If we're missing required parameters, stop and notify the client
+		if (!params.containsKey("authToken") || !params.containsKey("iBAN") || !params.containsKey("username")) {
+			return invalidMethodParametersResponse();
+		}
+		
+		// If this is a bogus token, slap the client
+		if (!ServerHandler.getAccounts().containsKey((String) params.get("authToken"))) {
+			return invalidAuthTokenResponse();
+		}
+		
+		if (!InputValidator.isValidIBAN((String) params.get("iBAN"))) {
+			return invalidIBANResponse((String) params.get("iBAN"));			
+		}
+		
+		return null;
+	}
+
+	public static Response isValidFreezeAccountRequest(HashMap<String, Object> params) {
+		// If we're missing required parameters, stop and notify the client
+		if (!params.containsKey("authToken") || !params.containsKey("iBAN") || !params.containsKey("freeze")) {
+			return invalidMethodParametersResponse();
+		}
+		
+		// If this is a bogus token, slap the client
+		if (!ServerHandler.getAccounts().containsKey((String) params.get("authToken"))) {
+			return invalidAuthTokenResponse();
+		}
+		
+		if (!InputValidator.isValidIBAN((String) params.get("iBAN"))) {
+			return invalidIBANResponse((String) params.get("iBAN"));			
+		}
+		return null;
+	}
+
 	public static boolean userOwnsBankAccount(CustomerAccount customerAccount, BankAccount bankAccount) {
 		for (BankAccount b : customerAccount.getBankAccounts()) {
 			if (b.getIBAN().equals(bankAccount.getIBAN())) {
