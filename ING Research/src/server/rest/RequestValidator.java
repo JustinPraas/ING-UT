@@ -546,7 +546,7 @@ public class RequestValidator {
 
 	public static Response isValidFreezeAccountRequest(HashMap<String, Object> params) {
 		// If we're missing required parameters, stop and notify the client
-		if (!params.containsKey("authToken") || !params.containsKey("iBAN") || !params.containsKey("freeze")) {
+		if (!params.containsKey("authToken") || !params.containsKey("username") || !params.containsKey("freeze")) {
 			return invalidMethodParametersResponse();
 		}
 		
@@ -555,9 +555,6 @@ public class RequestValidator {
 			return invalidAuthTokenResponse();
 		}
 		
-		if (!InputValidator.isValidIBAN((String) params.get("iBAN"))) {
-			return invalidIBANResponse((String) params.get("iBAN"));			
-		}
 		return null;
 	}
 

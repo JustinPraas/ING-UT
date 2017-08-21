@@ -47,6 +47,7 @@ public class CustomerAccount implements database.DBObject {
 	private String initials;
 	private String username;
 	private String password;
+	private boolean frozen;
 	private Set<BankAccount> bankAccounts = new HashSet<BankAccount>();
 	public static final String CLASSNAME = "accounts.CustomerAccount";
 	public static final String PRIMARYKEYNAME = "BSN";
@@ -74,6 +75,7 @@ public class CustomerAccount implements database.DBObject {
 		this.setInitials(initials);
 		this.setUsername(username);
 		this.setPassword(password);
+		this.setFrozen(false);
 	}
 	
 	public CustomerAccount() {
@@ -245,8 +247,17 @@ public class CustomerAccount implements database.DBObject {
 		return username;
 	}
 
+	@Column(name = "frozen")
+	public boolean isFrozen() {
+		return frozen;
+	}
+
 	public void setUsername(String username) {
 		this.username = username;
+	}
+
+	public void setFrozen(boolean frozen) {
+		this.frozen = frozen;
 	}
 
 	@Column (name = "password")

@@ -196,7 +196,7 @@ public class ServerHandler {
 		}
 		
 		String authToken = (String) params.get("authToken");
-		String IBAN = (String) params.get("iBAN");	
+		String username = (String) params.get("username");	
 		boolean freeze = (boolean) params.get("freeze");
 		
 		// An non-administrator can not set the bank system values
@@ -205,23 +205,21 @@ public class ServerHandler {
 			return respondError(err);
 		}
 		
-		// Check if the bank account exists
-		BankAccount bankAccount;
-		try {
-			bankAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, IBAN);
-		} catch (ObjectDoesNotExistException e) {
-			String error = buildError(500, "A bank acccount with the IBAN " + IBAN + " does not exist.");
+		// Check if the customer account exists
+		CustomerAccount customerAccount = CustomerAccount.getAccountByName(username);
+		if (customerAccount == null){
+			String error = buildError(500, "A user acccount with the username " + username + " does not exist.");
 			return respondError(error);
 		}
 		
-		// Check if the bank account is already frozen or not
-		if (bankAccount.isFrozen() == freeze) {
-			String error = buildError(420, "The action has no effect. See message.", "The bank account is already " + (freeze ? "frozen" : "unfrozen") + ".");
+		// Check if the customer account is already frozen or not
+		if (customerAccount.isFrozen() == freeze) {
+			String error = buildError(420, "The action has no effect. See message.", "The customer account is already " + (freeze ? "frozen" : "unfrozen") + ".");
 			return respondError(error);
 		}
 		
-		bankAccount.setFrozen(freeze);
-		bankAccount.saveToDB();
+		customerAccount.setFrozen(freeze);
+		customerAccount.saveToDB();
 		
 		return sendEmptyResult(jReq.getMethod());
 	}
@@ -325,8 +323,8 @@ public class ServerHandler {
 		}
 		
 		// If the account is frozen, notify the client
-		if (bankAccount.isFrozen()) {
-			String error = buildError(500, "Bank account is frozen. Action can not be performed.");
+		if (customerAccount.isFrozen()) {
+			String error = buildError(500, "Customer account is frozen. Action can not be performed.");
 			return respondError(error);
 		}
 		
@@ -471,8 +469,8 @@ public class ServerHandler {
 		}
 		
 		// If the account is frozen, notify the client
-		if (bankAccount.isFrozen()) {
-			String error = buildError(500, "Bank account is frozen. Action can not be performed.");
+		if (customerAccount.isFrozen()) {
+			String error = buildError(500, "Customer account is frozen. Action can not be performed.");
 			return respondError(error);
 		}
 		
@@ -556,10 +554,10 @@ public class ServerHandler {
 			String err = buildError(500, "A child can not open a savings account.");
 			return respondError(err);
 		}
-		
+
 		// If the account is frozen, notify the client
-		if (bankAccount.isFrozen()) {
-			String error = buildError(500, "Bank account is frozen. Action can not be performed.");
+		if (customerAccount.isFrozen()) {
+			String error = buildError(500, "Customer account is frozen. Action can not be performed.");
 			return respondError(error);
 		}
 		
@@ -723,10 +721,10 @@ public class ServerHandler {
 			String err = buildError(419, "The authenticated user is not authorized to perform this action. Overdraft limit cannot be changed for a child bank account.");
 			return respondError(err);
 		}
-		
+
 		// If the account is frozen, notify the client
-		if (bankAccount.isFrozen()) {
-			String error = buildError(500, "Bank account is frozen. Action can not be performed.");
+		if (customerAccount.isFrozen()) {
+			String error = buildError(500, "Customer account is frozen. Action can not be performed.");
 			return respondError(error);
 		}
 		
@@ -760,23 +758,26 @@ public class ServerHandler {
 			return invalidRequest;
 		}
 
+		String authToken = (String) params.get("authToken");
 		String IBAN = (String) params.get("iBAN");
 		String pinCard = (String) params.get("pinCard");	
 		
 		DebitCard debitCard;
 		BankAccount bankAccount;
+		CustomerAccount customerAccount = accounts.get(authToken);
+
+		// If the account is frozen, notify the client
+		if (customerAccount.isFrozen()) {
+			String error = buildError(500, "Customer account is frozen. Action can not be performed.");
+			return respondError(error);
+		}
+		
 		try {
 			debitCard = (DebitCard) DataManager.getObjectByPrimaryKey(DebitCard.CLASSNAME, pinCard);
 			bankAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, IBAN);
 		} catch (ObjectDoesNotExistException e) {
 			String err = buildError(418, "One or more parameter has an invalid value. See message.", e.toString());
 			return respondError(err);
-		}
-		
-		// If the account is frozen, notify the client
-		if (bankAccount.isFrozen()) {
-			String error = buildError(500, "Bank account is frozen. Action can not be performed.");
-			return respondError(error);
 		}
 		
 		// Check if pin card is linked with IBAN
@@ -1122,21 +1123,27 @@ public class ServerHandler {
 		}
 		
 		// If the user IS authorized, open a new account under his user account.
-		CustomerAccount acc = accounts.get(authToken);
+		CustomerAccount customerAccount = accounts.get(authToken);
 		
 		// A child can not open multiple accounts
-		if (CustomerAccount.isYoungerThan(18, acc)) {
+		if (CustomerAccount.isYoungerThan(18, customerAccount)) {
 			String err = buildError(419, "The authenticated user is not authorized to perform this action. A child can not open multiple bank accounts.");
 			return respondError(err);
 		}
 		
-		BankAccount bAcc = acc.openBankAccount();
-		DebitCard card = new DebitCard(acc.getBSN(), bAcc.getIBAN(), DebitCard.generateCardNumber());
+		// If the account is frozen, notify the client
+		if (customerAccount.isFrozen()) {
+			String error = buildError(500, "Customer account is frozen. Action can not be performed.");
+			return respondError(error);
+		}
+		
+		BankAccount bAcc = customerAccount.openBankAccount();
+		DebitCard card = new DebitCard(customerAccount.getBSN(), bAcc.getIBAN(), DebitCard.generateCardNumber());
 		String IBAN = bAcc.getIBAN();
 		String pinCard = card.getCardNumber();
 		String pinCode = card.getPIN();
-		acc.addBankAccount(bAcc);
-		acc.saveToDB();
+		customerAccount.addBankAccount(bAcc);
+		customerAccount.saveToDB();
 		card.saveToDB();
 		
 		// Send the user the details of his new account and card
@@ -1168,7 +1175,7 @@ public class ServerHandler {
 			return invalidRequest;
 		}		
 		
-		CustomerAccount acc = accounts.get(authToken);
+		CustomerAccount customerAccount = accounts.get(authToken);
 		boolean found = false;
 		BankAccount bankAccount = null;
 
@@ -1179,13 +1186,19 @@ public class ServerHandler {
 		}
 		
 		// A child can not close an account
-		if (CustomerAccount.isYoungerThan(18, acc)) {
+		if (CustomerAccount.isYoungerThan(18, customerAccount)) {
 			String err = buildError(419, "A child can not close an account.");
 			return respondError(err);
 		}
 		
+		// If the account is frozen, notify the client
+		if (customerAccount.isFrozen()) {
+			String error = buildError(500, "Customer account is frozen. Action can not be performed.");
+			return respondError(error);
+		}
+		
 		// Look for the bank account
-		for (BankAccount b : acc.getBankAccounts()) {
+		for (BankAccount b : customerAccount.getBankAccounts()) {
 			if (b.getIBAN().equals(IBAN)) {
 				if (b.isClosed()) {
 					String err = buildError(420, "The action has no effect. See message.", "Account " + IBAN + " is already closed");
@@ -1194,10 +1207,10 @@ public class ServerHandler {
 				found = true;
 				try {
 					bankAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, IBAN);
-					
+
 					// If the account is frozen, notify the client
-					if (bankAccount.isFrozen()) {
-						String error = buildError(500, "Bank account is frozen. Action can not be performed.");
+					if (customerAccount.isFrozen()) {
+						String error = buildError(500, "Customer account is frozen. Action can not be performed.");
 						return respondError(error);
 					}
 				} catch (ObjectDoesNotExistException e) {
@@ -1209,12 +1222,12 @@ public class ServerHandler {
 		
 		// If the bank account doesn't exist under the authenticated user account, send an error
 		if (!found) {
-			String err = buildError(500, "No account found with the specified IBAN under user account " + acc.getUsername() + ".");
+			String err = buildError(500, "No account found with the specified IBAN under user account " + customerAccount.getUsername() + ".");
 			return respondError(err);
 		}
 		
 		// If the target account is not owned by the user, stop and notify the client
-		if (!acc.getBSN().equals(bankAccount.getMainHolderBSN()) ) {
+		if (!customerAccount.getBSN().equals(bankAccount.getMainHolderBSN()) ) {
 			String err = buildError(419, "The authenticated user is not authorized to perform this action. User does not own this account.");
 			Logger.addLogToDB(ServerModel.getServerCalendar().getTimeInMillis(), Type.WARNING, "Possible harmful activity: trying to manipulate information from another account.");
 			return respondError(err);
@@ -1231,7 +1244,7 @@ public class ServerHandler {
 		
 			// Check if this was the customer's last bank account
 			boolean lastAcc = true;
-			for (BankAccount b : acc.getBankAccounts()) {
+			for (BankAccount b : customerAccount.getBankAccounts()) {
 				if (!b.isClosed()) {
 					lastAcc = false;
 				}
@@ -1240,7 +1253,7 @@ public class ServerHandler {
 			// If this was the customer's last bank account, vaporize the customer
 			if (lastAcc) {
 				try {
-					acc.SQLdeleteFromDB();
+					customerAccount.SQLdeleteFromDB();
 				} catch (SQLException e) {
 					String err = buildError(500, "One or more parameter has an invalid value. See message.", "An SQL error occurred on the server.");
 					return respondError(err);
@@ -1319,7 +1332,7 @@ public class ServerHandler {
 			return invalidRequest;
 		}		
 		
-		CustomerAccount cAcc = accounts.get(authToken);
+		CustomerAccount customerAccount = accounts.get(authToken);
 		BankAccount bankAccount = null;
 		boolean found = false;
 		
@@ -1329,7 +1342,7 @@ public class ServerHandler {
 			return respondError(err);
 		}
 		
-		for (BankAccount b : cAcc.getBankAccounts()) {
+		for (BankAccount b : customerAccount.getBankAccounts()) {
 			if (b.getIBAN().equals(IBAN)) {
 				found = true;
 				bankAccount = b;
@@ -1338,7 +1351,7 @@ public class ServerHandler {
 		
 		// If we couldn't find the bank account, tell the client
 		if (!found) {
-			String err = buildError(500, "Could not find the specified bank account with IBAN " + IBAN + " under user account " + cAcc.getUsername() + ".");
+			String err = buildError(500, "Could not find the specified bank account with IBAN " + IBAN + " under user account " + customerAccount.getUsername() + ".");
 			return respondError(err);
 		}
 		
@@ -1347,15 +1360,15 @@ public class ServerHandler {
 			String err = buildError(419, "The authenticated user is not authorized to perform this action. A child can not provide access to the bank account.");
 			return respondError(err);
 		}
-		
+
 		// If the account is frozen, notify the client
-		if (bankAccount.isFrozen()) {
-			String error = buildError(500, "Bank account is frozen. Action can not be performed.");
+		if (customerAccount.isFrozen()) {
+			String error = buildError(500, "Customer account is frozen. Action can not be performed.");
 			return respondError(error);
 		}
 		
 		// If the sender is not the owner of the account, stop and notify the client
-		if (!bankAccount.getMainHolderBSN().equals(cAcc.getBSN())) {
+		if (!bankAccount.getMainHolderBSN().equals(customerAccount.getBSN())) {
 			String err = buildError(419, "The authenticated user is not authorized to perform this action. You are not the owner of this account.");
 			Logger.addLogToDB(ServerModel.getServerCalendar().getTimeInMillis(), Type.WARNING, "Possible harmful activity: trying to access information from another account.");
 			return respondError(err);
@@ -1430,11 +1443,11 @@ public class ServerHandler {
 			usernameSpecified = true;
 		}
 		
-		CustomerAccount cAcc = accounts.get(authToken);
+		CustomerAccount customerAccount = accounts.get(authToken);
 		BankAccount bankAccount = null;
 		boolean found = false;
 		
-		for (BankAccount b : cAcc.getBankAccounts()) {
+		for (BankAccount b : customerAccount.getBankAccounts()) {
 			if (b.getIBAN().equals(IBAN)) {
 				found = true;
 				bankAccount = b;
@@ -1452,21 +1465,21 @@ public class ServerHandler {
 			String err = buildError(419, "The authenticated user is not authorized to perform this action. A child can not provide access to the bank account.");
 			return respondError(err);
 		}
-		
+
 		// If the account is frozen, notify the client
-		if (bankAccount.isFrozen()) {
-			String error = buildError(500, "Bank account is frozen. Action can not be performed.");
+		if (customerAccount.isFrozen()) {
+			String error = buildError(500, "Customer account is frozen. Action can not be performed.");
 			return respondError(error);
 		}
 		
 		// If the user doesn't own the account he wants to revoke someone's access from, stop and notify the client
 		// Alternatively, if the user is trying to revoke his own privileges from an account he owns, stop and notify.
-		if (usernameSpecified && !bankAccount.getMainHolderBSN().equals(cAcc.getBSN())) {
+		if (usernameSpecified && !bankAccount.getMainHolderBSN().equals(customerAccount.getBSN())) {
 			String err = buildError(419, "The authenticated user is not authorized to perform this action. You don't have the right to revoke "
 					+ "someone's access from this account");
 			Logger.addLogToDB(ServerModel.getServerCalendar().getTimeInMillis(), Type.WARNING, "Possible harmful activity: trying to manipulate information from another account.");
 			return respondError(err);
-		} else if (!usernameSpecified && bankAccount.getMainHolderBSN().equals(cAcc.getBSN())) {
+		} else if (!usernameSpecified && bankAccount.getMainHolderBSN().equals(customerAccount.getBSN())) {
 			String err = buildError(500, "An unexpected error occured, see error details.", "You are the owner of account " + IBAN 
 					+ ", so you cannot revoke your own privileges.");
 			return respondError(err);
@@ -1576,12 +1589,6 @@ public class ServerHandler {
 			return respondError(err);
 		}
 		
-		// If the account is frozen, notify the client
-		if (bankAccount.isFrozen()) {
-			String error = buildError(500, "Bank account is frozen. Action can not be performed.");
-			return respondError(error);
-		}
-		
 		try {
 			bankAccount.deposit(amount, pinCard);
 		} catch (PinCardBlockedException e) {
@@ -1648,19 +1655,6 @@ public class ServerHandler {
 			}
 		}
 		
-		BankAccount bankAccount;
-		try {
-			bankAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, sourceIBAN);
-		} catch (ObjectDoesNotExistException e1) {
-			String error = buildError(500, "A bank acccount with the IBAN " + sourceIBAN + " does not exist.");
-			return respondError(error);
-		}
-		// If the account is frozen, notify the client
-		if (bankAccount.isFrozen()) {
-			String error = buildError(500, "Bank account is frozen. Action can not be performed.");
-			return respondError(error);
-		}
-		
 		// If the payment goes wrong, stop and report the exception
 		try {
 			card.pinPayment(amount, pinCode, targetIBAN);
@@ -1712,10 +1706,10 @@ public class ServerHandler {
 			return respondError(err);
 		}
 		boolean authorized = false;
-		
+
 		// If the account is frozen, notify the client
-		if (bankAccount.isFrozen()) {
-			String error = buildError(500, "Bank account is frozen. Action can not be performed.");
+		if (customerAccount.isFrozen()) {
+			String error = buildError(500, "Customer account is frozen. Action can not be performed.");
 			return respondError(error);
 		}
 		
@@ -1827,10 +1821,10 @@ public class ServerHandler {
 			String err = buildError(418, "One or more parameter has an invalid value. See message.", e.toString());
 			return respondError(err);
 		}
-		
+
 		// If the account is frozen, notify the client
-		if (source.isFrozen()) {
-			String error = buildError(500, "Bank account is frozen. Action can not be performed.");
+		if (customerAccount.isFrozen()) {
+			String error = buildError(500, "Customer account is frozen. Action can not be performed.");
 			return respondError(error);
 		}	
 		
