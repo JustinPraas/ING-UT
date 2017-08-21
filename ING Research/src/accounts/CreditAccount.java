@@ -121,11 +121,13 @@ public class CreditAccount extends Account {
 	
 	public void close() throws IllegalAccountCloseException {
 		if (super.getBalance() < 1000) {
-			throw new IllegalAccountCloseException(super.getIBAN(), "Credit account contains a balance less than 1000 euros: " + super.getBalance() + ".");
-		}
-		
-		this.setClosed(true);
-		
+			try {
+				bankAccount.transfer(this, 1000 - this.getBalance());
+			} catch (ClosedAccountTransferException | IllegalAmountException | ExceedLimitException e) {
+				throw new IllegalAccountCloseException(super.getIBAN(), "Credit account contains a balance less than 1000 euros: " + super.getBalance() + " and money could not be transfered from the main bank account.");
+			}			
+		}		
+		this.setClosed(true);		
 	}
 
 	@SuppressWarnings("unchecked")

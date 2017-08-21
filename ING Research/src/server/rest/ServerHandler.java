@@ -1279,12 +1279,6 @@ public class ServerHandler {
 				return respondError(err);
 			}
 			
-			// Set creditCard to inactive
-			if (creditCard.isActive()) {
-				creditCard.setActive(false);
-				creditCard.saveToDB();
-			}
-			
 			if (!creditAccount.isClosed()) {
 				try {
 					creditAccount.close();
@@ -1296,7 +1290,13 @@ public class ServerHandler {
 			} else {
 				String err = buildError(420, "The action has no effect. See message.", "Credit account for bank account with IBAN " + IBAN + " is already closed.");
 				return respondError(err);
-			}			
+			}
+			
+			// Set creditCard to inactive
+			if (creditCard.isActive()) {
+				creditCard.setActive(false);
+				creditCard.saveToDB();
+			}
 		}
 		
 		if (type == 'S') {

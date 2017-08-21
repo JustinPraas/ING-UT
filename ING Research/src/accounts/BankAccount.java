@@ -413,6 +413,38 @@ public class BankAccount extends Account {
 		InterestHandler.setLowestNegativeDailyReachMapEntry(super.getIBAN(), super.getBalance());
 	}
 
+	public void transfer(CreditAccount creditAccount, float amount) throws IllegalAmountException, ExceedLimitException, ClosedAccountTransferException {
+		if (amount <= 0) {
+			throw new IllegalAmountException(amount);
+		} else if (exceedsLimit(amount, LimitType.OVERDRAFT_LIMIT)) {
+			throw new ExceedLimitException(amount, this, LimitType.OVERDRAFT_LIMIT);
+		} else if (exceedsLimit(amount, LimitType.TRANSFER_LIMIT)) {
+			throw new ExceedLimitException(amount, this, LimitType.OVERDRAFT_LIMIT);
+		} else if (super.isClosed() || creditAccount.isClosed()) {
+			throw new ClosedAccountTransferException();
+		}
+
+		this.credit(amount);
+		creditAccount.debit(amount);
+		Calendar c = Calendar.getInstance();
+
+		// Add simulated days
+		c.add(Calendar.DATE, Client.getSimulatedDays());
+
+		String date = c.getTime().toString();
+		Transaction t = new Transaction();
+		t.setDateTime(date);
+		t.setDateTimeMilis(c.getTimeInMillis());
+		t.setSourceIBAN(this.getIBAN());
+		t.setDestinationIBAN(creditAccount.getIBAN() + "C");
+		t.setPinTransaction(false);
+		t.setAmount(amount);
+		t.setDescription("Transfer to " + creditAccount.getIBAN() + "C for it to be able to be closed.");
+		t.saveToDB();
+		this.saveToDB();
+		creditAccount.saveToDB();
+	}
+
 	/**
 	 * Transfers money from a PIN transaction to a destination account. Also
 	 * handles the negative interest credition. 
