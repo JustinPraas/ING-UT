@@ -768,8 +768,9 @@ public class ServerHandler {
 		String authToken = (String) params.get("authToken");
 		String IBAN = (String) params.get("iBAN");
 		String pinCard = (String) params.get("pinCard");	
+		boolean isCreditCard = pinCard.length() == 16;
 		
-		DebitCard debitCard;
+		Card card;
 		BankAccount bankAccount;
 		CustomerAccount customerAccount = accounts.get(authToken);
 
@@ -779,35 +780,63 @@ public class ServerHandler {
 			return respondError(error);
 		}
 		
-		try {
-			debitCard = (DebitCard) DataManager.getObjectByPrimaryKey(DebitCard.CLASSNAME, pinCard);
-			bankAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, IBAN);
-		} catch (ObjectDoesNotExistException e) {
-			String err = buildError(418, "One or more parameter has an invalid value. See message.", e.toString());
-			return respondError(err);
-		}
-		
-		// Check if pin card is linked with IBAN
-		boolean isLinked = false;
-		for (DebitCard dc : bankAccount.getDebitCards()) {
-			if (dc.getCardNumber().equals(pinCard)) {
-				isLinked = true;
-				break;
+		if (!isCreditCard) {
+			try {
+				card = (DebitCard) DataManager.getObjectByPrimaryKey(DebitCard.CLASSNAME, pinCard);
+				bankAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, IBAN);
+			} catch (ObjectDoesNotExistException e) {
+				String err = buildError(418, "One or more parameter has an invalid value. See message.", e.toString());
+				return respondError(err);
 			}
+			
+			// Check if pin card is linked with IBAN
+			boolean isLinked = false;
+			for (DebitCard dc : bankAccount.getDebitCards()) {
+				if (dc.getCardNumber().equals(pinCard)) {
+					isLinked = true;
+					break;
+				}
+			}
+			
+			if (!isLinked) {
+				String err = buildError(419, "The authenticated user is not authorized to perform this action. Pin card is not linked with this IBAN.");
+				Logger.addLogToDB(ServerModel.getServerCalendar().getTimeInMillis(), Type.WARNING, "Possible harmful activity: trying to manipulate information from another account.");
+				return respondError(err);
+			}
+		} else {
+			CreditAccount creditAccount;
+			try {
+				card = (CreditCard) DataManager.getObjectByPrimaryKey(CreditCard.CLASSNAME, pinCard);
+				creditAccount = (CreditAccount) DataManager.getObjectByPrimaryKey(CreditAccount.CLASSNAME, IBAN);
+			} catch (ObjectDoesNotExistException e) {
+				String err = buildError(418, "One or more parameter has an invalid value. See message.", e.toString());
+				return respondError(err);
+			}
+
+			
+			// Check if pin card is linked with IBAN
+			boolean isLinked = false;
+			for (CreditCard dc : creditAccount.getCreditCard()) {
+				if (dc.getCardNumber().equals(pinCard)) {
+					isLinked = true;
+					break;
+				}
+			}
+			
+			if (!isLinked) {
+				String err = buildError(419, "The authenticated user is not authorized to perform this action. Pin card is not linked with this IBAN.");
+				Logger.addLogToDB(ServerModel.getServerCalendar().getTimeInMillis(), Type.WARNING, "Possible harmful activity: trying to manipulate information from another account.");
+				return respondError(err);
+			}
+			
 		}
 		
-		if (!isLinked) {
-			String err = buildError(419, "The authenticated user is not authorized to perform this action. Pin card is not linked with this IBAN.");
-			Logger.addLogToDB(ServerModel.getServerCalendar().getTimeInMillis(), Type.WARNING, "Possible harmful activity: trying to manipulate information from another account.");
-			return respondError(err);
-		}
-		
-		if (debitCard.isBlocked()) {
-			debitCard.setBlocked(false);
-			debitCard.saveToDB();
+		if (card.isBlocked()) {
+			card.setBlocked(false);
+			card.saveToDB();
 			serverModel.getPreviousPinAttempts().remove(pinCard);
 		} else {
-			String err = buildError(420, "The action has no effect. See message.", "Pincard with number " + pinCard + " is not blocked.");
+			String err = buildError(420, "The action has no effect. See message.", "Credit card with number " + pinCard + " is not blocked.");
 			return respondError(err);
 		}		
 	
@@ -1691,12 +1720,13 @@ public class ServerHandler {
 		Response invalidRequest = RequestValidator.isValidInvalidateCardRequest(params);		
 		if (invalidRequest != null) {
 			return invalidRequest;
-		}			
+		}
 		
 		String authToken = (String) params.get("authToken");
 		String IBAN = (String) params.get("iBAN");
 		String pinCardNumber = (String) params.get("pinCard");
-		boolean newPinCode = (boolean) params.get("newPin");		
+		boolean newPinCode = (boolean) params.get("newPin");	
+		boolean isCreditCard = pinCardNumber.length() == 16;
 		
 		// An admin can not invalidate a card
 		if (isAdministrativeUser(authToken)) {
@@ -1735,51 +1765,95 @@ public class ServerHandler {
 			String err = buildError(419, "The authenticated user is not authorized to perform this action. You can not invalidate someone else's pin card.");
 			Logger.addLogToDB(ServerModel.getServerCalendar().getTimeInMillis(), Type.WARNING, "Possible harmful activity: trying to manipulate information from another account.");
 			return respondError(err);
-		}
-		
-		// If there is no such pincard for this bankAccount
-		List<DebitCard> debitCards = bankAccount.getDebitCards();
-		DebitCard currentDebitCard = null;
-		for (DebitCard db : debitCards) {
-			if (db.getCardNumber().equals(pinCardNumber)) {
-				currentDebitCard = db;
-				break;
-			}
-		}
-		
-		if (currentDebitCard == null) {
-			String err = buildError(419, "The authenticated user is not authorized to perform this action. The user has no access to such a pin card with number " + pinCardNumber);
-			Logger.addLogToDB(ServerModel.getServerCalendar().getTimeInMillis(), Type.WARNING, "Possible harmful activity: trying to manipulate information from another account.");
-			return respondError(err);
-		}
-		
-		DebitCard newDebitCard = null;
-		if (newPinCode) {
-			newDebitCard = new DebitCard(customerAccount.getBSN(), bankAccount.getIBAN(), DebitCard.generateCardNumber());
-		} else {
-			newDebitCard = new DebitCard(customerAccount.getBSN(), bankAccount.getIBAN(), currentDebitCard.getPIN(), DebitCard.generateCardNumber(), true);
-		}
-		
-		BankAccount feeDestinationBankAccount;
-		try {
-			feeDestinationBankAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, "NL36INGB8278309172");
-			bankAccount.transfer(feeDestinationBankAccount, BankSystemValue.NEW_CARD_COST.getAmount(), "Fee for new pincard", "ING");
-		} catch (ObjectDoesNotExistException | IllegalAmountException | IllegalTransferException | ExceedLimitException e) {
-			String err = buildError(500, "An unexpected error occured, see error details.", e.toString());
-			return respondError(err);
-		}
-		
-		
-		bankAccount.saveToDB();
-		newDebitCard.saveToDB();
-		currentDebitCard.deleteFromDB();
-		
-		// Send response
+		}		
+
 		HashMap<String, Object> resp = new HashMap<>();
-		resp.put("pinCard", newDebitCard.getCardNumber());
 		
-		if (newPinCode) {
-			resp.put("pinCode", newDebitCard.getPIN());
+		if (!isCreditCard) {
+
+			List<DebitCard> debitCards = bankAccount.getDebitCards();
+			DebitCard currentDebitCard = null;
+			for (DebitCard db : debitCards) {
+				if (db.getCardNumber().equals(pinCardNumber)) {
+					currentDebitCard = db;
+					break;
+				}
+			}
+			
+			if (currentDebitCard == null) {
+				String err = buildError(419, "The authenticated user is not authorized to perform this action. The user has no access to such a pin card with number " + pinCardNumber);
+				Logger.addLogToDB(ServerModel.getServerCalendar().getTimeInMillis(), Type.WARNING, "Possible harmful activity: trying to manipulate information from another account.");
+				return respondError(err);
+			}
+			
+			DebitCard newDebitCard = null;
+			if (newPinCode) {
+				newDebitCard = new DebitCard(customerAccount.getBSN(), bankAccount.getIBAN(), DebitCard.generateCardNumber());
+			} else {
+				newDebitCard = new DebitCard(customerAccount.getBSN(), bankAccount.getIBAN(), currentDebitCard.getPIN(), DebitCard.generateCardNumber(), true);
+			}
+			
+			BankAccount feeDestinationBankAccount;
+			try {
+				feeDestinationBankAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, BankAccount.ING_BANK_ACCOUNT_IBAN);
+				bankAccount.transfer(feeDestinationBankAccount, BankSystemValue.NEW_CARD_COST.getAmount(), "Fee for new pincard", "ING");
+			} catch (ObjectDoesNotExistException | IllegalAmountException | IllegalTransferException | ExceedLimitException e) {
+				String err = buildError(500, "An unexpected error occured, see error details.", e.toString());
+				return respondError(err);
+			}		
+			
+			bankAccount.saveToDB();
+			newDebitCard.saveToDB();
+			currentDebitCard.deleteFromDB();
+			resp.put("pinCard", newDebitCard.getCardNumber());
+			if (newPinCode) {
+				resp.put("pinCode", newDebitCard.getPIN());
+			}
+		} else {
+			CreditAccount creditAccount;
+			try {
+				creditAccount = (CreditAccount) DataManager.getObjectByPrimaryKey(CreditAccount.CLASSNAME, IBAN);
+			} catch (ObjectDoesNotExistException e) {
+				String err = buildError(418, "One or more parameter has an invalid value. See message.", e.toString());
+				return respondError(err);
+			}
+			List<CreditCard> creditCards = creditAccount.getCreditCard();
+			CreditCard currentCreditCard = null;
+			for (CreditCard cd : creditCards) {
+				if (cd.getCardNumber().equals(pinCardNumber)) {
+					currentCreditCard = cd;
+					break;
+				}
+			}
+			
+			if (currentCreditCard == null) {
+				String err = buildError(419, "The authenticated user is not authorized to perform this action. The user has no access to such a credit card with number " + pinCardNumber);
+				Logger.addLogToDB(ServerModel.getServerCalendar().getTimeInMillis(), Type.WARNING, "Possible harmful activity: trying to manipulate information from another account.");
+				return respondError(err);
+			}
+			
+			CreditCard newCreditCard = null;
+			if (newPinCode) {
+				newCreditCard = new CreditCard(customerAccount.getBSN(), bankAccount.getIBAN(), CreditCard.generateCardNumber());
+			} else {
+				newCreditCard = new CreditCard(customerAccount.getBSN(), bankAccount.getIBAN(), currentCreditCard.getPIN(), CreditCard.generateCardNumber());
+			}
+			newCreditCard.setActive(true);
+			
+			try {
+				creditAccount.transfer(BankAccount.ING_BANK_ACCOUNT_IBAN, BankSystemValue.NEW_CARD_COST.getAmount(), "Fee for new Credit card");
+			} catch (IllegalAmountException | IllegalTransferException | ExceedLimitException e) {
+				String err = buildError(500, "An unexpected error occured, see error details.", e.toString());
+				return respondError(err);
+			}	
+			
+			creditAccount.saveToDB();
+			newCreditCard.saveToDB();
+			currentCreditCard.deleteFromDB();
+			resp.put("pinCard", newCreditCard.getCardNumber());
+			if (newPinCode) {
+				resp.put("pinCode", newCreditCard.getPIN());
+			}
 		}
 		
 		JSONRPC2Response jResp = new JSONRPC2Response(resp, "response-" + java.lang.System.currentTimeMillis());

@@ -33,6 +33,11 @@ public class CreditCard extends Card implements database.DBObject {
 		this.active = false;		
 	}
 
+	public CreditCard(String holderBSN, String bankAccountIBAN, String pin, String cardNumber) {
+		super(pin, cardNumber, bankAccountIBAN, holderBSN);
+		this.active = false;	
+	}
+
 	public void pinPayment(double amount, String PIN, String destinationIBAN) throws CreditCardNotActiveException, InvalidPINException,
 	ClosedAccountTransferException, SameAccountTransferException, ExceedLimitException, IllegalAmountException, PinCardBlockedException {
 		CreditAccount ownAccount;
