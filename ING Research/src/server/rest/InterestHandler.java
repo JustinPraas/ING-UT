@@ -51,16 +51,16 @@ public class InterestHandler extends Thread {
 			Math.pow((1 + BankSystemValue.OVERDRAFT_INTEREST_RATE.getAmount()), (1 / 12)) - 1;
 
 	private static final double DAILY_INTEREST_RATE_RANGE_1 =
-			BankSystemValue.INTEREST_RATE_1.getAmount() / (365 * 100);
+			BankSystemValue.INTEREST_RATE_1.getAmount() / 365;
 	
 	private static final double DAILY_INTEREST_RATE_RANGE_2 = 
-			BankSystemValue.INTEREST_RATE_2.getAmount() / (365 * 100);
+			BankSystemValue.INTEREST_RATE_2.getAmount() / 365;
 	
 	private static final double DAILY_INTEREST_RATE_RANGE_3 = 
-			BankSystemValue.INTEREST_RATE_3.getAmount() / (365 * 100);
+			BankSystemValue.INTEREST_RATE_3.getAmount() / 365;
 	
 	private static final double CHILD_INTEREST_RATE = 
-			BankSystemValue.CHILD_INTEREST_RATE.getAmount() / (365 * 100);
+			BankSystemValue.CHILD_INTEREST_RATE.getAmount() / 365;
 	
 	/**
 	 * A map that keeps track of the lowest daily balances of accounts.

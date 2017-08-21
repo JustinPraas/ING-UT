@@ -414,10 +414,6 @@ public class ServerHandler {
 		case "CREDIT_CARD_DEFAULT_CREDIT":
 		case "NEW_CARD_COST":
 		case "MAX_OVERDRAFT_LIMIT":
-		case "INTEREST_RATE_1":
-		case "INTEREST_RATE_2":
-		case "INTEREST_RATE_3":
-		case "OVERDRAFT_INTEREST_RATE":
 		case "DAILY_WITHDRAW_LIMIT":
 		case "WEEKLY_TRANSFER_LIMIT":
 			if (InputValidator.isPositiveDouble(value)) {
@@ -426,6 +422,17 @@ public class ServerHandler {
 				return respondError(err);
 			}
 			break;
+		case "INTEREST_RATE_1":
+		case "INTEREST_RATE_2":
+		case "INTEREST_RATE_3":
+		case "OVERDRAFT_INTEREST_RATE":
+			if (InputValidator.isPositiveDouble(value)) {
+				if (Double.parseDouble(value) <= 1) {
+					t.setDescription(key + ":" + value);
+				}
+			} else {
+				return respondError(err);
+			}
 		default:
 			String error = buildError(500, "Unknown banking value key: " + key);
 			return respondError(error);
