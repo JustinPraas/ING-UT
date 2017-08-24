@@ -66,8 +66,6 @@ public class ServerHandler {
 	
 	// Handles the monthly interest
 	@SuppressWarnings("unused")
-	private static InterestHandler interestHandler = new InterestHandler();
-	@SuppressWarnings("unused")
 	private static TimeOperator timeOperator = new TimeOperator();
 	
 	@POST
@@ -582,6 +580,19 @@ public class ServerHandler {
 			// Check if savings account is closed
 			if (bankAccount.getSavingsAccount().isClosed()) {
 				bankAccount.getSavingsAccount().setClosed(false);
+				try {
+					Connection c = SQLiteDB.openConnection();
+					Statement s = c.createStatement();
+					String statement = "INSERT INTO balancereach (IBAN, savings, child, balance) VALUES ('" 
+							+ bankAccount.getSavingsAccount().getIBAN() + "', 1, 0, " + bankAccount.getSavingsAccount().getBalance() + ");";
+					s.executeUpdate(statement);
+					s.close();
+					c.close();
+				} catch (SQLException e) {
+					e.printStackTrace();
+					String error = buildError(500, "Something went wrong when inserting you into the database");
+					return respondError(error);
+				}
 				bankAccount.getSavingsAccount().saveToDB();
 				return sendEmptyResult(jReq.getMethod());
 			} else {
@@ -887,7 +898,6 @@ public class ServerHandler {
 		// Wipe all data from database
 		DataManager.wipeAllData();
 		ServerModel.reset();
-		InterestHandler.reset();
 		BankSystemValue.reset();
 		
 		return sendEmptyResult(jReq.getMethod());
@@ -1119,6 +1129,20 @@ public class ServerHandler {
 			}
 		}
 		
+		try {
+			Connection c = SQLiteDB.openConnection();
+			Statement s = c.createStatement();
+			String statement = "INSERT INTO balancereach (IBAN, savings, child, balance) VALUES ('" 
+					+ bankAcc.getIBAN() + "', 0, " + (isChild ? "1" : "0") + ", " + bankAcc.getBalance() + ");";
+			s.executeUpdate(statement);
+			s.close();
+			c.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+			String error = buildError(500, "Something went wrong when inserting you into the database");
+			return respondError(error);
+		}
+		
 		DebitCard card = new DebitCard(newAcc.getBSN(), bankAcc.getIBAN(), DebitCard.generateCardNumber());
 		newAcc.addBankAccount(bankAcc);
 		newAcc.saveToDB();
@@ -1173,14 +1197,32 @@ public class ServerHandler {
 			return respondError(error);
 		}
 		
-		BankAccount bAcc = customerAccount.openBankAccount();
-		DebitCard card = new DebitCard(customerAccount.getBSN(), bAcc.getIBAN(), DebitCard.generateCardNumber());
-		String IBAN = bAcc.getIBAN();
+		BankAccount bankAccount = customerAccount.openBankAccount();
+		DebitCard card = new DebitCard(customerAccount.getBSN(), bankAccount.getIBAN(), DebitCard.generateCardNumber());
+		String IBAN = bankAccount.getIBAN();
 		String pinCard = card.getCardNumber();
 		String pinCode = card.getPIN();
-		customerAccount.addBankAccount(bAcc);
+		customerAccount.addBankAccount(bankAccount);
+		
+		try {
+			Connection c = SQLiteDB.openConnection();
+			Statement s = c.createStatement();
+			String statement = "INSERT INTO balancereach (IBAN, savings, child, balance) VALUES ('" 
+					+ bankAccount.getIBAN() + "', 0, 0, " + bankAccount.getBalance() + ");";
+			s.executeUpdate(statement);
+			s.close();
+			c.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+			String error = buildError(500, "Something went wrong when inserting you into the database");
+			return respondError(error);
+		}
+		
 		customerAccount.saveToDB();
+		bankAccount.saveToDB();
 		card.saveToDB();
+		
+		
 		
 		// Send the user the details of his new account and card
 		HashMap<String, Object> resp = new HashMap<>();

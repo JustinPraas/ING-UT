@@ -215,7 +215,10 @@ public class DataManager {
 		session.createNativeQuery("DROP TABLE savingsaccounts").executeUpdate();
 		session.createNativeQuery("DROP TABLE creditaccounts").executeUpdate();
 		session.createNativeQuery("DROP TABLE logs").executeUpdate();
-		session.createNativeQuery("DROP TABLE timeevents").executeUpdate();
+		session.createNativeQuery("DROP TABLE balancereach").executeUpdate();
+		session.createNativeQuery("DROP TABLE childinterest").executeUpdate();
+		session.createNativeQuery("DROP TABLE negativeinterest").executeUpdate();
+		session.createNativeQuery("DROP TABLE savingsinterest").executeUpdate();
 		t.commit();
 		session.close();
 		init();

@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import client.Client;
+import interesthandler.InterestHandler;
 
 /**
  * A class that handles the writing and reading of config files or object files.

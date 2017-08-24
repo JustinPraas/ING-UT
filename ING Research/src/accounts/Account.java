@@ -64,9 +64,7 @@ public abstract class Account implements database.DBObject {
 	}
 
 	@Transient
-	public String getClassName() {
-		return CLASSNAME;
-	}
+	public abstract String getClassName();
 
 	@Override
 	public void saveToDB() {

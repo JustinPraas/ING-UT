@@ -31,11 +31,13 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 
 import exceptions.ClosedAccountTransferException;
 import exceptions.CreditCardNotActiveException;
 import exceptions.ExceedLimitException;
 import exceptions.ExceedLimitException.LimitType;
+import interesthandler.InterestHandler2;
 import exceptions.IllegalAccountCloseException;
 import exceptions.IllegalAmountException;
 import exceptions.IllegalTransferException;
@@ -44,7 +46,6 @@ import exceptions.ObjectDoesNotExistException;
 import exceptions.PinCardBlockedException;
 import exceptions.SameAccountTransferException;
 import server.rest.BankSystemValue;
-import server.rest.InterestHandler;
 import server.rest.ServerModel;
 
 /**
@@ -410,7 +411,6 @@ public class BankAccount extends Account {
 		t.saveToDB();
 		this.saveToDB();
 		destination.saveToDB();
-		InterestHandler.setLowestNegativeDailyReachMapEntry(super.getIBAN(), super.getBalance());
 	}
 
 	public void transfer(CreditAccount creditAccount, float amount) throws IllegalAmountException, ExceedLimitException, ClosedAccountTransferException {
@@ -514,7 +514,6 @@ public class BankAccount extends Account {
 			destination.debit(amount);
 			destination.saveToDB();
 		}
-		InterestHandler.setLowestNegativeDailyReachMapEntry(super.getIBAN(), super.getBalance());
 	}
 
 	/**
@@ -560,7 +559,6 @@ public class BankAccount extends Account {
 		t.saveToDB();
 		this.saveToDB();
 		destination.saveToDB();
-		InterestHandler.setLowestNegativeDailyReachMapEntry(super.getIBAN(), super.getBalance());
 	}
 
 	/**
@@ -609,7 +607,6 @@ public class BankAccount extends Account {
 		t.saveToDB();
 		this.saveToDB();
 		destination.saveToDB();
-		InterestHandler.setLowestNegativeDailyReachMapEntry(super.getIBAN(), super.getBalance());
 	}
 
 	/**
@@ -733,6 +730,7 @@ public class BankAccount extends Account {
 			throw new IllegalAmountException(amount);
 		}
 		super.setBalance(super.getBalance() - (float)amount);
+		InterestHandler2.updateBalanceReachEntry(this);
 	}
 
 	/**
@@ -881,5 +879,34 @@ public class BankAccount extends Account {
 			key.deleteFromDB();
 		}
 		DataManager.removeEntryFromDB(this);
+	}
+
+	@Transient
+	public String getClassName() {
+		return CLASSNAME;
+	}
+	
+	public static boolean isMainHolderChild(String mainHolderBSN) throws ObjectDoesNotExistException {
+		CustomerAccount customerAccount = (CustomerAccount) DataManager.getObjectByPrimaryKey(CustomerAccount.CLASSNAME, mainHolderBSN);
+		return CustomerAccount.isYoungerThan(18, customerAccount);
+	}
+
+	public static Double getAndRemoveChild18thBirthDayInteres(String IBAN) {
+		try {
+			Connection c = SQLiteDB.openConnection();
+			Statement s = c.createStatement();
+			ResultSet rs = s.executeQuery("SELECT balance FROM childinterest WHERE IBAN = '" + IBAN + "';");
+			s.executeUpdate("DELETE FROM childinterest WHERE IBAN = '" + IBAN + "';");
+			s.close();
+			c.close();
+			if (rs.next()) {
+				return rs.getDouble("balance");
+			} else {
+				return 0.0;
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return 0.0;
+		}
 	}
 }

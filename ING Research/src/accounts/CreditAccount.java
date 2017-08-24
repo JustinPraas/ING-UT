@@ -158,4 +158,9 @@ public class CreditAccount extends Account {
 	public void setOwnerBSN(String ownerBSN) {
 		this.customerBSN = ownerBSN;
 	}
+
+	@Transient
+	public String getClassName() {
+		return CLASSNAME;
+	}
 }

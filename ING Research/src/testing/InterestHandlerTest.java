@@ -14,7 +14,7 @@ import accounts.CustomerAccount;
 import accounts.SavingsAccount;
 import database.DataManager;
 import exceptions.ObjectDoesNotExistException;
-import server.rest.InterestHandler;
+import interesthandler.InterestHandler;
 import server.rest.ServerDataHandler;
 import server.rest.ServerModel;
 

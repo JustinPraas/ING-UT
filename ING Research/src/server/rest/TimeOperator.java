@@ -20,6 +20,7 @@ import database.DataManager;
 import database.SQLiteDB;
 import exceptions.IllegalAmountException;
 import exceptions.ObjectDoesNotExistException;
+import interesthandler.InterestHandler2;
 import logging.Logger;
 
 public class TimeOperator extends Thread {
@@ -59,7 +60,7 @@ public class TimeOperator extends Thread {
 			System.out.println("[INFO] Passing " + serverCalendar.getTime().toString());
 			serverCalendar.add(Calendar.DATE, 1);
 			System.out.println("[INFO] -> handling interest");
-			InterestHandler.handleInterest(serverCalendar);
+			InterestHandler2.handleInterest(serverCalendar);
 			System.out.println("[INFO] -> updating system");
 			updateSystem(serverCalendar);
 		}	
@@ -130,16 +131,13 @@ public class TimeOperator extends Thread {
 		
 		BankAccount ingBankAccount;
 		try {
-			Double positiveInterest = ServerDataHandler.getTotalPositiveInterestMap().get(IBAN);
-			
-			// Delete this IBAN's entry from the map
-			HashMap<String, Double> map = ServerDataHandler.getTotalPositiveInterestMap();
-			map.remove(IBAN);
-			ServerDataHandler.setTotalPositiveInterestMap(map);
+			Double positiveInterest = BankAccount.getAndRemoveChild18thBirthDayInteres(IBAN);
 			
 			// Transfer the money
 			ingBankAccount = (BankAccount) DataManager.getObjectByPrimaryKey(BankAccount.CLASSNAME, BankAccount.ING_BANK_ACCOUNT_IBAN);
 			ingBankAccount.transfer(IBAN, positiveInterest);
+			
+			// TODO remove child from child interest
 		} catch (ObjectDoesNotExistException e) {
 			e.printStackTrace();
 		}

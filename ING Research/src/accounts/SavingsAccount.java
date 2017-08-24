@@ -7,13 +7,14 @@ import javax.persistence.FetchType;
 import javax.persistence.OneToOne;
 import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 import database.DataManager;
 import exceptions.ClosedAccountTransferException;
 import exceptions.IllegalAmountException;
 import exceptions.IllegalTransferException;
 import exceptions.ObjectDoesNotExistException;
-import server.rest.InterestHandler;
+import interesthandler.InterestHandler2;
 import server.rest.ServerModel;
 
 @Entity
@@ -63,7 +64,6 @@ public class SavingsAccount extends Account {
 		t.saveToDB();
 		this.saveToDB();
 		bankAccount.saveToDB();
-		InterestHandler.setLowestPositiveDailyReachMapEntry(super.getIBAN(), super.getBalance());
 	}
 	
 	public void credit(double amount) throws IllegalAmountException {
@@ -71,6 +71,7 @@ public class SavingsAccount extends Account {
 			throw new IllegalAmountException(amount);
 		}
 		super.setBalance(super.getBalance() - (float) amount);
+		InterestHandler2.updateBalanceReachEntry(this);
 	}
 	
 	/**
@@ -93,5 +94,10 @@ public class SavingsAccount extends Account {
 
 	public void setBankAccount(BankAccount bankAccount) {
 		this.bankAccount = bankAccount;
+	}
+
+	@Transient
+	public String getClassName() {
+		return CLASSNAME;
 	}
 }
